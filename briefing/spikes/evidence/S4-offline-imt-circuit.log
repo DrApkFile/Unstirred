@@ -1,0 +1,4 @@
+test production_sentinel_adapter_accepts_odd_extra_nullifier_count ... ok
+test production_sentinel_path_verifies_in_circuit ... ok
+test spaced_leaf_and_production_sentinel_providers_agree ... ok
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 3 filtered out; finished in 3.46s

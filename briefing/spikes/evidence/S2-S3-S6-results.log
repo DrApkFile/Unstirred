@@ -1,0 +1,14 @@
+     Running tests/spend_authority_spike.rs (target/release/deps/spend_authority_spike-11d9004a6a5d5455)
+running 1 test
+test spend_authority_binding_accepts_holder_and_rejects_viewing_key_holder_and_replay ... S6 FINDING: a viewing-key holder can produce a VALID proof alone -> signature check is mandatory
+S6 PASS: holder's spend-key signature accepted
+S6 PASS: viewing-key-only attacker (no spend key) rejected (BAD_SIGNATURE)
+S6 PASS: replay to another session or stale challenge rejected
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 19.25s
+     Running tests/split_height_spike.rs (target/release/deps/split_height_spike-f029bbab359c1806)
+running 3 tests
+test held_note_proves_over_split_window_and_too_new_note_fails_against_h0_root ... S2 PASS: note existing at H0 and unspent at H1 verifies with (root@H0, imt@H1)
+S3 PASS: note created after H0 rejected (COINS_TOO_NEW)
+test markers_repeat_within_a_context_and_differ_across_contexts ... S3 PASS: marker repeats in one context regardless of window; differs across contexts
+test note_spent_inside_window_has_no_non_membership_proof_at_h1 ... S3 PASS: note spent between H0 and H1 cannot be proven unspent at H1
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 25.57s

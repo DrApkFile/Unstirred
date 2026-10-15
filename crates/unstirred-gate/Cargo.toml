@@ -1,0 +1,12 @@
+[package]
+name = "unstirred-gate"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+
+[dependencies]
+unstirred-core = { path = "../unstirred-core" }
+
+[lints]
+workspace = true

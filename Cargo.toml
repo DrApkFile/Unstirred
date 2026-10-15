@@ -1,0 +1,40 @@
+[workspace]
+resolver = "2"
+members = [
+    "crates/unstirred-core",
+    "crates/unstirred-prover",
+    "crates/unstirred-verifier",
+    "crates/unstirred-cli",
+    "crates/unstirred-gate",
+]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.91"
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/<owner>/unstirred"
+
+[workspace.dependencies]
+voting-circuits = { version = "=0.12.2", default-features = false, features = ["lrz"] }
+voting-crypto-deps = { version = "=0.2.4", default-features = false, features = ["lrz"] }
+blake2b_simd = "=1.0.4"
+serde = { version = "=1.0.228", features = ["derive"] }
+serde_json = "=1.0.151"
+hex = "=0.4.3"
+thiserror = "=2.0.20"
+
+[workspace.lints.rust]
+unsafe_code = "forbid"
+missing_debug_implementations = "warn"
+
+[workspace.lints.clippy]
+unwrap_used = "deny"
+expect_used = "deny"
+panic = "deny"
+dbg_macro = "deny"
+todo = "deny"
+unimplemented = "deny"
+
+[profile.release]
+debug = false

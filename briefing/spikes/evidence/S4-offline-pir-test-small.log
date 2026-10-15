@@ -1,0 +1,21 @@
+=== PIR Test: small (synthetic 1000 nullifiers) ===
+
+  517 ranges from 1000 nullifiers in 0.0s
+  PIR tree built in 0.0s (pir_root=ccef4b619d3fe987, circuit_root=8786750637eea08d)
+  Tier 0: 393184 bytes
+  Tier 1: 50331648 bytes
+  Exported in 0.0s
+  Proof 1/10: PASS (12.7ms) leaf_pos=492
+  Proof 2/10: PASS (12.3ms) leaf_pos=316
+  Proof 3/10: PASS (10.1ms) leaf_pos=418
+  Proof 4/10: PASS (10.3ms) leaf_pos=142
+  Proof 5/10: PASS (11.0ms) leaf_pos=91
+  Proof 6/10: PASS (8.4ms) leaf_pos=449
+  Proof 7/10: PASS (8.3ms) leaf_pos=97
+  Proof 8/10: PASS (9.2ms) leaf_pos=330
+  Proof 9/10: PASS (8.8ms) leaf_pos=102
+  Proof 10/10: PASS (9.6ms) leaf_pos=247
+
+  Summary: 10 passed, 0 failed
+
+=== PASSED in 0.2s ===

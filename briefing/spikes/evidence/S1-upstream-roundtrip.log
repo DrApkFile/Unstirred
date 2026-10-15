@@ -1,0 +1,3 @@
+test delegation::prove::prove_tests::real_proof_roundtrip ... ok
+test share_reveal::prove::tests::real_proof_roundtrip_stays_within_downstream_limit ... ok
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 260 filtered out; finished in 24.51s
