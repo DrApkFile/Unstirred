@@ -1,0 +1,16 @@
+wallet        /home/kingghidorah/Documents/projects/bounties/zecathon/wallet/data.sqlite (read-only)
+network       test
+context       holders-room
+window        h0 4505790 through h1 4506510
+pir server    http://localhost:3000
+expected root 8af0c16b82ff1c9170de5dc87b3c06ef3a7144befdba71fc40959effe9f5be26
+
+h1 Ironwood nullifier-set root  8af0c16b82ff1c9170de5dc87b3c06ef3a7144befdba71fc40959effe9f5be26
+
+selected notes
+  tree position  proven unspent at h1
+         552213  yes
+
+no nullifier was printed here or sent in the clear; each one was queried privately
+no transaction was created; the wallet was never opened for writing
+commit: 825c3e5  date: 2026-10-16T13:51:08Z  nf-server: valar v0.12.3 (upstream), re-export matched HEAD root
