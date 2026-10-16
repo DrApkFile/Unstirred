@@ -20,7 +20,7 @@ use crate::witness::IronwoodMerklePath;
 /// A wallet this process cannot write to: the value only exists once SQLite has confirmed the
 /// handle is read-only. No method on it can create a transaction.
 pub struct ReadOnlyWallet<P = ConsensusNetwork> {
-    db: WalletDb<Connection, P, (), ()>,
+    pub(crate) db: WalletDb<Connection, P, (), ()>,
     path: PathBuf,
 }
 

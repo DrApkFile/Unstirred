@@ -13,15 +13,15 @@ Work in progress. Nothing below is claimed until it links to a recorded run in `
 | Part | Status |
 |---|---|
 | `unstirred-core`: manifest, window rules, context derivation, verdict codes, binding message | Built; tests A07, A12, A13, A14 pass ([gate log](evidence/2026-10-16-gate-m1-step2.md)) |
-| `unstirred-prover` | Read-only wallet access, held-note listing, note selection, and h0 witness rebuild checked against the h0 root; tests A03, A04, A16-A21 pass on synthetic data ([gate log](evidence/2026-10-16-gate-m1-step2.md)), and `notes` has run against the real testnet wallet ([run](evidence/2026-10-16-notes-real-testnet.txt)). PIR, proving and signing not built yet (milestone M1) |
+| `unstirred-prover` | Read-only wallet access, held-note listing, note selection, h0 witness rebuild checked against the h0 root, and the private nullifier lookup at h1 through Valar's PIR client; tests A03, A04, A15, A15b, A16-A21 pass on synthetic data ([gate log](evidence/2026-10-16-gate-m1-step3.md)), and `notes` and `witness` have run against the real testnet wallet ([notes](evidence/2026-10-16-notes-real-testnet.txt), [witness](evidence/2026-10-16-witness-real-testnet.txt)). Proving and signing not built yet (milestone M1) |
 | `unstirred-verifier` | Not built yet (milestones M1-M2) |
-| `unstirred` CLI | `notes`, `witness`, `codes` and `--version` |
+| `unstirred` CLI | `notes`, `witness`, `lookup`, `codes` and `--version` |
 | `unstirred-gate` + Holders' Room page | Not built yet (milestone M3) |
 | Real testnet admission | Not yet run |
 
 No proof has been built yet.
 
-`unstirred notes` has run against the real testnet wallet, over h0 4,505,790 through h1 4,506,510: see [that run](evidence/2026-10-16-notes-real-testnet.txt). `unstirred witness` has only been exercised against synthetic Ironwood notes on a local test network; no live `GetTreeState` call is recorded yet.
+`unstirred notes` and `unstirred witness` have run against the real testnet wallet, over h0 4,505,790 through h1 4,506,510: see [notes](evidence/2026-10-16-notes-real-testnet.txt) and [witness](evidence/2026-10-16-witness-real-testnet.txt). `unstirred lookup` has only been exercised against a synthetic nullifier set and a local stand-in HTTP server; no live `nf-server` lookup is recorded yet.
 
 Feasibility spikes (split-height proofs, rejections, spend-key binding) passed before the build started; see `briefing/REALITY_SPIKES.md` and `briefing/spikes/evidence/`.
 

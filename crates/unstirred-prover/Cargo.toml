@@ -10,11 +10,22 @@ unstirred-core = { path = "../unstirred-core" }
 zcash_client_sqlite.workspace = true
 zcash_client_backend = { workspace = true, features = ["lightwalletd-tonic"] }
 zcash_protocol.workspace = true
+voting-circuits.workspace = true
 voting-crypto-deps.workspace = true
+pir-client.workspace = true
+pir-types.workspace = true
+serde_json.workspace = true
 incrementalmerkletree.workspace = true
 rusqlite.workspace = true
 hex.workspace = true
 tokio.workspace = true
+anyhow.workspace = true
+hyper.workspace = true
+hyper-util.workspace = true
+hyper-rustls.workspace = true
+http.workspace = true
+http-body-util.workspace = true
+bytes.workspace = true
 tonic.workspace = true
 thiserror.workspace = true
 
@@ -24,6 +35,7 @@ tempfile.workspace = true
 zcash_client_sqlite = { workspace = true, features = ["test-dependencies"] }
 zcash_client_backend = { workspace = true, features = ["test-dependencies"] }
 zcash_primitives.workspace = true
+zcash_protocol = { workspace = true, features = ["local-consensus"] }
 
 [lints]
 workspace = true

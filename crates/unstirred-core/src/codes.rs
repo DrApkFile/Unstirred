@@ -32,6 +32,7 @@ pub enum Code {
     InsufficientHeldBalance,
     PirUnavailable,
     TooManyNotesNeeded,
+    TreeStateUnavailable,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -44,7 +45,7 @@ pub struct CodeSpec {
 }
 
 impl Code {
-    pub const ALL: [Code; 15] = [
+    pub const ALL: [Code; 16] = [
         Code::ManifestInvalid,
         Code::WindowInvalid,
         Code::ContextMismatch,
@@ -60,6 +61,7 @@ impl Code {
         Code::InsufficientHeldBalance,
         Code::PirUnavailable,
         Code::TooManyNotesNeeded,
+        Code::TreeStateUnavailable,
     ];
 
     pub const fn spec(self) -> CodeSpec {
@@ -166,6 +168,13 @@ impl Code {
                 message:
                     "The private nullifier lookup service is unavailable. No proof was made and nothing was revealed.",
                 next_action: "Try again later. The prover never falls back to a plaintext query.",
+            },
+            Code::TreeStateUnavailable => CodeSpec {
+                wire_name: "TREE_STATE_UNAVAILABLE",
+                kind: Inconclusive,
+                retryable: true,
+                message: "Could not fetch the public tree state at h0. No proof was made and nothing was revealed.",
+                next_action: "Try again later, or point the prover at another lightwalletd server.",
             },
             Code::TooManyNotesNeeded => CodeSpec {
                 wire_name: "TOO_MANY_NOTES_NEEDED",

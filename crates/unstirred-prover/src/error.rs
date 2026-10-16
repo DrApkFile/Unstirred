@@ -31,6 +31,15 @@ pub enum ProverError {
     #[error("account {0} is not in this wallet")]
     AccountUnknown(String),
 
+    #[error("the account has no Ironwood viewing key, so no nullifier can be derived from it")]
+    AccountWithoutIronwoodViewingKey,
+
+    #[error("the wallet recorded no held note at tree position {0} at that height")]
+    NoteNotHeldAtThatHeight(u64),
+
+    #[error("the note at tree position {0} has a nullifier that is not a canonical field element")]
+    NullifierNotCanonical(u64),
+
     #[error("the note at tree position {0} has no mined height in the wallet database")]
     NoteWithoutMinedHeight(u64),
 
@@ -39,9 +48,6 @@ pub enum ProverError {
 
     #[error("{url} is not a usable lightwalletd URL: {detail}")]
     LightwalletdUrlInvalid { url: String, detail: String },
-
-    #[error("could not read the note commitment tree at height {height}: {detail}")]
-    TreeStateUnavailable { height: u32, detail: String },
 
     #[error("the tree state at height {height} could not be read: {detail}")]
     TreeStateUnreadable { height: u32, detail: String },
@@ -63,6 +69,42 @@ pub enum ProverError {
 
     #[error("asked for a witness at tree position {requested} and got one for position {returned}")]
     WitnessPositionMismatch { requested: u64, returned: u64 },
+
+    #[error("{url} is not a usable PIR server URL: {detail}")]
+    PirUrlInvalid { url: String, detail: String },
+
+    #[error("the PIR server at {url} did not describe its dataset: {detail}")]
+    PirDatasetUnreadable { url: String, detail: String },
+
+    #[error("the PIR server serves the {pool:?} nullifier set at dataset version {version}, not ironwood version 2")]
+    PirDatasetWrongPool { pool: String, version: u32 },
+
+    #[error("the PIR server serves network {reported}, but this gate is on {expected}")]
+    PirDatasetWrongNetwork { expected: Network, reported: String },
+
+    #[error("the PIR server is synced to height {reported}, but this gate's h1 is {expected}")]
+    PirDatasetWrongHeight { expected: u32, reported: String },
+
+    #[error("the PIR server advertises tree layout {reported}, which this build does not speak: {expected}")]
+    PirLayoutMismatch { expected: String, reported: String },
+
+    #[error("the PIR server's h1 root {root:?} is not a 32-byte canonical field element")]
+    PirRootNotCanonical { root: String },
+
+    #[error("{0:?} is not a 32-byte hex-encoded root")]
+    ExpectedRootMalformed(String),
+
+    #[error("the lookup for tree position {position} returned no proof: {detail}")]
+    NullifierLookupFailed { position: u64, detail: String },
+
+    #[error("the lookup returned proofs against two roots, {first} and {other}")]
+    PirRootsDisagree { first: String, other: String },
+
+    #[error("the lookup returned proofs against root {returned}, not the expected h1 root {expected}")]
+    PirRootMismatch { expected: String, returned: String },
+
+    #[error("no nullifiers were given to look up")]
+    NoNullifiersToLookUp,
 
     #[error("the witness for tree position {position} hashes to {path_root}, not to the root {tree_root}")]
     WitnessRootMismatch {

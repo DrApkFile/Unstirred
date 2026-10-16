@@ -5,7 +5,7 @@ use std::time::Duration;
 
 use incrementalmerkletree::frontier::{Frontier, NonEmptyFrontier};
 use tonic::transport::{Channel, ClientTlsConfig, Endpoint, Uri};
-use unstirred_core::Network;
+use unstirred_core::{Code, Network, Refusal};
 use voting_crypto_deps::orchard;
 use voting_crypto_deps::orchard::tree::MerkleHashOrchard;
 use zcash_client_backend::proto::service::compact_tx_streamer_client::CompactTxStreamerClient;
@@ -67,10 +67,7 @@ pub fn fetch_ironwood_tree_state(
     let runtime = tokio::runtime::Builder::new_current_thread()
         .enable_all()
         .build()
-        .map_err(|e| ProverError::TreeStateUnavailable {
-            height,
-            detail: format!("could not start a runtime for the request: {e}"),
-        })?;
+        .map_err(|e| unavailable(height, format!("no runtime could be started for the request: {e}")))?;
     runtime.block_on(get_tree_state(lightwalletd, network, height))
 }
 
@@ -83,10 +80,7 @@ async fn get_tree_state(lightwalletd: &str, network: Network, height: u32) -> Re
     let response = client
         .get_tree_state(request)
         .await
-        .map_err(|status| ProverError::TreeStateUnavailable {
-            height,
-            detail: format!("GetTreeState failed: {status}"),
-        })?;
+        .map_err(|status| unavailable(height, format!("GetTreeState failed: {status}")))?;
     ironwood_tree_state(response.get_ref(), network, height)
 }
 
@@ -109,10 +103,20 @@ async fn connect(lightwalletd: &str, height: u32) -> Result<Channel, ProverError
     } else {
         endpoint
     };
-    endpoint.connect().await.map_err(|e| ProverError::TreeStateUnavailable {
-        height,
-        detail: format!("could not reach {lightwalletd}: {e}"),
-    })
+    endpoint
+        .connect()
+        .await
+        .map_err(|e| unavailable(height, format!("{lightwalletd} could not be reached: {e}")))
+}
+
+/// The gate's h0 root source said nothing usable. This is inconclusive, never a guessed root: the
+/// holder learns nothing and reveals nothing, and may retry or name another server.
+fn unavailable(height: u32, detail: String) -> ProverError {
+    Refusal::new(
+        Code::TreeStateUnavailable,
+        format!("the Ironwood tree state at height {height} could not be fetched: {detail}"),
+    )
+    .into()
 }
 
 /// Reads the Ironwood field of a tree state, after checking that the answer is for the height and

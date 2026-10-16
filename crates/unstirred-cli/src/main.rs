@@ -1,6 +1,7 @@
 use std::process::ExitCode;
 
 mod args;
+mod lookup;
 mod notes;
 mod refusal;
 mod witness;
@@ -14,6 +15,7 @@ const USAGE: &str = "unstirred: private proof of holding duration for shielded Z
 Commands (status as of this build):
   notes      list the Ironwood notes a wallet held across a gate's window, and the selection
   witness    rebuild each selected note's witness at h0 and check it against the h0 root
+  lookup     privately prove each selected note's nullifier absent from the h1 nullifier set
   prove      not built yet (milestone M1)
   verify     not built yet (milestone M1)
   gate init  not built yet (milestone M3)
@@ -27,6 +29,7 @@ fn main() -> ExitCode {
     match args.first().map(String::as_str) {
         Some("notes") => notes::run(&args[1..]),
         Some("witness") => witness::run(&args[1..]),
+        Some("lookup") => lookup::run(&args[1..]),
         Some("codes") => {
             for code in unstirred_core::Code::ALL {
                 let spec = code.spec();

@@ -3,9 +3,11 @@
 
 mod harness;
 
-use harness::{manifest, NoteA, SyntheticWallet, TestResult, H0, H1, NOTE_A_HEIGHT, NOTE_B_HEIGHT, NOTE_B_ZATOSHIS};
+use harness::{
+    manifest, refusal_code, NoteA, SyntheticWallet, TestResult, H0, H1, NOTE_A_HEIGHT, NOTE_B_HEIGHT, NOTE_B_ZATOSHIS,
+};
 use incrementalmerkletree::frontier::{Frontier, NonEmptyFrontier};
-use unstirred_core::Network;
+use unstirred_core::{Code, Network};
 use unstirred_prover::{
     eligible_notes, fetch_ironwood_tree_state, witnesses_at, HeldNote, IronwoodTreeState, ProverError, ReadOnlyWallet,
     Witnesses,
@@ -122,15 +124,13 @@ fn a20_a_frontier_that_is_not_the_wallets_tree_at_h0_is_rejected() -> TestResult
 /// Nothing answers on this port, so the request fails. It is a local address: running the test
 /// makes no request to anyone else.
 #[test]
-fn a21_an_unreachable_tree_state_source_is_a_typed_error_not_a_guessed_root() -> TestResult {
+fn a21_an_unreachable_tree_state_source_is_inconclusive_not_a_guessed_root() -> TestResult {
     let unreachable = fetch_ironwood_tree_state("http://127.0.0.1:1", Network::Test, H0);
 
-    assert!(
-        matches!(
-            unreachable,
-            Err(ProverError::TreeStateUnavailable { height, .. }) if height == H0
-        ),
-        "{unreachable:?}"
+    assert_eq!(
+        unreachable.err().and_then(refusal_code),
+        Some(Code::TreeStateUnavailable),
+        "an h0 root source that cannot be reached is inconclusive and retryable, never a root the prover made up"
     );
     Ok(())
 }
