@@ -3,6 +3,44 @@
 Things learned while building that the code and the other briefing files do not say. Decisions go
 to `DECISIONS.md`; recorded runs go to `evidence/`. This file is for the facts that cost time.
 
+## M1 step 4 (prove, sign, package), 2026-10-16
+
+- **The delegation builder queries the IMT provider for its own padding nullifiers.**
+  `build_delegation_bundle` fills the unused slots of the five with synthetic zero-value notes and
+  calls `imt_provider.non_membership_proof(padding.real_nf)` for each one, against the real root.
+  A pre-fetched map of the selected notes' proofs is therefore not enough: the provider has to be
+  live during the build, which is why `PirNullifierOracle` holds the client and caches answers.
+  One note selected means four extra PIR queries per proof.
+- **`pir_client::fetch_proof` returns `anyhow::Error`.** There is no typed variant, so "this
+  nullifier is in the set" and "the server stopped answering" cannot be told apart from the error.
+  The prover reports that case as a local error that claims no verdict, and keeps
+  `PIR_UNAVAILABLE` for the failures it can identify (the `/root` handshake and the connection).
+- **The `zcash_client_backend` test harness derives its account from 32 zero bytes**
+  (`Secret::new(vec![0u8; 32])` in `data_api/testing.rs`), which is not a BIP 39 seed. A harness
+  wallet can never be driven through the age-encrypted-mnemonic path, so the identity layer is
+  tested against the published all-zero-entropy BIP 39 vector instead, and the synthetic proof
+  test takes the harness's own spending key through `spend_authority_for`.
+- **`orchard 0.15.5` key types do not zeroize on drop.** `SpendingKey`, `SpendAuthorizingKey` and
+  `FullViewingKey` implement no `Drop` and no `Zeroize`, so "zeroize after use" can only mean the
+  buffers this crate owns: the decrypted mnemonic and the seed are `secrecy::SecretVec` and are
+  zeroized, and the spending key is derived inside one function, never copied to bytes, never
+  printed and never written. A heap copy of the key may outlive the proof; that is the library's
+  behaviour, not something this crate can fix without forking it.
+- **`Instance::from_parts` rebuilds `rk` from `rk_x` plus the parity of `rk_y`.** A package that
+  carried a wrong `rk_y` with the right parity is silently normalised to the real one, so the
+  wire format effectively carries x and a sign bit. That is not a soundness hole (the proof pins
+  both coordinates), but it means a round-trip test cannot detect a tampered `rk_y` of the same
+  parity.
+- **`bip0039::Mnemonic`'s `Debug` prints the phrase.** The struct itself holds `Zeroizing<String>`
+  and `Zeroizing<Vec<u8>>`, so it does wipe itself on drop, but `#[derive(Debug)]` on anything that
+  holds one would print the holder's mnemonic. Keep it a local, never a field.
+- **`age 0.12.1` brings its own `secrecy 0.10.3`, which does not unify with the zcash cohort's
+  `secrecy 0.8.0`.** Both are in the lock. Our own secret buffers use `secrecy` (0.8, the one the
+  zcash crates use), and anything handed back by `age` has to be read through `age::secrecy`:
+  `age::x25519::Identity::to_string()` returns a 0.10 `SecretString`, so `ExposeSecret` has to
+  come from `age::secrecy` or it will not resolve. `age` also drags in `i18n-embed` and a second
+  `toml` (0.5.11, through `find-crate`) as proc-macro-time dependencies.
+
 ## M1 step 3 (private nullifier lookup), 2026-10-16
 
 - **A spent nullifier shows up two different ways, depending on parity.** In the K=2 punctured-range

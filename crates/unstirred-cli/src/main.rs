@@ -3,6 +3,7 @@ use std::process::ExitCode;
 mod args;
 mod lookup;
 mod notes;
+mod prove;
 mod refusal;
 mod witness;
 
@@ -16,7 +17,7 @@ Commands (status as of this build):
   notes      list the Ironwood notes a wallet held across a gate's window, and the selection
   witness    rebuild each selected note's witness at h0 and check it against the h0 root
   lookup     privately prove each selected note's nullifier absent from the h1 nullifier set
-  prove      not built yet (milestone M1)
+  prove      prove the holding and write a proof package
   verify     not built yet (milestone M1)
   gate init  not built yet (milestone M3)
   roots      not built yet (milestone M2)
@@ -30,6 +31,7 @@ fn main() -> ExitCode {
         Some("notes") => notes::run(&args[1..]),
         Some("witness") => witness::run(&args[1..]),
         Some("lookup") => lookup::run(&args[1..]),
+        Some("prove") => prove::run(&args[1..]),
         Some("codes") => {
             for code in unstirred_core::Code::ALL {
                 let spec = code.spec();

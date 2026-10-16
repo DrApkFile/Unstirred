@@ -14,6 +14,10 @@ A Rust toolkit that proves "held at least 0.125 ZEC in Ironwood, unmoved, from b
 6. Unknown is never success. Root disagreement or unavailability is INCONCLUSIVE.
 7. Only `unstirred-core` defines codes, the manifest schema and the binding message. Other crates import them.
 
+## Secrets (about what you run, not what you write)
+- Never print, cat, head or grep the contents of `*.age` files, `keys.toml`, or anything holding seeds or keys. To identify a file's format, use `file` or ask the owner.
+- A secret read into a session transcript is an exposed secret: say so and tell the owner to rotate it.
+
 ## Versions and gotchas newer than your training data
 - **Orchard is closed.** Since NU6.3 (2026-07-28) new shielded value lands in the **Ironwood** pool. Ironwood reuses Orchard-protocol receivers (UA typecode 0x03) and note version `NoteVersion::V3`. Code or docs that talk only about Orchard are out of date.
 - **zcashd is dead.** Do not use zcashd RPC docs as a runtime reference. Node is Zebra; indexer is Zaino or lightwalletd.

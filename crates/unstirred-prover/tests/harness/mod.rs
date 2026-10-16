@@ -10,7 +10,12 @@ use std::error::Error;
 use std::path::Path;
 
 use unstirred_core::{parse_manifest, Code, Manifest};
+use unstirred_prover::pir::NullifierSetAtH1;
 use unstirred_prover::{IronwoodFrontier, IronwoodTreeState, ProverError, WALLET_DATABASE_FILE};
+use voting_circuits::delegation::{ImtError, ImtProofData, ImtProvider, SpacedLeafImtProvider};
+use voting_crypto_deps::orchard::keys::SpendingKey;
+use voting_crypto_deps::pasta_curves::group::ff::PrimeField;
+use voting_crypto_deps::pasta_curves::{pallas, Fp};
 use zcash_client_backend::data_api::testing::orchard::OrchardPoolTester;
 use zcash_client_backend::data_api::testing::pool::ShieldedPoolTester;
 use zcash_client_backend::data_api::testing::sapling::SaplingPoolTester;
@@ -123,6 +128,18 @@ impl SyntheticWallet {
             .id())
     }
 
+    /// The test account's Ironwood spending key, as the harness derived it from its own seed.
+    /// That seed is 32 zero bytes, not a mnemonic, so this is the one way a test can hold the
+    /// spending authority for a harness wallet.
+    pub fn ironwood_spending_key(&self) -> Result<SpendingKey, Box<dyn Error>> {
+        Ok(*self
+            .state
+            .test_account()
+            .ok_or("the test harness built no account")?
+            .usk()
+            .orchard())
+    }
+
     pub fn network(&self) -> LocalNetwork {
         *self.state.network()
     }
@@ -169,5 +186,42 @@ pub fn refusal_code(error: ProverError) -> Option<Code> {
     match error {
         ProverError::Refused(refusal) => Some(refusal.code),
         _ => None,
+    }
+}
+
+/// The delegation circuit's own reference Indexed Merkle Tree, wrapped so the prover can ask it
+/// what it would otherwise ask a real `nf-server`. **Synthetic:** this tree is built in this
+/// process from the sentinel skeleton plus whatever nullifiers a test says are spent. It is not
+/// chain data, and a root from it is not the root of any real snapshot.
+#[derive(Debug)]
+pub struct SyntheticNullifierSet(SpacedLeafImtProvider);
+
+impl SyntheticNullifierSet {
+    /// A set in which `spent` are the only nullifiers present.
+    pub fn with_spent(spent: &[Fp]) -> Self {
+        Self(SpacedLeafImtProvider::with_extra_nullifiers(spent))
+    }
+
+    /// The root a gate would have to pin for proofs against this set to mean anything.
+    pub fn root_bytes(&self) -> [u8; 32] {
+        self.0.root().to_repr()
+    }
+}
+
+impl ImtProvider for SyntheticNullifierSet {
+    fn root(&self) -> pallas::Base {
+        self.0.root()
+    }
+
+    fn non_membership_proof(&self, nf: pallas::Base) -> Result<ImtProofData, ImtError> {
+        self.0.non_membership_proof(nf)
+    }
+}
+
+impl NullifierSetAtH1 for SyntheticNullifierSet {
+    /// An in-memory tree is never unavailable, so a failed question here always means the set
+    /// contains the nullifier.
+    fn last_failure(&self) -> Option<ProverError> {
+        None
     }
 }

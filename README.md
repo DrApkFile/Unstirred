@@ -12,16 +12,16 @@ Work in progress. Nothing below is claimed until it links to a recorded run in `
 
 | Part | Status |
 |---|---|
-| `unstirred-core`: manifest, window rules, context derivation, verdict codes, binding message | Built; tests A07, A12, A13, A14 pass ([gate log](evidence/2026-10-16-gate-m1-step2.md)) |
-| `unstirred-prover` | Read-only wallet access, held-note listing, note selection, h0 witness rebuild checked against the h0 root, and the private nullifier lookup at h1 through Valar's PIR client; tests A03, A04, A15, A15b, A16-A21 pass on synthetic data ([gate log](evidence/2026-10-16-gate-m1-step3.md)), and `notes` and `witness` have run against the real testnet wallet ([notes](evidence/2026-10-16-notes-real-testnet.txt), [witness](evidence/2026-10-16-witness-real-testnet.txt)). Proving and signing not built yet (milestone M1) |
+| `unstirred-core`: manifest, window rules, context derivation, verdict codes, binding message, proof package schema | Built; tests A07, A12, A13, A14 pass ([gate log](evidence/2026-10-17-gate-m1-step4.md)) |
+| `unstirred-prover` | Read-only wallet access, held-note listing and selection, h0 witness rebuild checked against the h0 root, the private nullifier lookup at h1 through Valar's PIR client, the spending key derived in memory from the wallet's age-encrypted mnemonic, and a real delegation proof with its binding signature, written as a proof package. Tests A03, A04, A15, A15b, A16-A24 pass, the proof in them being a real K=12 proof over a synthetic wallet and a synthetic nullifier set ([gate log](evidence/2026-10-17-gate-m1-step4.md)). `notes`, `witness` and `lookup` have run against the real testnet wallet ([notes](evidence/2026-10-16-notes-real-testnet.txt), [witness](evidence/2026-10-16-witness-real-testnet.txt), [lookup](evidence/2026-10-16-lookup-real-testnet.txt)); `prove` has not |
 | `unstirred-verifier` | Not built yet (milestones M1-M2) |
-| `unstirred` CLI | `notes`, `witness`, `lookup`, `codes` and `--version` |
+| `unstirred` CLI | `notes`, `witness`, `lookup`, `prove`, `codes` and `--version` |
 | `unstirred-gate` + Holders' Room page | Not built yet (milestone M3) |
 | Real testnet admission | Not yet run |
 
-No proof has been built yet.
+No proof has been made from the real testnet wallet yet, and nothing verifies a package yet: `unstirred verify` is milestone M1's closing act and is not built.
 
-`unstirred notes` and `unstirred witness` have run against the real testnet wallet, over h0 4,505,790 through h1 4,506,510: see [notes](evidence/2026-10-16-notes-real-testnet.txt) and [witness](evidence/2026-10-16-witness-real-testnet.txt). `unstirred lookup` has only been exercised against a synthetic nullifier set and a local stand-in HTTP server; no live `nf-server` lookup is recorded yet.
+`unstirred notes`, `unstirred witness` and `unstirred lookup` have run against the real testnet wallet, over h0 4,505,790 through h1 4,506,510: see [notes](evidence/2026-10-16-notes-real-testnet.txt), [witness](evidence/2026-10-16-witness-real-testnet.txt) and [lookup](evidence/2026-10-16-lookup-real-testnet.txt), the last against a local `nf-server` built from Valar's v0.12.3. Proving has only run on a synthetic wallet against a synthetic nullifier set, with a real K=12 proof: see the [gate log](evidence/2026-10-17-gate-m1-step4.md).
 
 Feasibility spikes (split-height proofs, rejections, spend-key binding) passed before the build started; see `briefing/REALITY_SPIKES.md` and `briefing/spikes/evidence/`.
 

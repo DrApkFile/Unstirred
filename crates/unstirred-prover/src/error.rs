@@ -22,6 +22,73 @@ pub enum ProverError {
     #[error("reading the wallet database failed: {0}")]
     WalletUnreadable(Box<SqliteClientError>),
 
+    #[error("no keys file could be read at {path}: {detail}")]
+    KeysFileUnreadable { path: PathBuf, detail: String },
+
+    #[error("{0} holds no mnemonic, so this wallet cannot sign anything")]
+    WalletHasNoMnemonic(PathBuf),
+
+    #[error("{0} has no parent directory, so the wallet's keys file cannot be found")]
+    WalletDirectoryUnknown(PathBuf),
+
+    #[error("{path} is not a usable age identity file: {detail}")]
+    IdentityFileUnusable { path: PathBuf, detail: String },
+
+    #[error("the wallet's mnemonic could not be decrypted with that identity: {0}")]
+    MnemonicUndecryptable(String),
+
+    #[error("what the identity decrypted is not a BIP 39 mnemonic phrase: {0}")]
+    MnemonicNotAPhrase(String),
+
+    #[error("the decrypted seed is not a length ZIP 32 can fingerprint")]
+    SeedNotUsableLength,
+
+    #[error("that identity decrypts a mnemonic for another wallet: its seed fingerprint is not the one this account was derived from")]
+    SeedIsForAnotherWallet,
+
+    #[error("the account was imported from a viewing key, so the wallet records no derivation path and no spending key can be derived")]
+    AccountIsViewOnly,
+
+    #[error("no spending key could be derived from the seed: {0}")]
+    SpendingKeyUnderivable(String),
+
+    #[error("the spending key derived from that seed does not produce this account's Ironwood viewing key, so it is not the key that controls these notes. Ironwood accounts may use a key path this version does not derive; no other derivation is attempted")]
+    SpendingKeyIsNotThisAccounts,
+
+    #[error("the nullifier-set root the lookup service serves, {provider}, is not the expected h1 root {expected}")]
+    NfImtRootMismatch { expected: String, provider: String },
+
+    #[error("the note at tree position {position} cannot be proven unmoved at h1: {detail}")]
+    NoteNotProvenUnspent { position: u64, detail: String },
+
+    #[error("the note commitment root at h0, {0}, is not a canonical field element")]
+    NcRootNotCanonical(String),
+
+    #[error("the note at tree position {position} is {version:?}, not the Ironwood note version the delegation circuit takes")]
+    NoteNotIronwood { position: u64, version: String },
+
+    #[error("tree position {0} does not fit the 32-bit position an Ironwood Merkle path carries")]
+    PositionTooLargeForPath(u64),
+
+    #[error("the witness at tree position {position} has {returned} path elements, not the {expected} the Ironwood tree has")]
+    WitnessPathWrongLength {
+        position: u64,
+        expected: usize,
+        returned: usize,
+    },
+
+    #[error("the delegation bundle could not be built: {0}")]
+    BundleUnbuildable(String),
+
+    #[error("proving failed: {0}")]
+    ProvingFailed(String),
+
+    #[error("the proof this prover just made does not verify against its own instance ({0}), so nothing was written")]
+    ProofDidNotVerifyHere(String),
+
+    #[error("the binding signature this prover just made does not verify under rk from the instance, so nothing was written")]
+    BindingSignatureDidNotVerifyHere,
+
     #[error("the wallet has no accounts")]
     NoAccounts,
 
@@ -70,6 +137,9 @@ pub enum ProverError {
     #[error("asked for a witness at tree position {requested} and got one for position {returned}")]
     WitnessPositionMismatch { requested: u64, returned: u64 },
 
+    #[error("the nullifier offered for tree position {requested} belongs to position {returned}")]
+    NullifierPositionMismatch { requested: u64, returned: u64 },
+
     #[error("{url} is not a usable PIR server URL: {detail}")]
     PirUrlInvalid { url: String, detail: String },
 
@@ -93,6 +163,9 @@ pub enum ProverError {
 
     #[error("{0:?} is not a 32-byte hex-encoded root")]
     ExpectedRootMalformed(String),
+
+    #[error("no non-membership proof came back for a nullifier: {0}. Either the set contains it, or the server would not answer; a PIR answer cannot tell those apart")]
+    NullifierProofUnobtainable(String),
 
     #[error("the lookup for tree position {position} returned no proof: {detail}")]
     NullifierLookupFailed { position: u64, detail: String },

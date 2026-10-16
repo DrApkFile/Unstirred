@@ -163,6 +163,9 @@ Prover (decides before proving): `WALLET_NOT_SYNCED_PAST_H1`, `COINS_TOO_NEW`, `
 - A19 witnesses rebuilt at h0 from the wallet's stored shards verify against the h0 note-commitment root, with the wallet synced past h0
 - A20 a frontier that contradicts the wallet's own tree at h0 is rejected and no witness is returned
 - A21 the prover's only network requests are GetTreeState for h0 and the private lookup at h1, and an unreachable source is TREE_STATE_UNAVAILABLE or PIR_UNAVAILABLE, never a guessed root
+- A22 a proof package round-trips through JSON and its proof still verifies against the instance the package carries
+- A23 a spending key that is not the account's, and a seed the account was not derived from, are both refused before anything is signed
+- A24 the age-encrypted mnemonic in the wallet's `keys.toml` yields that wallet's seed and that account's Ironwood spending key, and no other identity can read it
 
 ## 11. Priorities
 - **P0:** core, prover, verifier, CLI (incl. `gate markers`), gate service, Holders' Room page, GitHub Release binaries, A01–A14, `LEAKS.md`, `SPEC.md`, real testnet evidence, README, demo video.

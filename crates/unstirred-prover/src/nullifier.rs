@@ -66,7 +66,10 @@ impl<P: consensus::Parameters> ReadOnlyWallet<P> {
 
     /// Ironwood reuses Orchard's receivers and keys, so the account's Orchard full viewing key is
     /// what derives an Ironwood nullifier.
-    fn ironwood_viewing_key(&self, account: AccountUuid) -> Result<orchard::keys::FullViewingKey, ProverError> {
+    pub(crate) fn ironwood_viewing_key(
+        &self,
+        account: AccountUuid,
+    ) -> Result<orchard::keys::FullViewingKey, ProverError> {
         let stored = self
             .db
             .get_account(account)?
