@@ -1,0 +1,22 @@
+wallet       /home/kingghidorah/Documents/projects/bounties/zecathon/wallet/data.sqlite (read-only)
+network      test
+context      holders-room
+account      56099e58-aab0-4f60-9c38-b84ae7211c2d
+chain tip    4506611 (as the wallet knows it)
+scanned to   4506611
+window       h0 4505790 through h1 4506510
+threshold    12500000 zatoshis
+
+unspent Ironwood notes at h0: 2, of those still unspent at h1: 2
+
+eligible notes
+    value (zatoshis)  mined height  tree position
+           100000000       4505779         552213
+            12500000       4505784         552217
+
+selection    1 of 2 notes, 100000000 zatoshis
+    value (zatoshis)  mined height  tree position
+           100000000       4505779         552213
+
+no transaction was created; the wallet was never opened for writing
+commit: ce7c213  date: 2026-10-16T01:12:08Z  network: test  h0: 4505790  h1: 4506510
