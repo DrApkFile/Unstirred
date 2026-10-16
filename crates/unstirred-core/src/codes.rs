@@ -6,6 +6,15 @@ pub enum VerdictKind {
     Inconclusive,
 }
 
+impl fmt::Display for VerdictKind {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str(match self {
+            VerdictKind::Refused => "REFUSED",
+            VerdictKind::Inconclusive => "INCONCLUSIVE",
+        })
+    }
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum Code {
     ManifestInvalid,

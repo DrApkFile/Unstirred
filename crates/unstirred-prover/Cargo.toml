@@ -7,6 +7,18 @@ license.workspace = true
 
 [dependencies]
 unstirred-core = { path = "../unstirred-core" }
+zcash_client_sqlite.workspace = true
+zcash_client_backend.workspace = true
+zcash_protocol.workspace = true
+rusqlite.workspace = true
+thiserror.workspace = true
+
+[dev-dependencies]
+rand.workspace = true
+tempfile.workspace = true
+zcash_client_sqlite = { workspace = true, features = ["test-dependencies"] }
+zcash_client_backend = { workspace = true, features = ["test-dependencies"] }
+zcash_primitives.workspace = true
 
 [lints]
 workspace = true

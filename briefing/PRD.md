@@ -157,9 +157,11 @@ Prover (refuses before proving): `WALLET_NOT_SYNCED_PAST_H1`, `COINS_TOO_NEW`, `
 - A14 every code in the closed set has message, retryable and next action (compile-time coverage)
 - A15 the prover refuses with PIR_UNAVAILABLE rather than making a plaintext nullifier query, and rejects a lookup answer that does not match the pinned H1 root
 - A16 proving opens the wallet read-only and creates no transaction
+- A17 the prover lists the notes held unmoved across the window and picks the fewest that reach the threshold
+- A18 the prover refuses INSUFFICIENT_HELD_BALANCE, TOO_MANY_NOTES_NEEDED and WALLET_NOT_SYNCED_PAST_H1 before attempting a proof
 
 ## 11. Priorities
-- **P0:** core, prover, verifier, CLI, gate service, Holders' Room page, A01–A14, `LEAKS.md`, `SPEC.md`, real testnet evidence, README, demo video.
+- **P0:** core, prover, verifier, CLI (incl. `gate markers`), gate service, Holders' Room page, GitHub Release binaries, A01–A14, `LEAKS.md`, `SPEC.md`, real testnet evidence, README, demo video.
 - **P1:** Zebra root source; second room page polish; Telegram gate bot.
 - **Never (this hackathon):** new circuits, thresholds above 0.125 ZEC, mainnet production, mobile, cross-chain.
 
@@ -186,3 +188,11 @@ Fill in from the site's submission form when visible. Default answers: track Cor
 - **Who do I have to trust?** The circuit (audited), two independent servers for the H0 root (or your own Zebra), your own nf-server for H1. Nothing from the prover.
 - **Is it private?** See `LEAKS.md`: every channel, each with a test or a stated non-defence.
 - **Why testnet?** NU7 activates on mainnet during judging; testnet is already on NU7 and stays valid.
+
+## 16. Distribution and judge access (added 2026-10-15)
+- **Storage:** the gate creates `gate.sqlite` next to itself on first run. Judges never handle it. Deleting it resets the gate.
+- **Judge path 1, live demo:** hosted Holders' Room (gate + nf-server on a small server). Decide by M3 (2026-10-21).
+- **Judge path 2, local:** `unstirred gate serve`.
+- **Judge path 3, no database:** `unstirred verify <package.json> --manifest <gate.json>` against recorded evidence.
+- **Transparency:** `unstirred gate markers` prints everything the gate stores (markers, verdicts, timestamps; nothing else).
+- **Distribution:** GitHub Releases with prebuilt Linux and macOS binaries; crates.io 0.1.0 published once around 2026-10-26 from the final tagged commit, before the deadline. CLI package renamed `unstirred`. Not npm.

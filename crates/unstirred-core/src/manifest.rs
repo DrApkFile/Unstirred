@@ -1,3 +1,5 @@
+use std::fmt;
+
 use serde::{Deserialize, Serialize};
 
 use crate::codes::{Code, Refusal};
@@ -19,6 +21,15 @@ impl Network {
             Network::Test => b't',
             Network::Main => b'm',
         }
+    }
+}
+
+impl fmt::Display for Network {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str(match self {
+            Network::Test => "test",
+            Network::Main => "main",
+        })
     }
 }
 

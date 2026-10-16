@@ -11,6 +11,7 @@ path = "src/main.rs"
 
 [dependencies]
 unstirred-core = { path = "../unstirred-core" }
+unstirred-prover = { path = "../unstirred-prover" }
 
 [lints]
 workspace = true
