@@ -28,6 +28,9 @@ zcash_client_backend = "=0.24.0"
 zcash_protocol = "=0.10.5"
 zcash_primitives = "=0.30.1"
 rusqlite = { version = "=0.37.0", features = ["bundled", "array"] }
+incrementalmerkletree = "=0.8.2"
+tonic = { version = "=0.14.5", default-features = false, features = ["channel", "tls-ring", "tls-webpki-roots"] }
+tokio = { version = "=1.53.1", default-features = false, features = ["rt", "net", "time"] }
 rand = "=0.8.8"
 tempfile = "=3.27.0"
 

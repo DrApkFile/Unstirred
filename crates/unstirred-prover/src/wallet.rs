@@ -2,8 +2,11 @@ use std::collections::BTreeSet;
 use std::fmt;
 use std::path::{Path, PathBuf};
 
+use incrementalmerkletree::Position;
 use rusqlite::Connection;
 use unstirred_core::{Code, Network, Refusal, Window};
+use voting_crypto_deps::orchard;
+use voting_crypto_deps::orchard::tree::MerkleHashOrchard;
 use zcash_client_backend::data_api::WalletRead;
 use zcash_client_sqlite::{AccountUuid, WalletDb};
 use zcash_protocol::consensus::{self, BlockHeight, Network as ConsensusNetwork};
@@ -11,6 +14,8 @@ use zcash_protocol::consensus::{self, BlockHeight, Network as ConsensusNetwork};
 use crate::error::ProverError;
 use crate::open::{consensus_network, database_path, open_read_only};
 use crate::selection::{HeldNote, WindowNotes};
+use crate::treestate::IronwoodTreeState;
+use crate::witness::IronwoodMerklePath;
 
 /// A wallet this process cannot write to: the value only exists once SQLite has confirmed the
 /// handle is read-only. No method on it can create a transaction.
@@ -112,6 +117,21 @@ impl<P: consensus::Parameters> ReadOnlyWallet<P> {
         })
     }
 
+    /// Rebuilds the authentication path of each position against the tree at `tree_state`'s
+    /// height, from the wallet's stored shards plus that height's frontier. This reads the wallet
+    /// and builds the tree in memory; the database is not written to.
+    pub fn ironwood_witnesses(
+        &self,
+        positions: &[Position],
+        tree_state: &IronwoodTreeState,
+    ) -> Result<Vec<IronwoodMerklePath>, ProverError> {
+        Ok(self.db.generate_ironwood_witnesses_at_historical_height(
+            positions,
+            tree_state.frontier()?,
+            BlockHeight::from_u32(tree_state.height()),
+        )?)
+    }
+
     fn unspent_ironwood_notes(&self, account: AccountUuid, height: u32) -> Result<Vec<HeldNote>, ProverError> {
         self.db
             .get_unspent_ironwood_notes_at_historical_height(account, BlockHeight::from_u32(height))?
@@ -125,8 +145,15 @@ impl<P: consensus::Parameters> ReadOnlyWallet<P> {
                     value_zatoshis: note.note().value().inner(),
                     mined_height: u32::from(mined),
                     position,
+                    commitment: leaf_digest(note.note()),
                 })
             })
             .collect()
     }
+}
+
+/// The note commitment as it appears as a leaf of the Ironwood note commitment tree.
+fn leaf_digest(note: &orchard::note::Note) -> [u8; 32] {
+    let cmx = orchard::note::ExtractedNoteCommitment::from(note.commitment());
+    MerkleHashOrchard::from_cmx(&cmx).to_bytes()
 }

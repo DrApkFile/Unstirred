@@ -159,6 +159,9 @@ Prover (refuses before proving): `WALLET_NOT_SYNCED_PAST_H1`, `COINS_TOO_NEW`, `
 - A16 proving opens the wallet read-only and creates no transaction
 - A17 the prover lists the notes held unmoved across the window and picks the fewest that reach the threshold
 - A18 the prover refuses INSUFFICIENT_HELD_BALANCE, TOO_MANY_NOTES_NEEDED and WALLET_NOT_SYNCED_PAST_H1 before attempting a proof
+- A19 witnesses rebuilt at h0 from the wallet's stored shards verify against the h0 note-commitment root, with the wallet synced past h0
+- A20 a frontier that contradicts the wallet's own tree at h0 is rejected and no witness is returned
+- A21 the prover's only network request is GetTreeState for h0, and an unreachable source is a typed error, never a guessed root
 
 ## 11. Priorities
 - **P0:** core, prover, verifier, CLI (incl. `gate markers`), gate service, Holders' Room page, GitHub Release binaries, A01–A14, `LEAKS.md`, `SPEC.md`, real testnet evidence, README, demo video.

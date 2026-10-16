@@ -1,6 +1,6 @@
 use std::path::PathBuf;
 
-use unstirred_core::Refusal;
+use unstirred_core::{Network, Refusal};
 use zcash_client_sqlite::error::SqliteClientError;
 
 /// Everything that can stop the prover before it proves. A [`Refusal`] carries a code from the
@@ -33,6 +33,43 @@ pub enum ProverError {
 
     #[error("the note at tree position {0} has no mined height in the wallet database")]
     NoteWithoutMinedHeight(u64),
+
+    #[error("the note at tree position {0} has a note commitment that is not a canonical field element")]
+    NoteCommitmentNotCanonical(u64),
+
+    #[error("{url} is not a usable lightwalletd URL: {detail}")]
+    LightwalletdUrlInvalid { url: String, detail: String },
+
+    #[error("could not read the note commitment tree at height {height}: {detail}")]
+    TreeStateUnavailable { height: u32, detail: String },
+
+    #[error("the tree state at height {height} could not be read: {detail}")]
+    TreeStateUnreadable { height: u32, detail: String },
+
+    #[error("asked for the tree state at height {requested} and got height {returned}")]
+    TreeStateHeightMismatch { requested: u32, returned: u64 },
+
+    #[error("the tree state is for network {reported:?}, but this gate is on {expected}")]
+    TreeStateWrongNetwork { expected: Network, reported: String },
+
+    #[error("the Ironwood pool held no note at height {0}, so there is no tree to witness against")]
+    IronwoodTreeEmpty(u32),
+
+    #[error("no notes were given to witness")]
+    NoNotesToWitness,
+
+    #[error("asked for {expected} witnesses and got {returned}")]
+    WitnessCountMismatch { expected: usize, returned: usize },
+
+    #[error("asked for a witness at tree position {requested} and got one for position {returned}")]
+    WitnessPositionMismatch { requested: u64, returned: u64 },
+
+    #[error("the witness for tree position {position} hashes to {path_root}, not to the root {tree_root}")]
+    WitnessRootMismatch {
+        position: u64,
+        path_root: String,
+        tree_root: String,
+    },
 }
 
 impl From<SqliteClientError> for ProverError {

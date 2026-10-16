@@ -8,9 +8,14 @@ license.workspace = true
 [dependencies]
 unstirred-core = { path = "../unstirred-core" }
 zcash_client_sqlite.workspace = true
-zcash_client_backend.workspace = true
+zcash_client_backend = { workspace = true, features = ["lightwalletd-tonic"] }
 zcash_protocol.workspace = true
+voting-crypto-deps.workspace = true
+incrementalmerkletree.workspace = true
 rusqlite.workspace = true
+hex.workspace = true
+tokio.workspace = true
+tonic.workspace = true
 thiserror.workspace = true
 
 [dev-dependencies]

@@ -3,12 +3,14 @@ use unstirred_core::{Code, Refusal};
 /// One proof covers at most five notes, because the delegation circuit takes five inputs.
 pub const MAX_NOTES_PER_PROOF: usize = 5;
 
-/// One Ironwood note as the prover's rules need to see it.
+/// One Ironwood note as the prover's rules need to see it. `commitment` is the note commitment
+/// as a tree leaf digest, which is what a witness path has to hash from.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct HeldNote {
     pub value_zatoshis: u64,
     pub mined_height: u32,
     pub position: u64,
+    pub commitment: [u8; 32],
 }
 
 /// What one account's notes look like across one window: read once at h0, then again at h1.

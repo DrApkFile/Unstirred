@@ -4,10 +4,13 @@ use unstirred_prover::{select_held_notes, HeldNote, Selection, WindowNotes, MAX_
 const THRESHOLD: u64 = 12_500_000;
 
 fn note(value_zatoshis: u64, position: u32) -> HeldNote {
+    let mut commitment = [0u8; 32];
+    commitment[..4].copy_from_slice(&position.to_le_bytes());
     HeldNote {
         value_zatoshis,
         mined_height: 4_505_700 + position,
         position: u64::from(position),
+        commitment,
     }
 }
 

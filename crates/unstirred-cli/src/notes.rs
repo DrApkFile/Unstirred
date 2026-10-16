@@ -1,10 +1,11 @@
 use std::path::{Path, PathBuf};
 use std::process::ExitCode;
-use std::slice::Iter;
 
-use unstirred_core::{parse_manifest, Manifest, Refusal};
-use unstirred_prover::{eligible_notes, EligibleNotes, HeldNote, ProverError, ReadOnlyWallet};
+use unstirred_core::Manifest;
+use unstirred_prover::{eligible_notes, EligibleNotes, ProverError, ReadOnlyWallet};
 
+use crate::args::{optional, parse_flags, required, Flags};
+use crate::refusal::{load_manifest, print_note_table, print_refusal};
 use crate::{EXIT_ERROR, EXIT_REFUSED, EXIT_USAGE};
 
 pub const USAGE: &str = "unstirred notes --wallet <dir> --manifest <file> [--account <uuid>]
@@ -12,29 +13,28 @@ pub const USAGE: &str = "unstirred notes --wallet <dir> --manifest <file> [--acc
 Lists the Ironwood notes the wallet held unmoved across the gate's window, and the fewest of them
 that reach the gate's threshold. The wallet is opened read-only and no transaction is created.";
 
+const FLAGS: [&str; 3] = ["--wallet", "--manifest", "--account"];
+
 pub fn run(args: &[String]) -> ExitCode {
-    let request = match Request::from_args(args) {
-        Ok(request) => request,
+    let flags = match parse_flags(args, &FLAGS) {
+        Ok(flags) => flags,
         Err(problem) => {
             eprintln!("{problem}\n\n{USAGE}");
             return ExitCode::from(EXIT_USAGE);
         }
     };
-    let json = match std::fs::read_to_string(&request.manifest) {
-        Ok(json) => json,
+    let (wallet, manifest_path) = match wallet_and_manifest(&flags) {
+        Ok(paths) => paths,
         Err(problem) => {
-            eprintln!("error: cannot read {}: {problem}", request.manifest.display());
-            return ExitCode::from(EXIT_ERROR);
+            eprintln!("{problem}\n\n{USAGE}");
+            return ExitCode::from(EXIT_USAGE);
         }
     };
-    let manifest = match parse_manifest(&json) {
+    let manifest = match load_manifest(&manifest_path) {
         Ok(manifest) => manifest,
-        Err(refusal) => {
-            print_refusal(&refusal);
-            return ExitCode::from(EXIT_REFUSED);
-        }
+        Err(exit) => return exit,
     };
-    match look(&request, &manifest) {
+    match look(&wallet, &manifest, optional(&flags, "--account")) {
         Ok((wallet_path, found)) => {
             print_report(&wallet_path, &manifest, &found);
             ExitCode::SUCCESS
@@ -50,52 +50,17 @@ pub fn run(args: &[String]) -> ExitCode {
     }
 }
 
-#[derive(Debug)]
-struct Request {
-    wallet: PathBuf,
-    manifest: PathBuf,
-    account: Option<String>,
+fn wallet_and_manifest(flags: &Flags) -> Result<(PathBuf, String), String> {
+    let wallet = PathBuf::from(required(flags, "--wallet")?);
+    let manifest = required(flags, "--manifest")?.to_owned();
+    Ok((wallet, manifest))
 }
 
-impl Request {
-    fn from_args(args: &[String]) -> Result<Self, String> {
-        let mut wallet = None;
-        let mut manifest = None;
-        let mut account = None;
-        let mut remaining = args.iter();
-        while let Some(flag) = remaining.next() {
-            match flag.as_str() {
-                "--wallet" => wallet = Some(PathBuf::from(value_after(flag, &mut remaining)?)),
-                "--manifest" => manifest = Some(PathBuf::from(value_after(flag, &mut remaining)?)),
-                "--account" => account = Some(value_after(flag, &mut remaining)?),
-                other => return Err(format!("unknown argument {other:?}")),
-            }
-        }
-        Ok(Self {
-            wallet: wallet.ok_or_else(|| "--wallet <dir> is required".to_owned())?,
-            manifest: manifest.ok_or_else(|| "--manifest <file> is required".to_owned())?,
-            account,
-        })
-    }
-}
-
-fn value_after(flag: &str, remaining: &mut Iter<'_, String>) -> Result<String, String> {
-    remaining.next().cloned().ok_or_else(|| format!("{flag} needs a value"))
-}
-
-fn look(request: &Request, manifest: &Manifest) -> Result<(PathBuf, EligibleNotes), ProverError> {
-    let wallet = ReadOnlyWallet::open(&request.wallet, manifest.network)?;
-    let account = wallet.account(request.account.as_deref())?;
+fn look(wallet: &Path, manifest: &Manifest, account: Option<&str>) -> Result<(PathBuf, EligibleNotes), ProverError> {
+    let wallet = ReadOnlyWallet::open(wallet, manifest.network)?;
+    let account = wallet.account(account)?;
     let found = eligible_notes(&wallet, account, manifest)?;
     Ok((wallet.path().to_path_buf(), found))
-}
-
-fn print_refusal(refusal: &Refusal) {
-    let spec = refusal.code.spec();
-    println!("{}  {}", spec.kind, spec.wire_name);
-    println!("  {}", refusal.detail);
-    println!("  why:  {}", spec.message);
-    println!("  next: {}", spec.next_action);
 }
 
 fn print_report(wallet_path: &Path, manifest: &Manifest, found: &EligibleNotes) {
@@ -129,17 +94,4 @@ fn print_report(wallet_path: &Path, manifest: &Manifest, found: &EligibleNotes) 
     print_note_table(&found.selection.notes);
     println!();
     println!("no transaction was created; the wallet was never opened for writing");
-}
-
-fn print_note_table(notes: &[HeldNote]) {
-    println!(
-        "  {:>18}  {:>12}  {:>13}",
-        "value (zatoshis)", "mined height", "tree position"
-    );
-    for note in notes {
-        println!(
-            "  {:>18}  {:>12}  {:>13}",
-            note.value_zatoshis, note.mined_height, note.position
-        );
-    }
 }
