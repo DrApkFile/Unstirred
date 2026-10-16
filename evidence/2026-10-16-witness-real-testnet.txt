@@ -1,0 +1,14 @@
+wallet        /home/kingghidorah/Documents/projects/bounties/zecathon/wallet/data.sqlite (read-only)
+network       test
+context       holders-room
+window        h0 4505790 through h1 4506510
+lightwalletd  https://testnet.zec.rocks:443 (one request: GetTreeState 4505790)
+
+h0 Ironwood note-commitment root  a16809847bf51d60ac6d9bb3f71cbbf27483050868b94b242ca831fe14bf692d
+
+selected notes
+  tree position    value (zatoshis)  path verifies against the h0 root
+         552213           100000000  yes
+
+no transaction was created; the wallet was never opened for writing
+commit: 0573f04  date: 2026-10-16T10:57:25Z
