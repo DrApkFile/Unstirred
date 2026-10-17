@@ -15,6 +15,8 @@ pub mod prove;
 pub mod selection;
 pub mod snapshot;
 pub mod spend_authority;
+#[cfg(feature = "test-harness")]
+pub mod testing;
 pub mod transport;
 pub mod treestate;
 pub mod wallet;

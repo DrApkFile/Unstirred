@@ -7,6 +7,18 @@ license.workspace = true
 
 [dependencies]
 unstirred-core = { path = "../unstirred-core" }
+voting-circuits.workspace = true
+voting-crypto-deps.workspace = true
+zcash_client_backend = { workspace = true, features = ["lightwalletd-tonic"] }
+tonic.workspace = true
+tokio.workspace = true
+hex.workspace = true
+
+[dev-dependencies]
+unstirred-prover = { path = "../unstirred-prover", features = ["test-harness"] }
+tempfile.workspace = true
+serde_json.workspace = true
+hex.workspace = true
 
 [lints]
 workspace = true

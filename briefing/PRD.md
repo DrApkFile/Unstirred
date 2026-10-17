@@ -166,6 +166,8 @@ Prover (decides before proving): `WALLET_NOT_SYNCED_PAST_H1`, `COINS_TOO_NEW`, `
 - A22 a proof package round-trips through JSON and its proof still verifies against the instance the package carries
 - A23 a spending key that is not the account's, and a seed the account was not derived from, are both refused before anything is signed
 - A24 the age-encrypted mnemonic in the wallet's `keys.toml` yields that wallet's seed and that account's Ironwood spending key, and no other identity can read it
+- A25 a package whose instance `vote_round_id` belongs to another gate context is refused (CONTEXT_MISMATCH)
+- A26 a verifier root source that cannot be reached or used gives INCONCLUSIVE / ROOT_SOURCE_UNAVAILABLE, never ADMITTED
 
 ## 11. Priorities
 - **P0:** core, prover, verifier, CLI (incl. `gate markers`), gate service, Holders' Room page, GitHub Release binaries, A01–A14, `LEAKS.md`, `SPEC.md`, real testnet evidence, README, demo video.

@@ -1,13 +1,11 @@
-//! Synthetic wallet reads: which Ironwood notes the window sees. See `harness/mod.rs` for what
+//! Synthetic wallet reads: which Ironwood notes the window sees. See `unstirred_prover::testing` for what
 //! "synthetic" means here.
 
-mod harness;
-
-use harness::{
+use unstirred_core::Code;
+use unstirred_prover::testing::{
     manifest, refusal_code, NoteA, SyntheticWallet, TestResult, ACTIVATION, CHAIN_TIP, H0, H1, NOTE_A_ZATOSHIS,
     NOTE_B_ZATOSHIS,
 };
-use unstirred_core::Code;
 use unstirred_prover::{eligible_notes, ReadOnlyWallet};
 
 #[test]

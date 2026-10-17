@@ -3,8 +3,8 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 
 echo "== fmt";    cargo fmt --all -- --check
-echo "== clippy"; cargo clippy --release --all-targets -- -D warnings
-echo "== tests";  cargo test --release --workspace
+echo "== clippy"; cargo clippy --release --all-targets --all-features -- -D warnings
+echo "== tests";  cargo test --release --workspace --all-features
 
 echo
 echo "GATE: PARTIAL"

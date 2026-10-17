@@ -3601,6 +3601,7 @@ dependencies = [
  "hex",
  "unstirred-core",
  "unstirred-prover",
+ "unstirred-verifier",
 ]
 
 [[package]]
@@ -3664,7 +3665,16 @@ dependencies = [
 name = "unstirred-verifier"
 version = "0.1.0"
 dependencies = [
+ "hex",
+ "serde_json",
+ "tempfile",
+ "tokio",
+ "tonic",
  "unstirred-core",
+ "unstirred-prover",
+ "voting-circuits",
+ "voting-crypto-deps",
+ "zcash_client_backend",
 ]
 
 [[package]]

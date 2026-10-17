@@ -5,11 +5,13 @@ mod lookup;
 mod notes;
 mod prove;
 mod refusal;
+mod verify;
 mod witness;
 
 pub(crate) const EXIT_REFUSED: u8 = 1;
 pub(crate) const EXIT_USAGE: u8 = 2;
 pub(crate) const EXIT_ERROR: u8 = 3;
+pub(crate) const EXIT_INCONCLUSIVE: u8 = 4;
 
 const USAGE: &str = "unstirred: private proof of holding duration for shielded ZEC
 
@@ -18,12 +20,12 @@ Commands (status as of this build):
   witness    rebuild each selected note's witness at h0 and check it against the h0 root
   lookup     privately prove each selected note's nullifier absent from the h1 nullifier set
   prove      prove the holding and write a proof package
-  verify     not built yet (milestone M1)
+  verify     verify a proof package against pinned roots and print the verdict
   gate init  not built yet (milestone M3)
   roots      not built yet (milestone M2)
   codes      list every verdict code with its meaning
 
-Exit codes: 0 success, 1 refused, 2 usage, 3 local error";
+Exit codes: 0 success, 1 refused, 2 usage, 3 local error, 4 inconclusive";
 
 fn main() -> ExitCode {
     let args: Vec<String> = std::env::args().skip(1).collect();
@@ -32,6 +34,7 @@ fn main() -> ExitCode {
         Some("witness") => witness::run(&args[1..]),
         Some("lookup") => lookup::run(&args[1..]),
         Some("prove") => prove::run(&args[1..]),
+        Some("verify") => verify::run(&args[1..]),
         Some("codes") => {
             for code in unstirred_core::Code::ALL {
                 let spec = code.spec();

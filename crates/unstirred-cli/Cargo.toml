@@ -12,6 +12,7 @@ path = "src/main.rs"
 [dependencies]
 unstirred-core = { path = "../unstirred-core" }
 unstirred-prover = { path = "../unstirred-prover" }
+unstirred-verifier = { path = "../unstirred-verifier" }
 hex.workspace = true
 
 [lints]

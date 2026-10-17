@@ -1,17 +1,18 @@
 //! The private nullifier lookup at h1. The wallet and its notes are synthetic (see
-//! `harness/mod.rs`); so is the nullifier set, which is built here with the delegation circuit's
+//! `unstirred_prover::testing`); so is the nullifier set, which is built here with the delegation circuit's
 //! own reference Indexed Merkle Tree rather than fetched from a real `nf-server`. No real
 //! testnet lookup is recorded yet.
 //!
 //! Every request in this file goes to a listener this test started on 127.0.0.1, or to
 //! 127.0.0.1:1 where nothing listens. Running it makes no request to anyone else.
 
-mod harness;
 mod server;
 
-use harness::{manifest, refusal_code, NoteA, SyntheticWallet, TestResult, H0, H1, NOTE_A_ZATOSHIS, NOTE_B_ZATOSHIS};
 use server::FakeServer;
 use unstirred_core::{Code, Network};
+use unstirred_prover::testing::{
+    manifest, refusal_code, NoteA, SyntheticWallet, TestResult, H0, H1, NOTE_A_ZATOSHIS, NOTE_B_ZATOSHIS,
+};
 use unstirred_prover::{
     eligible_notes, look_up_nullifiers, proves_absence, NoteNullifier, ProverError, ReadOnlyWallet,
 };
@@ -162,7 +163,7 @@ impl HeldWallet {
         Ok(self.wallet.ironwood_nullifiers(self.account, H0, &positions)?)
     }
 
-    /// Notes are named by value here because that is what the harness fixes; the nullifier is
+    /// Notes are named by value here because that is what the testing wallet fixes; the nullifier is
     /// derived from the wallet's own viewing key, as the prover does it.
     fn nullifier_of_note_worth(&self, value_zatoshis: u64) -> Result<NoteNullifier, Box<dyn std::error::Error>> {
         let notes = self

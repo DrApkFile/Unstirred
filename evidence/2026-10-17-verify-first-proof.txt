@@ -1,0 +1,33 @@
+package   evidence/2026-10-17-first-proof.json (the first real proof, made 2026-10-17)
+manifest  /home/kingghidorah/Documents/projects/bounties/zecathon/holders-room.json
+network   test
+context   holders-room
+window    h0 4505790 through h1 4506510
+lightwalletd https://testnet.zec.rocks:443 (one server; the two-server agreement check is M2)
+h1 root pinned by the operator on the command line (nf-server verify-root is M2)
+
+command:
+  ./target/release/unstirred verify --package evidence/2026-10-17-first-proof.json \
+      --manifest /home/kingghidorah/Documents/projects/bounties/zecathon/holders-room.json \
+      --lightwalletd https://testnet.zec.rocks:443 \
+      --h1-root 8af0c16b82ff1c9170de5dc87b3c06ef3a7144befdba71fc40959effe9f5be26 \
+      --challenge 17eeb99835dd5136c986f0204445ac8e8e0d556367752f73b3b22fdb8e1d4e57
+
+verifying evidence/2026-10-17-first-proof.json against manifest context "holders-room", network test, window h0 4505790 through h1 4506510
+
+roots, and where each came from:
+  h0 note-commitment root  a16809847bf51d60ac6d9bb3f71cbbf27483050868b94b242ca831fe14bf692d
+    from GetTreeState(4505790) at https://testnet.zec.rocks:443 (one server; the two-server agreement check is M2)
+  h1 nullifier-set root    8af0c16b82ff1c9170de5dc87b3c06ef3a7144befdba71fc40959effe9f5be26
+    pinned by the operator on the command line (nf-server verify-root is M2)
+  chain tip                4510287
+    from GetLatestBlock at https://testnet.zec.rocks:443
+
+ADMITTED
+markers not recorded (M2)
+
+exit 0 (ADMITTED)
+
+the h0 root the verifier fetched itself matches the root pinned when the proof was made
+nothing was read from the package's own diagnostic fields; nothing was written
+commit: 118564f plus the uncommitted M1 step 5 working tree  date: 2026-10-17

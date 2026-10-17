@@ -1,21 +1,12 @@
-//! Synthetic, not real chain data: a local test network, fake compact blocks and Ironwood notes
-//! created by the `zcash_client_sqlite` test harness. These build a wallet the prover can be
-//! pointed at; they say nothing about Zcash testnet. No real-testnet run is recorded yet.
-//!
-//! Each test file uses the part of this harness it needs.
-#![allow(dead_code)]
+//! The synthetic wallet: two Ironwood notes mined at activation, scanned through `H1`, with the
+//! Ironwood note commitment tree snapshotted at the end of every block.
 
 use std::collections::BTreeMap;
 use std::error::Error;
 use std::path::Path;
 
-use unstirred_core::{parse_manifest, Code, Manifest};
-use unstirred_prover::pir::NullifierSetAtH1;
-use unstirred_prover::{IronwoodFrontier, IronwoodTreeState, ProverError, WALLET_DATABASE_FILE};
-use voting_circuits::delegation::{ImtError, ImtProofData, ImtProvider, SpacedLeafImtProvider};
+use unstirred_core::{parse_manifest, Manifest};
 use voting_crypto_deps::orchard::keys::SpendingKey;
-use voting_crypto_deps::pasta_curves::group::ff::PrimeField;
-use voting_crypto_deps::pasta_curves::{pallas, Fp};
 use zcash_client_backend::data_api::testing::orchard::OrchardPoolTester;
 use zcash_client_backend::data_api::testing::pool::ShieldedPoolTester;
 use zcash_client_backend::data_api::testing::sapling::SaplingPoolTester;
@@ -29,7 +20,7 @@ use zcash_protocol::consensus::BlockHeight;
 use zcash_protocol::local_consensus::LocalNetwork;
 use zcash_protocol::value::Zatoshis;
 
-pub type TestResult = Result<(), Box<dyn Error>>;
+use crate::{IronwoodFrontier, IronwoodTreeState, WALLET_DATABASE_FILE};
 
 pub const ACTIVATION: u32 = 100_000;
 pub const NOTE_A_ZATOSHIS: u64 = 100_000_000;
@@ -65,6 +56,12 @@ pub enum NoteA {
 pub struct SyntheticWallet {
     state: TestState<BlockCache, TestDb, LocalNetwork>,
     ironwood_trees: BTreeMap<u32, IronwoodFrontier>,
+}
+
+impl std::fmt::Debug for SyntheticWallet {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str("SyntheticWallet")
+    }
 }
 
 impl SyntheticWallet {
@@ -146,7 +143,7 @@ impl SyntheticWallet {
 
     /// Copies the harness's wallet to a file, so it can be reopened the way the CLI opens the
     /// holder's wallet: a separate, read-only connection.
-    pub fn write_to(&self, dir: &Path) -> TestResult {
+    pub fn write_to(&self, dir: &Path) -> Result<(), Box<dyn Error>> {
         let database = dir.join(WALLET_DATABASE_FILE);
         self.state
             .wallet()
@@ -180,48 +177,4 @@ pub fn manifest(h0: u32, h1: u32) -> Result<Manifest, Box<dyn Error>> {
              "window":{{"h0":{h0},"h1":{h1}}},"min_zatoshis":"12500000"}}"#
     );
     Ok(parse_manifest(&json)?)
-}
-
-pub fn refusal_code(error: ProverError) -> Option<Code> {
-    match error {
-        ProverError::Refused(refusal) => Some(refusal.code),
-        _ => None,
-    }
-}
-
-/// The delegation circuit's own reference Indexed Merkle Tree, wrapped so the prover can ask it
-/// what it would otherwise ask a real `nf-server`. **Synthetic:** this tree is built in this
-/// process from the sentinel skeleton plus whatever nullifiers a test says are spent. It is not
-/// chain data, and a root from it is not the root of any real snapshot.
-#[derive(Debug)]
-pub struct SyntheticNullifierSet(SpacedLeafImtProvider);
-
-impl SyntheticNullifierSet {
-    /// A set in which `spent` are the only nullifiers present.
-    pub fn with_spent(spent: &[Fp]) -> Self {
-        Self(SpacedLeafImtProvider::with_extra_nullifiers(spent))
-    }
-
-    /// The root a gate would have to pin for proofs against this set to mean anything.
-    pub fn root_bytes(&self) -> [u8; 32] {
-        self.0.root().to_repr()
-    }
-}
-
-impl ImtProvider for SyntheticNullifierSet {
-    fn root(&self) -> pallas::Base {
-        self.0.root()
-    }
-
-    fn non_membership_proof(&self, nf: pallas::Base) -> Result<ImtProofData, ImtError> {
-        self.0.non_membership_proof(nf)
-    }
-}
-
-impl NullifierSetAtH1 for SyntheticNullifierSet {
-    /// An in-memory tree is never unavailable, so a failed question here always means the set
-    /// contains the nullifier.
-    fn last_failure(&self) -> Option<ProverError> {
-        None
-    }
 }

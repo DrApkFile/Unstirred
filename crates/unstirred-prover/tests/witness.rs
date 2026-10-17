@@ -1,13 +1,11 @@
 //! Synthetic witness rebuilds: a note's authentication path at a height the wallet has long since
-//! passed. See `harness/mod.rs` for what "synthetic" means here.
+//! passed. See `unstirred_prover::testing` for what "synthetic" means here.
 
-mod harness;
-
-use harness::{
-    manifest, refusal_code, NoteA, SyntheticWallet, TestResult, H0, H1, NOTE_A_HEIGHT, NOTE_B_HEIGHT, NOTE_B_ZATOSHIS,
-};
 use incrementalmerkletree::frontier::{Frontier, NonEmptyFrontier};
 use unstirred_core::{Code, Network};
+use unstirred_prover::testing::{
+    manifest, refusal_code, NoteA, SyntheticWallet, TestResult, H0, H1, NOTE_A_HEIGHT, NOTE_B_HEIGHT, NOTE_B_ZATOSHIS,
+};
 use unstirred_prover::{
     eligible_notes, fetch_ironwood_tree_state, witnesses_at, HeldNote, IronwoodTreeState, ProverError, ReadOnlyWallet,
     Witnesses,

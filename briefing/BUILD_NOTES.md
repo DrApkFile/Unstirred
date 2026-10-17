@@ -3,6 +3,33 @@
 Things learned while building that the code and the other briefing files do not say. Decisions go
 to `DECISIONS.md`; recorded runs go to `evidence/`. This file is for the facts that cost time.
 
+## M1 step 5 (`unstirred verify`), 2026-10-17
+
+- **A shared synthetic harness lives in the prover lib behind a `test-harness` feature.**
+  `crates/unstirred-prover/src/testing/` is the old `tests/harness/` moved into the library so the
+  verifier's tests build the same synthetic wallet instead of a copy. The feature is off by
+  default, so `cargo test -p unstirred-prover` alone no longer compiles the integration tests:
+  they need `--features test-harness` (the zcash crates' `test-dependencies` pattern), and
+  `scripts/gate.sh` now runs clippy and tests with `--all-features`. The verifier enables it as a
+  dev-dependency, which is ordinary feature unification and needs no workspace flags.
+- **`redpallas::Signature` converts to bytes by reference only.** `[u8; 64]::from(signature)` does
+  not exist; `[u8; 64]::from(&signature)` does (orchard 0.15.5).
+- **`SpendAuthorizingKey::randomize` takes the randomizer by reference** (`&pallas::Scalar`).
+- **A one-byte proof flip must reach step 8 to prove the ordering.** The binding message covers
+  the instance, session and challenge but not the proof bytes, so a tampered proof passes
+  signature verification and is refused at the circuit with `PROOF_INVALID`; a tampered *instance
+  root* dies earlier at step 5 with `ROOT_MISMATCH`. Tests that flip one hex digit (keeping the
+  field parseable) assert the code, not just the verdict kind, so ordering regressions show up.
+- **The CLI parses the manifest before the root fetch, not the engine's `verify_package`.**
+  Step 2 needs the tip and the fetch needs h0 and the network, so the command line runs core's
+  `parse_manifest` first (a malformed manifest is refused before any network) and then calls
+  `verify_parsed`; `verify_package(json, …)` exists for callers that have only text. A root
+  source that fails is `INCONCLUSIVE / ROOT_SOURCE_UNAVAILABLE` and is reported before any
+  verdict, which is the task's "any root-source failure" rule.
+- **`unstirred verify` cannot test the real chain in unit tests.** The one network-touching
+  test (`A26`) points at `127.0.0.1:1`, where nothing listens; every other check is pure over
+  the injected roots and tip.
+
 ## M1 step 4 (prove, sign, package), 2026-10-16
 
 - **The delegation builder queries the IMT provider for its own padding nullifiers.**

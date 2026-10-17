@@ -1,18 +1,16 @@
 //! Proving, signing and packaging. **Synthetic:** the wallet, its notes and the nullifier set at
-//! h1 are all built in this process (see `harness/mod.rs`); the nullifier set is the delegation
+//! h1 are all built in this process (see `unstirred_prover::testing`); the nullifier set is the delegation
 //! circuit's own reference tree, not a snapshot of any chain. The proof itself is a real K=12
 //! Halo2 proof over Valar's unmodified delegation circuit.
 //!
 //! One proof is made for the whole file, because a real proof costs seconds, and the three things
 //! worth checking about a package are all checks on that one package.
 
-mod harness;
-
 use std::error::Error;
 use std::sync::OnceLock;
 
-use harness::{manifest, NoteA, SyntheticNullifierSet, SyntheticWallet, TestResult, H0, H1};
 use unstirred_core::{binding_message, rk_from_coordinates, BindingStatement, ProofPackage};
+use unstirred_prover::testing::{manifest, NoteA, SyntheticNullifierSet, SyntheticWallet, TestResult, H0, H1};
 use unstirred_prover::{eligible_notes, prove, witnesses_at, HeldNote, OsRng, ProofRequest, Proven, ReadOnlyWallet};
 use voting_circuits::delegation::verify_delegation_proof;
 use voting_crypto_deps::orchard::keys::{FullViewingKey, Scope, SpendAuthorizingKey, SpendingKey};

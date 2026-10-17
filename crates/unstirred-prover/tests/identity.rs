@@ -1,15 +1,13 @@
 //! Getting the spending key out of an age-encrypted mnemonic, and refusing every key that is not
 //! the account's. **Synthetic:** the mnemonic is the published all-zero-entropy BIP 39 test
-//! vector, the age identity is generated here, and the wallet is the one `harness/mod.rs` builds.
+//! vector, the age identity is generated here, and the wallet is the one `unstirred_prover::testing` builds.
 //! No real wallet, seed or identity is touched.
-
-mod harness;
 
 use std::error::Error;
 use std::path::Path;
 
 use age::secrecy::ExposeSecret;
-use harness::{NoteA, SyntheticWallet, TestResult};
+use unstirred_prover::testing::{NoteA, SyntheticWallet, TestResult};
 use unstirred_prover::{ironwood_spending_key, wallet_seed, ProverError, ReadOnlyWallet, WALLET_KEYS_FILE};
 use voting_crypto_deps::orchard::keys::SpendingKey;
 use zcash_client_backend::keys::UnifiedSpendingKey;
@@ -112,7 +110,7 @@ fn a23_a_spending_key_that_is_not_the_accounts_is_refused() -> TestResult {
     Ok(())
 }
 
-/// The synthetic wallet on disk, with the spending key the harness derived for it.
+/// The synthetic wallet on disk, with the spending key the test wallet was built with.
 struct HeldWallet {
     directory: tempfile::TempDir,
     wallet: ReadOnlyWallet<zcash_protocol::local_consensus::LocalNetwork>,
