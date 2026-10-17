@@ -7,14 +7,14 @@ Rubric: "Leaks are disqualifying, not deductions." Every channel below has a def
 | L1 | Proof instance | Address, balance, notes | Zero-knowledge; public inputs are roots, round id, rk, van_comm, cmx_new, markers, nf_signed | A02 | **package half tested on synthetic data** (evidence/2026-10-17-gate-m1-step4.md) |
 | L2 | Exact balance | Weight | Hidden in van_comm, which is blinded by fresh randomness per proof; no weight published | A02 | **package half tested on synthetic data** (evidence/2026-10-17-gate-m1-step4.md) |
 | L3 | Coin age | When coins arrived | Window fixed by the gate for everyone | A12 | planned |
-| L4 | Cross-gate linking | Same holder at two gates | Markers derived per context | A08 | planned |
+| L4 | Cross-gate linking | Same holder at two gates | Markers derived per context | A08 | **tested on synthetic data** (evidence/2026-10-17-gate-m2-step2.md): same coins, two contexts, both admitted, marker sets disjoint |
 | L5 | Nullifier lookup | Which nullifier is ours | YPIR private query; no plaintext fallback, and an unreachable server is PIR_UNAVAILABLE | A15 | **tested on synthetic data** (evidence/2026-10-16-gate-m1-step3.md) |
 | L5b | Lookup answer | The bracket around our nullifier | `nf_bounds` and the path stay private witnesses: `lookup` prints the h1 root, tree positions and yes/no only, and `NoteNonMembership`'s Debug hides both | A02 | planned |
 | L6 | H0 witness rebuild | Note positions | Built locally from wallet shards plus public frontier; no targeted query | A02 | planned |
 | L6b | Proof package | Note value, tree position, note commitment, nullifier, address | The package carries only the fourteen public inputs, the proof, the session key, the challenge and the signature; the leak scan looks for each of those values in every form the wallet knows them in | A02 | **tested on synthetic data** (evidence/2026-10-17-gate-m1-step4.md) |
 | L7 | rk reuse | Linking two admissions | Fresh alpha per proof | A08b | planned |
-| L8 | Replay / front-running | Someone else uses my proof | Challenge + session binding | A07 | planned |
-| L9 | Gate logs | Correlation | Store markers and verdicts only; no IP, no package bodies | A02b | planned |
+| L8 | Replay / front-running | Someone else uses my proof | Challenge + session binding | A07 | **tested on synthetic data** (evidence/2026-10-17-gate-m2-step2.md): an expired, unknown, wrong-context or already-consumed challenge is refused and the refusal writes nothing. Replaying the same package is ALREADY_USED_IN_CONTEXT |
+| L9 | Gate logs | Correlation | Store markers and verdicts only; no IP, no package bodies | A02b | **tested on synthetic data** (evidence/2026-10-17-gate-m2-step2.md): a dump of the file has no raw challenge, package body, note position or note value |
 | L10 | Front-end | Analytics, third-party fonts/scripts | No analytics; no third-party requests | A02c | planned |
 | L11 | Wallet history | Proving moves coins | Proving creates no transaction; wallet opened read-only | A16 | **tested on synthetic data** (evidence/2026-10-17-gate-m1-step4.md) |
 | L12 | Network / IP | Holder's IP at submission | **Non-defence.** Recommend Tor; stated in README | — | stated |

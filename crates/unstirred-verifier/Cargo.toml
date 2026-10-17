@@ -9,6 +9,9 @@ license.workspace = true
 unstirred-core = { path = "../unstirred-core" }
 voting-circuits.workspace = true
 voting-crypto-deps.workspace = true
+blake2b_simd.workspace = true
+rusqlite.workspace = true
+thiserror.workspace = true
 zcash_client_backend = { workspace = true, features = ["lightwalletd-tonic"] }
 tonic.workspace = true
 tokio.workspace = true

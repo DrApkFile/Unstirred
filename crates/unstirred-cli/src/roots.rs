@@ -4,7 +4,7 @@ use unstirred_verifier::RootAuthorityReadout;
 
 use crate::args::{parse_flags, required, strip_bool_flags, strip_repeatable_flags};
 use crate::refusal::load_manifest;
-use crate::root_sources::{print_readout_human, RootSourceArgs, SOURCE_RULES};
+use crate::root_sources::{agreement_json, print_readout_human, RootSourceArgs, SOURCE_RULES};
 use crate::{EXIT_INCONCLUSIVE, EXIT_USAGE};
 
 pub const USAGE: &str = "unstirred roots --manifest <file> --root-source <spec> [--root-source <spec>] \\
@@ -47,7 +47,7 @@ pub fn run(args: &[String]) -> ExitCode {
     let json = bools.iter().any(|f| f == "--json");
     let readout = sources.consult(manifest.network, manifest.window.h0);
     if json {
-        println!("{}", report_json(&readout, &manifest, sources.note()));
+        println!("{}", report_json(&readout, &manifest, sources.note(), sources.single));
     } else {
         print_readout_human(&readout, manifest.network, manifest.window.h0, sources.single);
     }
@@ -66,6 +66,7 @@ fn report_json(
     readout: &RootAuthorityReadout,
     manifest: &unstirred_core::Manifest,
     note: Option<&'static str>,
+    single: bool,
 ) -> String {
     let sources = readout
         .per_source
@@ -92,7 +93,8 @@ fn report_json(
     );
     match &readout.agreement {
         Ok(agreed) => object.push_str(&format!(
-            ",\"agreement\":\"AGREED\",\"nc_root_at_h0\":\"{}\",\"tip\":{}",
+            ",\"agreement\":\"{}\",\"nc_root_at_h0\":\"{}\",\"tip\":{}",
+            agreement_json(single),
             hex::encode(agreed.nc_root_at_h0),
             agreed.tip
         )),
@@ -111,4 +113,78 @@ fn report_json(
 
 fn json_escape(text: &str) -> String {
     text.replace('\\', "\\\\").replace('"', "\\\"")
+}
+
+#[cfg(test)]
+mod tests {
+    use unstirred_core::{parse_manifest, Network};
+    use unstirred_verifier::{AgreedRoots, RootAuthorityReadout, RootsFromServer, SourceOutcome};
+
+    use super::report_json;
+    use crate::root_sources::{agreement_json, agreement_line};
+
+    fn readout(tip: u32) -> RootAuthorityReadout {
+        RootAuthorityReadout {
+            per_source: vec![SourceOutcome {
+                source: "fake:only".to_owned(),
+                answer: Ok(RootsFromServer {
+                    server: "fake:only".to_owned(),
+                    nc_root_at_h0: [0xab; 32],
+                    h0: 4_505_790,
+                    tip,
+                }),
+            }],
+            agreement: Ok(AgreedRoots {
+                nc_root_at_h0: [0xab; 32],
+                tip,
+            }),
+        }
+    }
+
+    #[test]
+    fn a27_single_source_agreement_is_not_claimed_in_either_output() -> Result<(), String> {
+        let root = hex::encode([0xab; 32]);
+        assert_eq!(agreement_line(true, &root), "agreement: not checked (one source)");
+        assert_eq!(agreement_json(true), "not checked (one source)");
+        assert!(
+            !agreement_line(true, &root).contains("the sources agree"),
+            "a one-source line must not claim agreement"
+        );
+
+        let manifest = parse_manifest(
+            r#"{"version":"unstirred/v1","network":"test","context":"holders-room","window":{"h0":4505790,"h1":4506510},"min_zatoshis":"12500000"}"#,
+        )
+        .map_err(|refusal| format!("the fixture manifest is valid: {refusal}"))?;
+        assert_eq!(manifest.network, Network::Test);
+        let json = report_json(
+            &readout(4_506_700),
+            &manifest,
+            Some("ROOT FROM ONE SOURCE: not independently checked"),
+            true,
+        );
+        assert!(
+            json.contains("\"agreement\":\"not checked (one source)\""),
+            "the JSON agreement field must say the check did not happen: {json}"
+        );
+        assert!(
+            !json.contains("AGREED"),
+            "single-source JSON must not say AGREED: {json}"
+        );
+        assert!(
+            !json.contains("the sources agree"),
+            "single-source JSON must not claim the sources agreed: {json}"
+        );
+        assert!(json.contains(&root), "the one source's root is still reported: {json}");
+
+        let two = report_json(&readout(4_506_700), &manifest, None, false);
+        assert!(
+            two.contains("\"agreement\":\"AGREED\""),
+            "two sources still agree: {two}"
+        );
+        assert_eq!(
+            agreement_line(false, &root),
+            format!("agreement: the sources agree on one h0 root {root}")
+        );
+        Ok(())
+    }
 }

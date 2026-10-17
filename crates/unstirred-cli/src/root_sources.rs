@@ -73,10 +73,7 @@ pub fn print_readout_human(readout: &RootAuthorityReadout, network: Network, h0:
     }
     match &readout.agreement {
         Ok(agreed) => {
-            println!(
-                "agreement: the sources agree on one h0 root {}",
-                hex::encode(agreed.nc_root_at_h0)
-            );
+            println!("{}", agreement_line(single, &hex::encode(agreed.nc_root_at_h0)));
             println!(
                 "chain tip for the window check: {} (the lower of the answers)",
                 agreed.tip
@@ -105,8 +102,30 @@ pub fn print_readout_json_stderr(readout: &RootAuthorityReadout, single: bool) {
             ),
         }
     }
+    match &readout.agreement {
+        Ok(agreed) => eprintln!("{}", agreement_line(single, &hex::encode(agreed.nc_root_at_h0))),
+        Err(refusal) => eprintln!("agreement: {} ({})", refusal.code, refusal.detail),
+    }
     if single {
         eprintln!("{SINGLE_SOURCE_NOTE}");
+    }
+}
+
+/// The agreement line for one consultation. A single source has not been checked against anything,
+/// so the line must not say the sources agreed (A27).
+pub(crate) fn agreement_line(single: bool, root_hex: &str) -> String {
+    if single {
+        "agreement: not checked (one source)".to_owned()
+    } else {
+        format!("agreement: the sources agree on one h0 root {root_hex}")
+    }
+}
+
+pub(crate) fn agreement_json(single: bool) -> &'static str {
+    if single {
+        "not checked (one source)"
+    } else {
+        "AGREED"
     }
 }
 

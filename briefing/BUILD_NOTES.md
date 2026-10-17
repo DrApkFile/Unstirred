@@ -3,6 +3,48 @@
 Things learned while building that the code and the other briefing files do not say. Decisions go
 to `DECISIONS.md`; recorded runs go to `evidence/`. This file is for the facts that cost time.
 
+## M2 step 2 (challenge and marker store), 2026-10-17
+
+- **BLAKE2b personalisation is 16 bytes.** `unstirred/chal/v1` is 17 and `blake2b_simd` panics on
+  a longer personalisation. The hash uses `UnstirredChal_v1`. The raw challenge is what the
+  signature binds; the file stores only this hash.
+- **A consumed challenge is allowed through the read-only check.** Markers are inserted before
+  the consume, inside `BEGIN IMMEDIATE`. Replaying an admitted package therefore hits
+  `UNIQUE(context, marker)` and comes back `ALREADY_USED_IN_CONTEXT`, and the transaction rolls
+  back. Rejecting "consumed" before the proof would hide that replay behind
+  `CHALLENGE_UNKNOWN_OR_EXPIRED`. A consumed challenge whose five markers are all new fails the
+  `UPDATE` (zero rows) and is `CHALLENGE_UNKNOWN_OR_EXPIRED`, also rolled back. Unknown, expired
+  and wrong-context challenges are refused before the proof. `expires_at > now`, so the instant
+  of expiry is already expired. TTL is 600 seconds.
+- **rusqlite 0.37 turns on extended result codes in `open`.** A unique violation is
+  `SQLITE_CONSTRAINT_UNIQUE` (2067), not primary code 19. The store also treats
+  `ConstraintViolation` whose message contains `UNIQUE` as the marker conflict, so a build that
+  did not enable extended codes still maps to `ALREADY_USED_IN_CONTEXT`. A `NOT NULL` failure
+  does not contain that word and stays a store error.
+- **`busy_timeout` is per connection.** WAL persists in the file; the timeout does not. A second
+  connection sees `journal_mode=wal` and rusqlite's own default (5000ms) until something sets it.
+  The store sets 10s on the connection it opened. Read `PRAGMA busy_timeout` on that connection.
+- **Dropping an uncommitted `Transaction` rolls it back.** A05d returns before `commit` and does
+  not call `rollback` itself. The interrupted challenge stays unconsumed and its markers are absent.
+- **The five markers of one proof are not a set you can compare across proofs blindly.** The real
+  note's marker is stable for the same note and the same context, which is why a second proof of
+  the same coins collides. The padding slots use fresh nullifiers, so the other four markers
+  differ every proof. A different context changes the round id, so all five differ. A05's test
+  asserts the two same-context proofs actually share a marker.
+- **An integration test of the verifier cannot name `zcash_client_sqlite`.** It is not a direct
+  dependency. The account type has to be inferred, which is why the three-proof fixture proves
+  through a closure instead of a helper with a written signature.
+- **The WAL sidecar is `<path>-wal`.** `PRAGMA wal_checkpoint(FULL)` folds it into the main file.
+  A dump test has to read both, and must not search the bytes for a short note position: those
+  integers show up inside unrelated encodings. Compare the integer columns with the position and
+  the value, and search the bytes for the raw challenge, its hex, a long slice of the proof and
+  the note value when that decimal has at least six digits. The marker blobs are supposed to be
+  in the file.
+- **On 2026-10-17 the owner's Zebra was still syncing, and the tip moved during the session.**
+  `getblockcount` was 193,200 in the morning note, then 1,675,600, 1,791,200, and 1,836,400 at
+  the start of the live admit (`evidence/2026-10-17-admit-two-rooms.txt`). All of those are
+  short of h0 4,505,790, so that admit used one lightwalletd source.
+
 ## M2 step 1 (two-source root authority), 2026-10-17
 
 - **The Zebra `z_gettreestate` shape was taken from source, not memory:** zebra-rpc 7.0.0-rc.0,
@@ -39,6 +81,16 @@ to `DECISIONS.md`; recorded runs go to `evidence/`. This file is for the facts t
 - **The single-source note and `verdict_object` live in the verifier library**, so the A27 test
   asserts the exact text the CLI prints ("ROOT FROM ONE SOURCE: not independently checked") in
   both the human output and the JSON verdict object.
+- **`CommitmentTree` and `Frontier` are not re-exported by `zcash_primitives`**; import them from
+  `incrementalmerkletree::frontier`. `Frontier::try_from(NonEmptyFrontier)` returns `FrontierError`,
+  which implements neither `StdError` nor `Display`, so `map_err` has to format it with `{e:?}`.
+- **The empty-`ironwood_tree` refusal fires in the conversion into the lightwalletd `TreeState`**
+  (`proto_tree_state`), before `ironwood_root_at` runs — tests for it must assert on the
+  conversion's outcome, not the later root check.
+- **Zebra's JSON-RPC is plain HTTP POST via hyper-util's legacy client, not gRPC** (the lwd source
+  is tonic); `ZebraSource` accepts `http://` only.
+- **Clippy `useless_conversion` cost one gate run:** `.map_err(String::from)` on a
+  `Result<_, String>` is a redundant conversion; use the error as-is.
 
 ## M1 step 5 (`unstirred verify`), 2026-10-17
 

@@ -1,6 +1,8 @@
 use std::process::ExitCode;
 
+mod admit;
 mod args;
+mod gate;
 mod lookup;
 mod notes;
 mod prove;
@@ -24,6 +26,9 @@ Commands (status as of this build):
   prove      prove the holding and write a proof package
   verify     verify a proof package against the gate's root sources and print the verdict
   roots      print the h0 root and tip each root source reports, and whether they agree
+  admit      admit a package into the gate database, consuming its challenge and recording markers
+  gate challenge   issue a challenge and print its hex
+  gate markers     print stored markers and admission verdicts
   gate init  not built yet (milestone M3)
   codes      list every verdict code with its meaning
 
@@ -38,6 +43,8 @@ fn main() -> ExitCode {
         Some("prove") => prove::run(&args[1..]),
         Some("verify") => verify::run(&args[1..]),
         Some("roots") => roots::run(&args[1..]),
+        Some("admit") => admit::run(&args[1..]),
+        Some("gate") => gate::run(&args[1..]),
         Some("codes") => {
             for code in unstirred_core::Code::ALL {
                 let spec = code.spec();

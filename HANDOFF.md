@@ -1,7 +1,8 @@
 # HANDOFF
 
-State of Unstirred at commit `8c52f45` — M1 closed and committed, written 2026-10-17. For the
-next session (agent or human).
+State of Unstirred at commit `0c5cc1f` — M1 closed and M2 step 1 committed. M2 step 2 (the
+challenge and marker store, `admit`, `gate challenge`, `gate markers`) is in the working tree
+and not committed. Written 2026-10-17. For the next session (agent or human).
 Read `briefing/CLAUDE.md` and `briefing/BUILD_CONTRACT.md` first; this file only says where the
 work stopped, what is next, and what the machine around the repo is holding.
 
@@ -26,7 +27,8 @@ Step 5's additions: `crates/unstirred-verifier/src/{engine,roots}.rs`,
 `crates/unstirred-prover/tests/harness/` to `crates/unstirred-prover/src/testing/` behind a
 `test-harness` cargo feature.
 
-**M2 step 1 (two-source root authority)** is built: `unstirred verify` and the new
+**M2 step 1 (two-source root authority)** is built and committed (`0c5cc1f`, gate log
+`evidence/2026-10-17-gate-m2-step1.md`): `unstirred verify` and the new
 `unstirred roots` take repeatable `--root-source lwd:<url>|zebra:<url>` (exactly two required) or
 one source behind the explicit `--single-root-source`, whose human output and JSON verdict both
 carry "ROOT FROM ONE SOURCE: not independently checked". The lightwalletd read moved behind a
@@ -40,40 +42,60 @@ the tip is the lower of the answers. The h1 root stays operator-pinned and label
 gained `crates/unstirred-cli/src/{roots,root_sources}.rs`. A10 got its positive and refusal tests
 and new IDs A10b and A27 are registered in PRD §10 with `DECISIONS.md` rows.
 
-What step 5 does, precisely: `unstirred verify` runs PRD §6 steps 1-8 in order (manifest, window
-against the tip the command fetches, `round_id` vs the instance, instance roots vs the pinned
-ones, challenge equality, binding signature under rk from the instance, the Halo2 proof), with
-roots from GetTreeState(h0) and GetLatestBlock at one lightwalletd plus an operator-pinned
-`--h1-root`. Every root-source failure is INCONCLUSIVE / ROOT_SOURCE_UNAVAILABLE. Step 9
-(markers), the challenge store and the two-server root authority are M2. New acceptance IDs A25
-(context mismatch) and A26 (root source unavailable) are registered in PRD §10 with a
-`DECISIONS.md` row; the rest reuse A01, A06, A07, A09, A11.
+**M2 step 2 (challenge and marker store)** is built in the working tree and not committed
+(gate log `evidence/2026-10-17-gate-m2-step2.md`, `GATE: PARTIAL`, exit 0). One SQLite file,
+created on first open, WAL, 10s busy timeout on that connection. Tables are hashed challenges,
+markers (`UNIQUE(context, marker)`) and admission verdicts. The raw challenge is never stored.
+Challenges expire after 10 minutes (`expires_at > now`); the clock is an injected trait.
+`unstirred gate challenge` prints the hex of a new challenge. `unstirred admit` verifies, then
+in one immediate transaction inserts the five markers, consumes the challenge and records
+ADMITTED. A marker conflict rolls that transaction back (`ALREADY_USED_IN_CONTEXT`) and the
+attempt consumes nothing, which is also what a replay of an already-admitted package reports.
+A consumed challenge presented with new markers fails the consume inside the transaction and is
+`CHALLENGE_UNKNOWN_OR_EXPIRED`, rolled back. Unknown, expired and wrong-context challenges are
+refused before the proof, and an invalid proof writes nothing. `unstirred gate markers` prints
+markers and admission verdicts, not challenge hashes. `unstirred verify` is still the
+no-database path and still prints "markers not recorded (M2)" on ADMITTED. A one-source run's
+agreement line is "not checked (one source)" in the human output and in the roots JSON.
+Additions: `crates/unstirred-verifier/src/admit.rs`, `crates/unstirred-verifier/src/store/`,
+`crates/unstirred-verifier/src/verdict.rs`, `crates/unstirred-verifier/tests/store.rs`,
+`crates/unstirred-cli/src/admit.rs`, `crates/unstirred-cli/src/gate.rs`. A02b, A05, A05c, A05d,
+A07, A08 and the A11 no-write check pass on synthetic packages. The order is the `DECISIONS.md`
+row that refines PRD §6. The same sequence on the real testnet wallet is
+`evidence/2026-10-17-admit-two-rooms.txt`: holders-room ADMITTED, the same package
+ALREADY_USED_IN_CONTEXT, second-room ADMITTED with a different marker set. One lightwalletd
+source. The wallet file's sha256 did not change.
 
-`unstirred-gate` is still a one-line doc stub.
+`unstirred verify` still runs PRD §6 steps 1-8 with nothing written: manifest, window against
+the tip the command fetches, `round_id` against the instance, instance roots against the pinned
+ones, challenge equality against the challenge on the command line, the binding signature, the
+Halo2 proof. Roots come from the M2 step 1 authority. Every root-source failure is INCONCLUSIVE.
+A25 and A26 stay registered for that path.
 
-Last gate run: `evidence/2026-10-17-gate-m2-step1.md` — `GATE: PARTIAL`, exit 0; fmt and clippy
-clean, all tests pass (covering A03, A04, A06-A15b, A16-A26 plus A10/A10b/A27 from the root
-authority, with A01 closed by the recorded real admission in
-`evidence/2026-10-17-verify-first-proof.txt`). Open: A02's repo/log scanner as a gate step,
-A05/A08/A12 (markers, challenge store), and every live-service path in `unstirred-gate`.
+`unstirred-gate` HTTP is still a one-line doc stub. `unstirred gate init` is not built (M3).
+
+Last gate run: `evidence/2026-10-17-gate-m2-step2.md` — `GATE: PARTIAL`, exit 0; fmt and clippy
+clean, all tests pass (the step 1 set plus A02b, A05, A05c, A05d, A07, A08 and the A11 no-write
+check, with A01 still closed by `evidence/2026-10-17-verify-first-proof.txt`). Open: A02's
+repo/log scanner as a gate step, A12 (marker stability when a gate is republished with a new
+window), and every live HTTP path in `unstirred-gate`.
 
 ## 2. What to do next, precisely
 
-M2. Step 1 (the verifier's root authority) is done: two agreeing sources behind `--root-source`
-(two required, or one with `--single-root-source`), `ROOT_SOURCES_DISAGREE` /
-`ROOT_SOURCE_UNAVAILABLE` otherwise, h1 still operator-pinned and labelled, nf-server
+M2 step 1 (the verifier's root authority) is committed. M2 step 2 (the store and `admit`) is
+built, gated and not committed; do not commit it unless the owner asks. Two agreeing sources
+behind `--root-source` (two required, or one with `--single-root-source`), `ROOT_SOURCES_DISAGREE`
+/ `ROOT_SOURCE_UNAVAILABLE` otherwise, h1 still operator-pinned and labelled, nf-server
 `verify-root` deferred (P1, see §6). No second public lightwalletd is reachable (Tatum's gateway
 has no z_gettreestate, testnet.lightwalletd.com no longer resolves, the Logos onion times out over
-Tor), so the second source is the owner's own Zebra node, still syncing (tip 193,200 on
-2026-10-17). Remaining, in order:
+Tor), so the second source is the owner's own Zebra node. On 2026-10-17 it was still syncing:
+`getblockcount` at `http://127.0.0.1:18232` climbed through 1,675,600 and 1,791,200 and was
+1,836,400 at the start of the live admit, all short of h0 4,505,790, so that admit used
+`--single-root-source`. Remaining, in order:
 
-1. A real two-source run recorded in `evidence/` once the Zebra node has synced past h1 +
+1. Commit M2 step 2 when the owner asks.
+2. A real two-source run recorded in `evidence/` once the Zebra node has synced past h1 +
    finality (`unstirred roots`, then `unstirred verify` with lwd + zebra; commands in §4).
-2. The challenge store, in `unstirred-verifier`: issue, single-use consume with expiry, hashed.
-   Marker insertion in one transaction with `UNIQUE(context, marker)` (PRD §6 steps 6 and 9, codes
-   `CHALLENGE_UNKNOWN_OR_EXPIRED`, `ALREADY_USED_IN_CONTEXT`) — this is what closes A05 and A08.
-   The store is library-only in M2; M3 exposes it over HTTP.
-3. The attack tests for both: replay/cross-context reuse (A05, A08).
 
 M3, then: `unstirred-gate` (`/manifest`, `/challenge`, `/admit`, `gate markers`), exposing the M2
 challenge store over HTTP, and the Holders' Room page. The session key stays a fresh random 32
@@ -166,7 +188,35 @@ h1 + finality, the two-source form is:
 ```
 
 `unstirred roots` takes the same `--manifest` + `--root-source` flags with no package and prints
-each source's h0 root, tip, and the agreement.
+each source's h0 root, tip, and the agreement. A one-source run says
+`agreement: not checked (one source)` in the human output and
+`"agreement":"not checked (one source)"` in `--json`. It does not say the sources agreed.
+
+**Admitting into the gate database** (M2 step 2, uncommitted). `verify` still writes nothing.
+`admit` uses the challenge inside the package, so issue one, prove with it, then admit. With
+Zebra still behind h0, pass `--single-root-source`. The second room below is the holders-room
+manifest with `"context":"second-room"` and the same window; it is not a file in the repo.
+
+```
+DB=/tmp/unstirred-gate.sqlite
+M=/home/kingghidorah/Documents/projects/bounties/zecathon/holders-room.json
+H1=8af0c16b82ff1c9170de5dc87b3c06ef3a7144befdba71fc40959effe9f5be26
+CHAL=$(./target/release/unstirred gate challenge --db "$DB" --manifest "$M")
+./target/release/unstirred prove --wallet "$W" --manifest "$M" \
+    --lightwalletd https://testnet.zec.rocks:443 --pir http://localhost:3000 \
+    --identity /home/kingghidorah/Documents/projects/bounties/zecathon/unstirred.age \
+    --challenge "$CHAL" --expected-h1-root "$H1" --out /tmp/unstirred-holders.json
+./target/release/unstirred admit --db "$DB" --package /tmp/unstirred-holders.json \
+    --manifest "$M" --root-source lwd:https://testnet.zec.rocks:443 \
+    --single-root-source --h1-root "$H1"
+```
+
+Admitting that same package again is exit 1, `ALREADY_USED_IN_CONTEXT`. A second manifest with
+a different context, a new challenge and a new proof is a second `ADMITTED`, with different
+markers. `unstirred gate markers --db "$DB"` prints both contexts and does not print challenge
+hashes. That sequence, including the exits, is recorded in
+`evidence/2026-10-17-admit-two-rooms.txt`. Zebra's `getblockcount` at the start of it was
+1,836,400.
 
 Recorded result: `ADMITTED`, exit 0, with the h0 root from GetTreeState(4,505,790) equal to
 `a16809847bf51d60ac6d9bb3f71cbbf27483050868b94b242ca831fe14bf692d` and the chain tip well past

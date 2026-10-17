@@ -3665,15 +3665,18 @@ dependencies = [
 name = "unstirred-verifier"
 version = "0.1.0"
 dependencies = [
+ "blake2b_simd",
  "bytes",
  "hex",
  "http-body-util",
  "hyper",
  "hyper-util",
  "incrementalmerkletree",
+ "rusqlite",
  "serde",
  "serde_json",
  "tempfile",
+ "thiserror 2.0.20",
  "tokio",
  "tonic",
  "unstirred-core",

@@ -143,11 +143,14 @@ Prover (decides before proving): `WALLET_NOT_SYNCED_PAST_H1`, `COINS_TOO_NEW`, `
 ## 10. Test list (mirrors the demo and the attack lab)
 - A01 a note held through the window is admitted (real testnet run recorded in `evidence/`)
 - A02 the proof package and verifier logs contain no address, note value, txid or position (scanner test)
+- A02b a dump of the gate database contains no IP address, proof-package body, note position or note value
 - A03 a note created after h0 is refused by the prover (COINS_TOO_NEW) and by the verifier (ROOT_MISMATCH)
 - A04 a note spent inside the window cannot be proven unspent
 - A05 the same coins at the same gate are refused and nothing is written
+- A05c two concurrent admissions of the same markers at one gate produce exactly one ADMITTED
+- A05d a failure injected after the admission writes and before the commit leaves the database unchanged
 - A06 a viewing-key-only prover is refused (BAD_SIGNATURE)
-- A07 a replayed package is refused (challenge consumed)
+- A07 a replayed or expired challenge is refused (CHALLENGE_UNKNOWN_OR_EXPIRED) and the refusal writes nothing
 - A08 the same coins at two gates produce disjoint markers
 - A09 roots inside the package are never used
 - A10 disagreeing root servers give INCONCLUSIVE, never ADMITTED
@@ -169,7 +172,7 @@ Prover (decides before proving): `WALLET_NOT_SYNCED_PAST_H1`, `COINS_TOO_NEW`, `
 - A24 the age-encrypted mnemonic in the wallet's `keys.toml` yields that wallet's seed and that account's Ironwood spending key, and no other identity can read it
 - A25 a package whose instance `vote_round_id` belongs to another gate context is refused (CONTEXT_MISMATCH)
 - A26 a verifier root source that cannot be reached or used gives INCONCLUSIVE / ROOT_SOURCE_UNAVAILABLE, never ADMITTED
-- A27 single-source root checking exists only as an explicit `--single-root-source` opt-in: its human output and JSON verdict both carry "ROOT FROM ONE SOURCE: not independently checked", and without the flag exactly two root sources are required
+- A27 single-source root checking exists only as an explicit `--single-root-source` opt-in: its human output and JSON verdict both carry "ROOT FROM ONE SOURCE: not independently checked", the agreement line says "not checked (one source)" instead of claiming the sources agree, and without the flag exactly two root sources are required
 
 ## 11. Priorities
 - **P0:** core, prover, verifier, CLI (incl. `gate markers`), gate service, Holders' Room page, GitHub Release binaries, A01–A14, `LEAKS.md`, `SPEC.md`, real testnet evidence, README, demo video.

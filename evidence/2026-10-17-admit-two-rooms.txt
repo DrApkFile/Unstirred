@@ -1,0 +1,129 @@
+{
+  "version": "unstirred/v1",
+  "network": "test",
+  "context": "second-room",
+  "window": {
+    "h0": 4505790,
+    "h1": 4506510
+  },
+  "min_zatoshis": "12500000"
+}
+
+=== wallet checksum before ===
+73005f5547b3eb3ade60e6ffdd71170726485e9ae953961f15066fc71ae4629a  /home/kingghidorah/Documents/projects/bounties/zecathon/wallet/data.sqlite
+
+=== zebra tip ===
+{"jsonrpc":"2.0","id":1,"result":1836400}
+
+=== issue holders-room challenge ===
+result: gate challenge holders-room exit 0 (wanted 0)
+challenge: c5891c15509bd8886521cc752619239d0af80e0db29ac97b13760fbe4448fc00
+
+=== prove holders-room ===
+wallet        /home/kingghidorah/Documents/projects/bounties/zecathon/wallet/data.sqlite (read-only)
+identity      /home/kingghidorah/Documents/projects/bounties/zecathon/unstirred.age
+network       test
+context       holders-room
+window        h0 4505790 through h1 4506510
+lightwalletd  https://testnet.zec.rocks:443 (one request: GetTreeState 4505790)
+pir server    http://127.0.0.1:3000
+expected root 8af0c16b82ff1c9170de5dc87b3c06ef3a7144befdba71fc40959effe9f5be26
+
+h0 Ironwood note-commitment root  a16809847bf51d60ac6d9bb3f71cbbf27483050868b94b242ca831fe14bf692d
+h1 Ironwood nullifier-set root    8af0c16b82ff1c9170de5dc87b3c06ef3a7144befdba71fc40959effe9f5be26
+
+proved from 1 note(s) held unmoved across the window
+  tree position
+         552213
+
+package written to /tmp/unstirred-holders.json
+the proof verified here before the package was written, and so did its binding signature
+the package carries no address, note value, tree position or nullifier
+the spending key was derived in memory only; no transaction was created
+result: prove holders-room exit 0 (wanted 0)
+
+=== admit holders-room ===
+root sources for the h0 Ironwood note-commitment root (network test, h0 4505790):
+  lwd:https://testnet.zec.rocks:443  root a16809847bf51d60ac6d9bb3f71cbbf27483050868b94b242ca831fe14bf692d  tip 4512431
+agreement: not checked (one source)
+chain tip for the window check: 4512431 (the lower of the answers)
+ROOT FROM ONE SOURCE: not independently checked
+h1 nullifier-set root    8af0c16b82ff1c9170de5dc87b3c06ef3a7144befdba71fc40959effe9f5be26
+    pinned by the operator on the command line, labelled operator-pinned (nf-server verify-root is deferred to P1)
+ROOT FROM ONE SOURCE: not independently checked
+ADMITTED
+result: admit holders-room exit 0 (wanted 0)
+
+=== admit holders-room again ===
+root sources for the h0 Ironwood note-commitment root (network test, h0 4505790):
+  lwd:https://testnet.zec.rocks:443  root a16809847bf51d60ac6d9bb3f71cbbf27483050868b94b242ca831fe14bf692d  tip 4512433
+agreement: not checked (one source)
+chain tip for the window check: 4512433 (the lower of the answers)
+ROOT FROM ONE SOURCE: not independently checked
+h1 nullifier-set root    8af0c16b82ff1c9170de5dc87b3c06ef3a7144befdba71fc40959effe9f5be26
+    pinned by the operator on the command line, labelled operator-pinned (nf-server verify-root is deferred to P1)
+REFUSED  ALREADY_USED_IN_CONTEXT
+  a marker from this package is already stored for this gate, so the write was rolled back
+  why:  These coins have already been used at this gate. Nothing was admitted.
+  next: Each bundle of coins gets one admission per gate.
+result: admit holders-room again exit 1 (wanted 1)
+
+=== issue second-room challenge ===
+result: gate challenge second-room exit 0 (wanted 0)
+challenge: 4dc13019109e3af6d95a4f953457df5022cc3b34e7529015610685d01591635f
+
+=== prove second-room ===
+wallet        /home/kingghidorah/Documents/projects/bounties/zecathon/wallet/data.sqlite (read-only)
+identity      /home/kingghidorah/Documents/projects/bounties/zecathon/unstirred.age
+network       test
+context       second-room
+window        h0 4505790 through h1 4506510
+lightwalletd  https://testnet.zec.rocks:443 (one request: GetTreeState 4505790)
+pir server    http://127.0.0.1:3000
+expected root 8af0c16b82ff1c9170de5dc87b3c06ef3a7144befdba71fc40959effe9f5be26
+
+h0 Ironwood note-commitment root  a16809847bf51d60ac6d9bb3f71cbbf27483050868b94b242ca831fe14bf692d
+h1 Ironwood nullifier-set root    8af0c16b82ff1c9170de5dc87b3c06ef3a7144befdba71fc40959effe9f5be26
+
+proved from 1 note(s) held unmoved across the window
+  tree position
+         552213
+
+package written to /tmp/unstirred-second.json
+the proof verified here before the package was written, and so did its binding signature
+the package carries no address, note value, tree position or nullifier
+the spending key was derived in memory only; no transaction was created
+result: prove second-room exit 0 (wanted 0)
+
+=== admit second-room ===
+root sources for the h0 Ironwood note-commitment root (network test, h0 4505790):
+  lwd:https://testnet.zec.rocks:443  root a16809847bf51d60ac6d9bb3f71cbbf27483050868b94b242ca831fe14bf692d  tip 4512438
+agreement: not checked (one source)
+chain tip for the window check: 4512438 (the lower of the answers)
+ROOT FROM ONE SOURCE: not independently checked
+h1 nullifier-set root    8af0c16b82ff1c9170de5dc87b3c06ef3a7144befdba71fc40959effe9f5be26
+    pinned by the operator on the command line, labelled operator-pinned (nf-server verify-root is deferred to P1)
+ROOT FROM ONE SOURCE: not independently checked
+ADMITTED
+result: admit second-room exit 0 (wanted 0)
+
+=== gate markers ===
+markers:
+  context=holders-room marker=3ee1e99be7edba50ae3b2e9ed9a46c397b4c1b2c1ef6e81c0910d1ec92946f1d admitted_at=1792257964
+  context=holders-room marker=81b7ac3985d3b9234b48ed41e780a1c3d05f5405a61bb45b3390776ffcc12b3f admitted_at=1792257964
+  context=holders-room marker=8a84e2854aedee5029dde1fe6546f82fe49240a46506cd1cc6383c045021f62c admitted_at=1792257964
+  context=holders-room marker=8fb721ee97c8a47f9e88f91d046ccd576ea2cbc527f1be2ac86e20c67a50cd2f admitted_at=1792257964
+  context=holders-room marker=cf743f01be8d8a64856509c4a6b6ea2e19f7b8ea60d47e82a54a7981aeaf2409 admitted_at=1792257964
+  context=second-room marker=1e062b60a21171d3bed7cabd0bc929f31a8d9a15bfc6a81897a7a9ccf802e204 admitted_at=1792258214
+  context=second-room marker=55d424e0908c3482e85c5a8625d8d6f1ccb4956f541e0bef0a84c0e339fcc62e admitted_at=1792258214
+  context=second-room marker=94f1145426fc2b397fa0630d84efc7cdc2e79dceab1cbb3f29577e839d3b2414 admitted_at=1792258214
+  context=second-room marker=99314251de140fdc3fef356558c8102165b27f092f939f9409fad0557bf0ba1d admitted_at=1792258214
+  context=second-room marker=a58b0d552d62cab537696c42ebf8ad1d48950ed6d058e7f5f2ef878d100cdb0a admitted_at=1792258214
+admissions:
+  context=holders-room verdict=ADMITTED code=— at=1792257964
+  context=second-room verdict=ADMITTED code=— at=1792258214
+result: gate markers exit 0 (wanted 0)
+
+=== wallet checksum after ===
+73005f5547b3eb3ade60e6ffdd71170726485e9ae953961f15066fc71ae4629a  /home/kingghidorah/Documents/projects/bounties/zecathon/wallet/data.sqlite
+LIVE SEQUENCE MATCHED
