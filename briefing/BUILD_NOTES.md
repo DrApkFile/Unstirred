@@ -29,6 +29,12 @@ to `DECISIONS.md`; recorded runs go to `evidence/`. This file is for the facts t
 - **`unstirred verify` cannot test the real chain in unit tests.** The one network-touching
   test (`A26`) points at `127.0.0.1:1`, where nothing listens; every other check is pure over
   the injected roots and tip.
+- **`PublicInstance::decode` can surface `BAD_SIGNATURE` on its own.** The rk in the instance is
+  rebuilt as a curve point, so a package whose rk is not a valid point is refused at step 3's
+  decode, before the signature check; the engine's ordering inherits this core behavior.
+- **After a session interruption the shell's cwd can reset to the home directory.** A background
+  `./scripts/gate.sh` started from there dies instantly (no such file) and the output never
+  appears; check pwd or use absolute paths before long runs.
 
 ## M1 step 4 (prove, sign, package), 2026-10-16
 

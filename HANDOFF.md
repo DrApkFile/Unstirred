@@ -1,15 +1,16 @@
 # HANDOFF
 
-State of Unstirred at commit `118564f` plus an uncommitted M1 step 5, written 2026-10-17. For the
+State of Unstirred at commit `8c52f45` — M1 closed and committed, written 2026-10-17. For the
 next session (agent or human).
 Read `briefing/CLAUDE.md` and `briefing/BUILD_CONTRACT.md` first; this file only says where the
 work stopped, what is next, and what the machine around the repo is holding.
 
 ## 1. Where the build is
 
-Milestone M1 ("first real proof", target 2026-10-17) is **closed**: all five steps are built, and
-`unstirred verify` admitted the first real package in a fresh process against the real testnet
-roots — recorded in `evidence/2026-10-17-verify-first-proof.txt` (A01's real run).
+Milestone M1 ("first real proof", target 2026-10-17) is **closed and committed**: all five steps
+are built, and `unstirred verify` admitted the first real package in a fresh process against the
+real testnet roots — recorded in `evidence/2026-10-17-verify-first-proof.txt` (A01's real run),
+and the owner re-ran the same command and confirmed ADMITTED.
 
 | Step | What it added | Real-testnet evidence |
 |---|---|---|
@@ -17,14 +18,13 @@ roots — recorded in `evidence/2026-10-17-verify-first-proof.txt` (A01's real r
 | M1 step 2 (`0573f04`, `cf3e189`) | h0 tree state over gRPC, historical witnesses, `unstirred witness` | `evidence/2026-10-16-witness-real-testnet.txt` |
 | M1 step 3 (`825c3e5`, `c15e092`) | PIR non-membership at h1, `unstirred lookup` | `evidence/2026-10-16-lookup-real-testnet.txt` |
 | M1 step 4 (`4c975c4`, `118564f`) | proof package schema, the identity and spending-key path, bundle, prove, sign, `unstirred prove`; first real proof | `evidence/2026-10-17-first-proof.json` |
-| M1 step 5 (**uncommitted**) | `unstirred-verifier`: pure engine over injected roots (PRD §6 steps 1-8), one-server root read, `unstirred verify` with `--json` | `evidence/2026-10-17-verify-first-proof.txt` (synthetic tests only in CI; the real admission is the recorded run) |
+| M1 step 5 (`8c52f45`) | `unstirred-verifier`: pure engine over injected roots (PRD §6 steps 1-8), one-server root read, `unstirred verify` with `--json` | `evidence/2026-10-17-verify-first-proof.txt` (synthetic tests only in CI; the real admission is the recorded run) |
 
-Step 5 is in the working tree, not committed (built under an explicit "do not commit").
-`git status --short` lists it; the new files are
-`crates/unstirred-verifier/src/{engine,roots}.rs`, `crates/unstirred-verifier/tests/verify.rs`,
-`crates/unstirred-verifier/tests/verify/synthetic.rs`, `crates/unstirred-cli/src/verify.rs`, and
-the synthetic harness moved from `crates/unstirred-prover/tests/harness/` to
-`crates/unstirred-prover/src/testing/` behind a `test-harness` cargo feature.
+Step 5's additions: `crates/unstirred-verifier/src/{engine,roots}.rs`,
+`crates/unstirred-verifier/tests/verify.rs`, `crates/unstirred-verifier/tests/verify/synthetic.rs`,
+`crates/unstirred-cli/src/verify.rs`, and the synthetic harness moved from
+`crates/unstirred-prover/tests/harness/` to `crates/unstirred-prover/src/testing/` behind a
+`test-harness` cargo feature.
 
 What step 5 does, precisely: `unstirred verify` runs PRD §6 steps 1-8 in order (manifest, window
 against the tip the command fetches, `round_id` vs the instance, instance roots vs the pinned
@@ -164,8 +164,6 @@ proving or verifying paths. The ones most likely to bite the next step:
 
 ## 6. Open items
 
-- **Step 5 is uncommitted.** Committing it is the first thing to decide. The gate passes from the
-  working tree; `evidence/2026-10-17-gate-m1-step5.md` records that run and the tree it ran on.
 - `scripts/gate.sh` still prints `GATE: PARTIAL`: the leak scanner (A02) and the claims check
   (every README claim links to `evidence/`) are not gate steps yet. A02's package-scan substance
   exists as tests (prover and verifier sides); the gate does not scan logs or the repo.
