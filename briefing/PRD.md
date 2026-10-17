@@ -151,6 +151,7 @@ Prover (decides before proving): `WALLET_NOT_SYNCED_PAST_H1`, `COINS_TOO_NEW`, `
 - A08 the same coins at two gates produce disjoint markers
 - A09 roots inside the package are never used
 - A10 disagreeing root servers give INCONCLUSIVE, never ADMITTED
+- A10b a root source that cannot be reached, or that answers with a malformed tree state or for the wrong network or height, makes the whole root check INCONCLUSIVE / ROOT_SOURCE_UNAVAILABLE, never ADMITTED
 - A11 a one-byte tampered proof is refused (PROOF_INVALID)
 - A12 republishing a gate with a new window keeps markers stable
 - A13 a malformed manifest or unknown field is refused (MANIFEST_INVALID)
@@ -168,6 +169,7 @@ Prover (decides before proving): `WALLET_NOT_SYNCED_PAST_H1`, `COINS_TOO_NEW`, `
 - A24 the age-encrypted mnemonic in the wallet's `keys.toml` yields that wallet's seed and that account's Ironwood spending key, and no other identity can read it
 - A25 a package whose instance `vote_round_id` belongs to another gate context is refused (CONTEXT_MISMATCH)
 - A26 a verifier root source that cannot be reached or used gives INCONCLUSIVE / ROOT_SOURCE_UNAVAILABLE, never ADMITTED
+- A27 single-source root checking exists only as an explicit `--single-root-source` opt-in: its human output and JSON verdict both carry "ROOT FROM ONE SOURCE: not independently checked", and without the flag exactly two root sources are required
 
 ## 11. Priorities
 - **P0:** core, prover, verifier, CLI (incl. `gate markers`), gate service, Holders' Room page, GitHub Release binaries, A01–A14, `LEAKS.md`, `SPEC.md`, real testnet evidence, README, demo video.

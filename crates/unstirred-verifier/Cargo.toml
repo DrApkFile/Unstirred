@@ -13,12 +13,18 @@ zcash_client_backend = { workspace = true, features = ["lightwalletd-tonic"] }
 tonic.workspace = true
 tokio.workspace = true
 hex.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+hyper.workspace = true
+hyper-util.workspace = true
+http-body-util.workspace = true
+bytes.workspace = true
 
 [dev-dependencies]
 unstirred-prover = { path = "../unstirred-prover", features = ["test-harness"] }
 tempfile.workspace = true
-serde_json.workspace = true
-hex.workspace = true
+incrementalmerkletree = { workspace = true, features = ["legacy-api"] }
+zcash_primitives.workspace = true
 
 [lints]
 workspace = true

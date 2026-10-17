@@ -5,6 +5,8 @@ mod lookup;
 mod notes;
 mod prove;
 mod refusal;
+mod root_sources;
+mod roots;
 mod verify;
 mod witness;
 
@@ -20,9 +22,9 @@ Commands (status as of this build):
   witness    rebuild each selected note's witness at h0 and check it against the h0 root
   lookup     privately prove each selected note's nullifier absent from the h1 nullifier set
   prove      prove the holding and write a proof package
-  verify     verify a proof package against pinned roots and print the verdict
+  verify     verify a proof package against the gate's root sources and print the verdict
+  roots      print the h0 root and tip each root source reports, and whether they agree
   gate init  not built yet (milestone M3)
-  roots      not built yet (milestone M2)
   codes      list every verdict code with its meaning
 
 Exit codes: 0 success, 1 refused, 2 usage, 3 local error, 4 inconclusive";
@@ -35,6 +37,7 @@ fn main() -> ExitCode {
         Some("lookup") => lookup::run(&args[1..]),
         Some("prove") => prove::run(&args[1..]),
         Some("verify") => verify::run(&args[1..]),
+        Some("roots") => roots::run(&args[1..]),
         Some("codes") => {
             for code in unstirred_core::Code::ALL {
                 let spec = code.spec();

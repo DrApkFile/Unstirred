@@ -26,6 +26,20 @@ Step 5's additions: `crates/unstirred-verifier/src/{engine,roots}.rs`,
 `crates/unstirred-prover/tests/harness/` to `crates/unstirred-prover/src/testing/` behind a
 `test-harness` cargo feature.
 
+**M2 step 1 (two-source root authority)** is built: `unstirred verify` and the new
+`unstirred roots` take repeatable `--root-source lwd:<url>|zebra:<url>` (exactly two required) or
+one source behind the explicit `--single-root-source`, whose human output and JSON verdict both
+carry "ROOT FROM ONE SOURCE: not independently checked". The lightwalletd read moved behind a
+`RootSource` trait; a Zebra JSON-RPC source (`z_gettreestate`, `getblockchaininfo`,
+`getblockcount`, shape from zebra-rpc 7.0.0-rc.0) is the second kind. The sources must agree on
+exactly one h0 root or the run is INCONCLUSIVE (`ROOT_SOURCES_DISAGREE`, `ROOT_SOURCE_UNAVAILABLE`);
+the tip is the lower of the answers. The h1 root stays operator-pinned and labelled as such
+(nf-server `verify-root` is deferred to P1). Additions: `crates/unstirred-verifier/src/roots/`
+(now a module: `mod.rs` authority, `lightwalletd.rs`, `zebra.rs` with the parser's unit tests),
+`crates/unstirred-verifier/tests/roots.rs`, `unstirred_verifier::verdict_object`, and the CLI
+gained `crates/unstirred-cli/src/{roots,root_sources}.rs`. A10 got its positive and refusal tests
+and new IDs A10b and A27 are registered in PRD §10 with `DECISIONS.md` rows.
+
 What step 5 does, precisely: `unstirred verify` runs PRD §6 steps 1-8 in order (manifest, window
 against the tip the command fetches, `round_id` vs the instance, instance roots vs the pinned
 ones, challenge equality, binding signature under rk from the instance, the Halo2 proof), with
@@ -37,24 +51,34 @@ roots from GetTreeState(h0) and GetLatestBlock at one lightwalletd plus an opera
 
 `unstirred-gate` is still a one-line doc stub.
 
-Last gate run: `evidence/2026-10-17-gate-m1-step5.md` — `GATE: PARTIAL`, exit 0; fmt and clippy
-clean, all tests pass (covering A03, A04, A06-A15b, A16-A26, with A01 closed by the recorded real
-admission in `evidence/2026-10-17-verify-first-proof.txt`). Open: A02's repo/log scanner as a
-gate step, A05/A08/A10/A12 (markers, two-server roots), and every live-service path in
-`unstirred-gate`.
+Last gate run: `evidence/2026-10-17-gate-m2-step1.md` — `GATE: PARTIAL`, exit 0; fmt and clippy
+clean, all tests pass (covering A03, A04, A06-A15b, A16-A26 plus A10/A10b/A27 from the root
+authority, with A01 closed by the recorded real admission in
+`evidence/2026-10-17-verify-first-proof.txt`). Open: A02's repo/log scanner as a gate step,
+A05/A08/A12 (markers, challenge store), and every live-service path in `unstirred-gate`.
 
 ## 2. What to do next, precisely
 
-M2. In order:
+M2. Step 1 (the verifier's root authority) is done: two agreeing sources behind `--root-source`
+(two required, or one with `--single-root-source`), `ROOT_SOURCES_DISAGREE` /
+`ROOT_SOURCE_UNAVAILABLE` otherwise, h1 still operator-pinned and labelled, nf-server
+`verify-root` deferred (P1, see §6). No second public lightwalletd is reachable (Tatum's gateway
+has no z_gettreestate, testnet.lightwalletd.com no longer resolves, the Logos onion times out over
+Tor), so the second source is the owner's own Zebra node, still syncing (tip 193,200 on
+2026-10-17). Remaining, in order:
 
-1. The verifier's root authority: two agreeing lightwalletd servers for the h0 root (the second
-   server is not chosen), with `ROOT_SOURCES_DISAGREE` when they differ, and the nf-server
-   `verify-root` check for the h1 root instead of the operator-pinned `--h1-root`.
-2. The challenge store (single use, expiry, hashed) so the gate issues challenges, and marker
-   insertion in one transaction with `UNIQUE(context, marker)` (PRD §6 steps 6 and 9, codes
+1. A real two-source run recorded in `evidence/` once the Zebra node has synced past h1 +
+   finality (`unstirred roots`, then `unstirred verify` with lwd + zebra; commands in §4).
+2. The challenge store, in `unstirred-verifier`: issue, single-use consume with expiry, hashed.
+   Marker insertion in one transaction with `UNIQUE(context, marker)` (PRD §6 steps 6 and 9, codes
    `CHALLENGE_UNKNOWN_OR_EXPIRED`, `ALREADY_USED_IN_CONTEXT`) — this is what closes A05 and A08.
-3. `unstirred-gate` (`/manifest`, `/challenge`, `/admit`, `gate markers`) and the Holders' Room
-   page. The judge path decision (hosted Holders' Room) is due by M3, 2026-10-21.
+   The store is library-only in M2; M3 exposes it over HTTP.
+3. The attack tests for both: replay/cross-context reuse (A05, A08).
+
+M3, then: `unstirred-gate` (`/manifest`, `/challenge`, `/admit`, `gate markers`), exposing the M2
+challenge store over HTTP, and the Holders' Room page. The session key stays a fresh random 32
+bytes with no private half for v1. The judge path decision (hosted Holders' Room) is due by M3,
+2026-10-21.
 
 The standing rule holds: register any new acceptance IDs in `briefing/PRD.md` §10 **before**
 writing their tests, with a `DECISIONS.md` row.
@@ -71,8 +95,8 @@ Paths are absolute because none of this is inside the repo.
 - **Gate manifest used for every run so far:**
   `/home/kingghidorah/Documents/projects/bounties/zecathon/holders-room.json`
   — `test` / `holders-room` / h0 4,505,790 / h1 4,506,510 / 12,500,000 zatoshis.
-- **lightwalletd:** `https://testnet.zec.rocks:443`. PRD §4 wants a second independent server for
-  the verifier's root authority; it has not been chosen yet.
+- **lightwalletd:** `https://testnet.zec.rocks:443`. The second root source is the owner's Zebra
+  node, `http://127.0.0.1:18232` (§2, still syncing on 2026-10-17).
 - **nf-server:** built from `vote-nullifier-pir` tag `v0.12.3` (`ac15ed2`) — *not* HEAD, see
   `DECISIONS.md`. Needed only for `lookup` and `prove`, not for `verify`. It was running during
   the step 3 and step 4 runs as:
@@ -115,15 +139,34 @@ Recorded 2026-10-17 as `evidence/2026-10-17-first-proof.json`. `lookup` and `pro
 nf-server above running. `prove` refuses to overwrite an existing `--out` file.
 
 **The run that closed M1** — accepting that proof in a fresh process — is recorded in
-`evidence/2026-10-17-verify-first-proof.txt`. To reproduce:
+`evidence/2026-10-17-verify-first-proof.txt`. It was made at commit `8c52f45` with the then-only
+syntax `--lightwalletd https://testnet.zec.rocks:443`; since M2 step 1 that flag is `--root-source`.
+To reproduce against one source today (output carries "ROOT FROM ONE SOURCE: not independently
+checked"):
 
 ```
 ./target/release/unstirred verify --package evidence/2026-10-17-first-proof.json \
     --manifest /home/kingghidorah/Documents/projects/bounties/zecathon/holders-room.json \
-    --lightwalletd https://testnet.zec.rocks:443 \
+    --root-source lwd:https://testnet.zec.rocks:443 --single-root-source \
     --h1-root 8af0c16b82ff1c9170de5dc87b3c06ef3a7144befdba71fc40959effe9f5be26 \
     --challenge 17eeb99835dd5136c986f0204445ac8e8e0d556367752f73b3b22fdb8e1d4e57
 ```
+
+Without `--single-root-source`, exactly two `--root-source` values are required and must agree on
+the h0 root; the tip is the lower of the two answers. Once the Zebra node (§2) has synced past
+h1 + finality, the two-source form is:
+
+```
+./target/release/unstirred verify --package evidence/2026-10-17-first-proof.json \
+    --manifest /home/kingghidorah/Documents/projects/bounties/zecathon/holders-room.json \
+    --root-source lwd:https://testnet.zec.rocks:443 \
+    --root-source zebra:http://127.0.0.1:18232 \
+    --h1-root 8af0c16b82ff1c9170de5dc87b3c06ef3a7144befdba71fc40959effe9f5be26 \
+    --challenge 17eeb99835dd5136c986f0204445ac8e8e0d556367752f73b3b22fdb8e1d4e57
+```
+
+`unstirred roots` takes the same `--manifest` + `--root-source` flags with no package and prints
+each source's h0 root, tip, and the agreement.
 
 Recorded result: `ADMITTED`, exit 0, with the h0 root from GetTreeState(4,505,790) equal to
 `a16809847bf51d60ac6d9bb3f71cbbf27483050868b94b242ca831fe14bf692d` and the chain tip well past
@@ -167,13 +210,18 @@ proving or verifying paths. The ones most likely to bite the next step:
 - `scripts/gate.sh` still prints `GATE: PARTIAL`: the leak scanner (A02) and the claims check
   (every README claim links to `evidence/`) are not gate steps yet. A02's package-scan substance
   exists as tests (prover and verifier sides); the gate does not scan logs or the repo.
-- `unstirred-gate`: not built. The M1 session key is a fresh 32 random bytes with no private half
-  (see `DECISIONS.md`); M3 replaces it with a session the gate issues, and issues the challenge
-  instead of the holder.
+- `unstirred-gate`: M3. M2 builds the challenge store in `unstirred-verifier` (issue, single-use
+  consume with expiry, hashed); M3 only exposes it over HTTP. The session key stays a fresh
+  random 32 bytes with no private half for v1.
+- h1 via nf-server `verify-root` is deferred (P1): it needs a full node serving raw blocks back to
+  Ironwood activation plus an independently trusted block hash at h1. Until then h1 stays
+  operator-pinned via `--h1-root` and labelled operator-pinned in output and docs.
 - `DECISIONS.md` has one `open` row: whether to reserve the crates.io names now with a 0.0.1
   placeholder. Owner's call. The planned publish is a single 0.1.0 around 2026-10-26.
 - `Cargo.toml` `repository` is still `https://github.com/<owner>/unstirred`.
-- Second lightwalletd server for the verifier's two-source root rule: not chosen.
+- Second root source for the verifier's two-source rule: no public second lightwalletd is
+  reachable (Tatum's gateway has no z_gettreestate, testnet.lightwalletd.com no longer resolves,
+  the Logos onion times out over Tor), so it is the owner's Zebra node (§2), still syncing.
 - Judge path 1 (hosted Holders' Room) has to be decided by M3, 2026-10-21.
 - Stated limit worth re-reading before any claim about key hygiene: `orchard 0.15.5` does not
   zeroize its key types on drop (`briefing/BUILD_NOTES.md`, `LEAKS.md` L15b).

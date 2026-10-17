@@ -3,6 +3,43 @@
 Things learned while building that the code and the other briefing files do not say. Decisions go
 to `DECISIONS.md`; recorded runs go to `evidence/`. This file is for the facts that cost time.
 
+## M2 step 1 (two-source root authority), 2026-10-17
+
+- **The Zebra `z_gettreestate` shape was taken from source, not memory:** zebra-rpc 7.0.0-rc.0,
+  `zebra-rpc/src/methods/trees.rs`, type `GetTreestateResponse` — `hash`/`height`/`time`, optional
+  `sprout`, then `sapling`, `orchard` and optional `ironwood` (only present from NU6.3, omitted
+  otherwise), each a `Treestate { commitments: Commitments }` whose `Commitments` serializes
+  `finalRoot` and `finalState` as hex strings. The network name is the BIP70 `chain` field of
+  `GetBlockchainInfoResponse` in `zebra-rpc/src/methods.rs`: z_gettreestate carries no network
+  field, so the network check is a separate `getblockchaininfo` call.
+- **The root is parsed from `finalState`, not `finalRoot`.** Both fields come from the same
+  server, so they cannot cross-check each other; going through `finalState` (the zcashd-compatible
+  `CommitmentTree` serialization) lets the Zebra source reuse the lightwalletd parsing path, so
+  height, network and empty-tree rules stay one code path. Byte order also differs: Zebra's
+  `finalRoot` is `bytes_in_display_order`, not the frontier `to_bytes()` order the lightwalletd
+  path produces.
+- **The owner's Zebra node (7.0.0-rc.0, `http://127.0.0.1:18232`, no cookie auth) answered
+  `getblockcount` → 193200 on 2026-10-17** — short of h0 4,505,790, and Ironwood only exists from
+  testnet height 4,134,000, so the live node cannot serve a fixture for h0 today. The Zebra-shape
+  fixtures are derived from Zebra's own response types, plus one real snapshot body (Zebra's
+  `z_get_treestate_by_hash@custom_testnet.snap`, height 0, no `ironwood` field).
+- **An unusable source makes the whole root check INCONCLUSIVE, and "unusable" includes an honest
+  tip below h0.** Unreachable, malformed, wrong height, or tip < h0 all yield
+  `ROOT_SOURCE_UNAVAILABLE`; only answers for h0 with tip ≥ h0 are usable, those must agree on the
+  root exactly, and the governing tip is the lower of the answers. This is why an unsynced Zebra
+  produces INCONCLUSIVE rather than a misleading `REFUSED / WINDOW_INVALID`.
+- **An empty `ironwood_tree` field is now refused.** It used to parse silently as the empty tree's
+  root; both sources now report `ROOT_SOURCE_UNAVAILABLE` for it.
+- **`CommitmentTree::from_frontier` needs incrementalmerkletree's `legacy-api` feature.** The
+  verifier declares it as an explicit dev-dependency feature rather than relying on feature
+  unification from another crate.
+- **`&Vec<T>` → `&[T]` unsize coercion does not drive `.collect()` inference.** Passing `&vec`
+  where `&[SourceOutcome]` was expected left `collect()` without an element type; annotate the
+  `Vec` (`let per_source: Vec<SourceOutcome> = …`).
+- **The single-source note and `verdict_object` live in the verifier library**, so the A27 test
+  asserts the exact text the CLI prints ("ROOT FROM ONE SOURCE: not independently checked") in
+  both the human output and the JSON verdict object.
+
 ## M1 step 5 (`unstirred verify`), 2026-10-17
 
 - **A shared synthetic harness lives in the prover lib behind a `test-harness` feature.**

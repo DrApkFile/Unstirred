@@ -9,9 +9,9 @@ mod verify {
 
 use std::error::Error;
 
-use unstirred_core::{binding_message, BindingStatement, Code, ProofPackage};
+use unstirred_core::{binding_message, BindingStatement, Code, Network, ProofPackage};
 use unstirred_prover::OsRng;
-use unstirred_verifier::{fetch_h0_root_and_tip, verify_package, Verdict};
+use unstirred_verifier::{verify_package, LightwalletdSource, RootSource, Verdict};
 use verify::synthetic::{fixture, CHALLENGE};
 use voting_crypto_deps::orchard::keys::{SpendAuthorizingKey, SpendingKey};
 use voting_crypto_deps::pasta_curves::group::ff::Field;
@@ -155,7 +155,8 @@ fn a07_a_package_answering_another_challenge_is_refused() -> TestResult {
 /// kind. The only network this test touches is localhost on a port nothing listens on.
 #[test]
 fn a26_an_unreachable_root_source_is_inconclusive_never_admitted() -> TestResult {
-    let refusal = match fetch_h0_root_and_tip("http://127.0.0.1:1", unstirred_core::Network::Test, 4_505_790) {
+    let source = LightwalletdSource::new("http://127.0.0.1:1");
+    let refusal = match source.read_roots(Network::Test, 4_505_790) {
         Err(refusal) => refusal,
         Ok(roots) => return Err(format!("nothing listens on 127.0.0.1:1, yet the read returned {roots:?}").into()),
     };

@@ -1,32 +1,40 @@
 use std::process::ExitCode;
 
 use unstirred_core::{parse_manifest, Refusal};
-use unstirred_verifier::{fetch_h0_root_and_tip, verify_parsed, PinnedRoots, Verdict};
+use unstirred_verifier::{verdict_object, verify_parsed, PinnedRoots, Verdict};
 
-use crate::args::{parse_flags, required, Flags};
+use crate::args::{parse_flags, required, strip_bool_flags, strip_repeatable_flags, Flags};
 use crate::refusal::print_refusal;
+use crate::root_sources::{
+    print_readout_human, print_readout_json_stderr, print_refusal_json_stderr, RootSourceArgs, SOURCE_RULES,
+};
 use crate::{EXIT_ERROR, EXIT_INCONCLUSIVE, EXIT_REFUSED, EXIT_USAGE};
 
-pub const USAGE: &str = "unstirred verify --package <file> --manifest <file> --lightwalletd <url> \\
-    --h1-root <hex> --challenge <32 bytes hex> [--json]
+pub const USAGE: &str = "unstirred verify --package <file> --manifest <file> --root-source <spec> \\
+    [--root-source <spec>] --h1-root <hex> --challenge <32 bytes hex> [--single-root-source] [--json]
 
-Verifies one proof package against the gate's pinned roots and prints the verdict (PRD section
-3.5). Exit codes: 0 admitted, 1 refused, 4 inconclusive, 2 usage, 3 local error.
+Verifies one proof package against the gate's roots and prints the verdict (PRD section 3.5).
+Exit codes: 0 admitted, 1 refused, 4 inconclusive, 2 usage, 3 local error.
 
-Root sources in this milestone: the h0 Ironwood note-commitment root and the chain tip come from
-one lightwalletd server (GetTreeState(h0) and GetLatestBlock), and the h1 nullifier-set root is
-pinned by the operator on the command line. The two-server agreement check and the nf-server
-verify-root check are milestone M2, and markers are not recorded yet (step 9 is M2). Nothing the
-package says about roots, heights, network or context is trusted; only the manifest and the
-verifier's own sources are.";
+The h0 Ironwood note-commitment root and the chain tip come from the gate's root sources, which
+must agree on one root unless --single-root-source is given; the h1 nullifier-set root is pinned
+by the operator on the command line and labelled as operator-pinned (nf-server verify-root is
+deferred to P1). Nothing the package says about roots, heights, network or context is trusted;
+only the manifest and the verifier's own sources are.
 
-const FLAGS: [&str; 5] = ["--package", "--manifest", "--lightwalletd", "--h1-root", "--challenge"];
+{SOURCE_RULES}";
+
+const FLAGS: [&str; 4] = ["--package", "--manifest", "--h1-root", "--challenge"];
 
 const ROOT_BYTES: usize = 32;
 const CHALLENGE_BYTES: usize = 32;
 
 pub fn run(args: &[String]) -> ExitCode {
-    let (args, json) = match strip_json_flag(args) {
+    let (args, bools) = match strip_bool_flags(args, &["--json", "--single-root-source"]) {
+        Ok(stripped) => stripped,
+        Err(problem) => return usage(&problem),
+    };
+    let (args, source_specs) = match strip_repeatable_flags(&args, "--root-source") {
         Ok(stripped) => stripped,
         Err(problem) => return usage(&problem),
     };
@@ -34,7 +42,7 @@ pub fn run(args: &[String]) -> ExitCode {
         Ok(flags) => flags,
         Err(problem) => return usage(&problem),
     };
-    let request = match Request::from_flags(&flags) {
+    let request = match Request::from_flags(&flags, &source_specs, bools.iter().any(|f| f == "--single-root-source")) {
         Ok(request) => request,
         Err(problem) => return usage(&problem),
     };
@@ -55,29 +63,31 @@ pub fn run(args: &[String]) -> ExitCode {
     };
 
     let report = Report {
-        json,
+        json: bools.iter().any(|f| f == "--json"),
+        single: request.sources.single,
         package: &request.package,
         h1_root: request.h1_root,
     };
-    let from_server = match fetch_h0_root_and_tip(&request.lightwalletd, manifest.network, manifest.window.h0) {
-        Ok(roots) => roots,
+    let readout = request.sources.consult(manifest.network, manifest.window.h0);
+    report.root_provenance(&readout, &manifest);
+    let agreed = match readout.agreement {
+        Ok(agreed) => agreed,
         Err(refusal) => {
-            report.root_source_failure(&refusal);
+            report.root_authority_failure(&refusal);
             return inconclusive();
         }
     };
-    report.root_provenance(&from_server, &manifest);
 
     let roots = PinnedRoots {
-        nc_root_at_h0: from_server.nc_root_at_h0,
+        nc_root_at_h0: agreed.nc_root_at_h0,
         nf_imt_root_at_h1: request.h1_root,
     };
-    let verdict = verify_parsed(&manifest, &package_json, &roots, from_server.tip, &request.challenge);
-    report.verdict(&verdict)
+    let verdict = verify_parsed(&manifest, &package_json, &roots, agreed.tip, &request.challenge);
+    report.verdict(&verdict, request.sources.note())
 }
 
 fn usage(problem: &str) -> ExitCode {
-    eprintln!("{problem}\n\n{USAGE}");
+    eprintln!("{}\n\n{}", problem, USAGE.replace("{SOURCE_RULES}", SOURCE_RULES));
     ExitCode::from(EXIT_USAGE)
 }
 
@@ -88,23 +98,6 @@ fn read_file(path: &str) -> Result<String, ExitCode> {
     })
 }
 
-/// `--json` is the one boolean flag; everything else takes a value.
-fn strip_json_flag(args: &[String]) -> Result<(Vec<String>, bool), String> {
-    let mut stripped = Vec::with_capacity(args.len());
-    let mut json = false;
-    for arg in args {
-        if arg == "--json" {
-            if json {
-                return Err("--json was given twice".to_owned());
-            }
-            json = true;
-        } else {
-            stripped.push(arg.clone());
-        }
-    }
-    Ok((stripped, json))
-}
-
 fn inconclusive() -> ExitCode {
     ExitCode::from(EXIT_INCONCLUSIVE)
 }
@@ -113,17 +106,17 @@ fn inconclusive() -> ExitCode {
 struct Request {
     package: String,
     manifest: String,
-    lightwalletd: String,
+    sources: RootSourceArgs,
     h1_root: [u8; ROOT_BYTES],
     challenge: [u8; CHALLENGE_BYTES],
 }
 
 impl Request {
-    fn from_flags(flags: &Flags) -> Result<Self, String> {
+    fn from_flags(flags: &Flags, source_specs: &[String], single: bool) -> Result<Self, String> {
         Ok(Self {
             package: required(flags, "--package")?.to_owned(),
             manifest: required(flags, "--manifest")?.to_owned(),
-            lightwalletd: required(flags, "--lightwalletd")?.to_owned(),
+            sources: RootSourceArgs::parse(source_specs, single)?,
             h1_root: fixed_hex(required(flags, "--h1-root")?, "--h1-root", ROOT_BYTES)?,
             challenge: fixed_hex(required(flags, "--challenge")?, "--challenge", CHALLENGE_BYTES)?,
         })
@@ -135,27 +128,23 @@ fn fixed_hex<const N: usize>(text: &str, flag: &str, bytes: usize) -> Result<[u8
     <[u8; N]>::try_from(decoded.as_slice()).map_err(|_| format!("{flag} must be {bytes} bytes of hex"))
 }
 
-/// Where the verdict and, in human mode, the provenance of every root went.
+/// Where the verdict and, around it, the provenance of every root went.
 #[derive(Debug)]
 struct Report<'a> {
     json: bool,
+    single: bool,
     package: &'a str,
     h1_root: [u8; ROOT_BYTES],
 }
 
 impl Report<'_> {
-    fn root_provenance(&self, from_server: &unstirred_verifier::RootsFromServer, manifest: &unstirred_core::Manifest) {
+    fn root_provenance(&self, readout: &unstirred_verifier::RootAuthorityReadout, manifest: &unstirred_core::Manifest) {
         if self.json {
+            print_readout_json_stderr(readout, self.single);
             eprintln!(
-                "h0 note-commitment root from GetTreeState({}) at {}",
-                from_server.h0, from_server.server
+                "h1 nullifier-set root pinned by the operator (--h1-root): {}",
+                hex::encode(self.h1_root)
             );
-            eprintln!("h1 nullifier-set root pinned by the operator (--h1-root)");
-            eprintln!(
-                "chain tip {} from GetLatestBlock at {}",
-                from_server.tip, from_server.server
-            );
-            eprintln!("one root server in M1; the two-server agreement check and nf-server verify-root are M2");
             return;
         }
         println!(
@@ -163,33 +152,38 @@ impl Report<'_> {
             self.package, manifest.context, manifest.network, manifest.window.h0, manifest.window.h1
         );
         println!();
-        println!("roots, and where each came from:");
-        println!("  h0 note-commitment root  {}", hex::encode(from_server.nc_root_at_h0));
-        println!(
-            "    from GetTreeState({}) at {} (one server; the two-server agreement check is M2)",
-            from_server.h0, from_server.server
-        );
-        println!("  h1 nullifier-set root    {}", hex::encode(self.h1_root));
-        println!("    pinned by the operator on the command line (nf-server verify-root is M2)");
-        println!("  chain tip                {}", from_server.tip);
-        println!("    from GetLatestBlock at {}", from_server.server);
+        print_readout_human(readout, manifest.network, manifest.window.h0, self.single);
+        println!("h1 nullifier-set root    {}", hex::encode(self.h1_root));
+        println!("    pinned by the operator on the command line, labelled operator-pinned (nf-server verify-root is deferred to P1)");
         println!();
     }
 
-    fn root_source_failure(&self, refusal: &Refusal) {
+    fn root_authority_failure(&self, refusal: &Refusal) {
         if self.json {
-            eprintln!("{}: {}", refusal.code, refusal.detail);
+            print_refusal_json_stderr(refusal);
         } else {
             print_refusal(refusal);
         }
     }
 
-    fn verdict(&self, verdict: &Verdict) -> ExitCode {
+    fn verdict(&self, verdict: &Verdict, note: Option<&'static str>) -> ExitCode {
         if self.json {
-            return self.verdict_json(verdict);
+            println!("{}", verdict_object(verdict, note));
+            if matches!(verdict, Verdict::Admitted) {
+                eprintln!("markers not recorded (M2)");
+                return ExitCode::SUCCESS;
+            }
+            return match verdict {
+                Verdict::Refused(_) => ExitCode::from(EXIT_REFUSED),
+                Verdict::Inconclusive(_) => inconclusive(),
+                Verdict::Admitted => ExitCode::SUCCESS,
+            };
         }
         match verdict {
             Verdict::Admitted => {
+                if let Some(note) = note {
+                    println!("{note}");
+                }
                 println!("ADMITTED");
                 println!("markers not recorded (M2)");
                 ExitCode::SUCCESS
@@ -201,29 +195,6 @@ impl Report<'_> {
             Verdict::Inconclusive(refusal) => {
                 print_refusal(refusal);
                 inconclusive()
-            }
-        }
-    }
-
-    /// The PRD section 3.5 verdict object, nothing else, on stdout.
-    fn verdict_json(&self, verdict: &Verdict) -> ExitCode {
-        match verdict {
-            Verdict::Admitted => {
-                println!("{{\"verdict\":\"ADMITTED\"}}");
-                eprintln!("markers not recorded (M2)");
-                ExitCode::SUCCESS
-            }
-            Verdict::Refused(refusal) | Verdict::Inconclusive(refusal) => {
-                let spec = refusal.code.spec();
-                println!(
-                    "{{\"verdict\":\"{}\",\"code\":\"{}\",\"message\":\"{}\",\"retryable\":{}}}",
-                    spec.kind, spec.wire_name, spec.message, spec.retryable
-                );
-                match verdict {
-                    Verdict::Refused(_) => ExitCode::from(EXIT_REFUSED),
-                    Verdict::Inconclusive(_) => inconclusive(),
-                    Verdict::Admitted => ExitCode::SUCCESS,
-                }
             }
         }
     }
