@@ -1,0 +1,36 @@
+{"rooms":[{"context":"holders-room","h1_root":"8af0c16b82ff1c9170de5dc87b3c06ef3a7144befdba71fc40959effe9f5be26","h1_root_provenance":"operator-pinned","min_zatoshis":"12500000","network":"test","window":{"h0":4505790,"h1":4506510}},{"context":"second-room","h1_root":"8af0c16b82ff1c9170de5dc87b3c06ef3a7144befdba71fc40959effe9f5be26","h1_root_provenance":"operator-pinned","min_zatoshis":"12500000","network":"test","window":{"h0":4505790,"h1":4506510}}],"root_sources":["lwd:https://testnet.zec.rocks:443","zebra:http://127.0.0.1:18232"]}
+gate          http://127.0.0.1:8080
+room          holders-room
+network       test
+window        h0 4505790 through h1 4506510
+threshold     12500000 zatoshis
+challenge     issued by the gate, expires 2026-10-20T14:41:14Z
+proving now; this takes seconds and reveals nothing to the gate but the package
+ADMITTED
+the gate was sent one package proving 1 note(s) held unmoved across the window, and nothing else
+wallet /home/kingghidorah/Documents/projects/bounties/zecathon/wallet/data.sqlite was opened read-only; no transaction was created
+gate          http://127.0.0.1:8080
+room          holders-room
+network       test
+window        h0 4505790 through h1 4506510
+threshold     12500000 zatoshis
+challenge     issued by the gate, expires 2026-10-20T14:58:47Z
+proving now; this takes seconds and reveals nothing to the gate but the package
+REFUSED
+  ALREADY_USED_IN_CONTEXT
+  These coins have already been used at this gate. Nothing was admitted.
+  retryable: false
+the gate was sent one package proving 1 note(s) held unmoved across the window, and nothing else
+wallet /home/kingghidorah/Documents/projects/bounties/zecathon/wallet/data.sqlite was opened read-only; no transaction was created
+gate          http://127.0.0.1:8080
+room          second-room
+network       test
+window        h0 4505790 through h1 4506510
+threshold     12500000 zatoshis
+challenge     issued by the gate, expires 2026-10-20T15:25:48Z
+proving now; this takes seconds and reveals nothing to the gate but the package
+ADMITTED
+the gate was sent one package proving 1 note(s) held unmoved across the window, and nothing else
+wallet /home/kingghidorah/Documents/projects/bounties/zecathon/wallet/data.sqlite was opened read-only; no transaction was created
+{"context":"holders-room","markers":[{"admitted_at":1792506814,"marker":"09942963af798839f4f2c1f4f686c4ab04e211649a995d8c42bb02a63b4e2b3f"},{"admitted_at":1792506814,"marker":"2feaab828bf2067ac507545f1864895a93b6416b8116dcb9fbbc7c0fe038a12f"},{"admitted_at":1792506814,"marker":"7a39fa90ddd2d52094abb342cb185a3efad6c5354afa44a1ce3f45d443e60011"},{"admitted_at":1792506814,"marker":"a42e74b5d40d869d9f9c2e3eb99dc06bbaf028ab9316d6f21c03979fd5a79d2b"},{"admitted_at":1792506814,"marker":"8fb721ee97c8a47f9e88f91d046ccd576ea2cbc527f1be2ac86e20c67a50cd2f"}],"rows":50,"stored_and_nothing_else":"markers and admission verdicts; no challenge, no package, no address","verdicts":[{"at":1792506814,"code":null,"verdict":"ADMITTED"}]}
+{"context":"second-room","markers":[{"admitted_at":1792509475,"marker":"168f37df05d11e993e2a25df6f71d3d258371baa62934328466685cc259d112b"},{"admitted_at":1792509475,"marker":"a405b73d021e6468466a4f4b7d488921d4e43b6f4bff204d04703de5f9e89224"},{"admitted_at":1792509475,"marker":"69ae12f78f1c0eb711d8203456d04f4c24f39dc687d0aac82ac90c29e0bb6b3a"},{"admitted_at":1792509475,"marker":"b451dabb75c6e942552b1874ab71b9e2b029ebe15d1df5a557198a40572e1602"},{"admitted_at":1792509475,"marker":"94f1145426fc2b397fa0630d84efc7cdc2e79dceab1cbb3f29577e839d3b2414"}],"rows":50,"stored_and_nothing_else":"markers and admission verdicts; no challenge, no package, no address","verdicts":[{"at":1792509475,"code":null,"verdict":"ADMITTED"}]}
