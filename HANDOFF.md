@@ -1,6 +1,6 @@
 # HANDOFF
 
-State of Unstirred at commit `8398181` — **M1 and M2 are both closed**: M2's last open item, a
+State of Unstirred at commit `15bd859` — **M1 and M2 are both closed**: M2's last open item, a
 real two-source root run, was recorded on 2026-10-20 (§1). M3 is next and nothing in M2 is
 waiting. Written 2026-10-20, revised from the 2026-10-17 version. For the next session (agent or
 human).
@@ -118,10 +118,14 @@ is `evidence/2026-10-20-gate-quality-pass.md` (76 tests, GATE: PASS). The README
 table and a 60-second judge path) is deliberately left until after M3, at the owner's
 instruction; its per-crate test lists name A28-A33 in the meantime.
 
-Note on `8398181`: it carries the whole quality pass as well as the two-source evidence, under the
-subject "Evidence: two-source root agreement and verify (zec.rocks + own Zebra node)" and with no
-body. The subject describes a part of it. The commit has no upstream yet, so the owner can still
-amend the message; nothing in the tree depends on it.
+Two commits carry all of this, and the first of them is mislabelled. `8398181`, subject
+"Evidence: two-source root agreement and verify (zec.rocks + own Zebra node)", contains the whole
+quality pass as well as that evidence; its subject describes a part of it. It was already pushed
+when the mismatch was noticed, so it stands as written rather than being rewritten, and the
+`DECISIONS.md` row dated 2026-10-20 records what is actually in it. The M2 wrap-up — the claims
+rows for the two-source run, the `verify` wording constant and A33, the README test IDs and
+`evidence/2026-10-20-gate-quality-pass.md` — was rebased on top as `15bd859`. `master` tracks
+`origin/master` and both are pushed, so look for this work under two subjects, not one.
 
 ## 2. What to do next, precisely
 

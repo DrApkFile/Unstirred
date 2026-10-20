@@ -3,6 +3,39 @@
 Things learned while building that the code and the other briefing files do not say. Decisions go
 to `DECISIONS.md`; recorded runs go to `evidence/`. This file is for the facts that cost time.
 
+## Closing M2, and what this pass got wrong, 2026-10-20
+
+- **Never amend a commit without asking the remote whether it has it.** `git rev-parse
+  --abbrev-ref @{u}` answers "does this branch have an upstream configured", which is not the same
+  question: a branch can have no upstream and still have had its commits pushed. `8398181` was
+  reported here as safe to amend on the strength of an unset `@{u}`, and it was already on
+  `origin`. The questions that actually answer it are `git branch -r --contains <sha>` and
+  `git log <remote>/<branch>..HEAD`. The commit now stands as written, with a `DECISIONS.md` row
+  saying what is really in it.
+- **Piping `scripts/gate.sh` through `tail` reports the wrong exit code and hides whole targets.**
+  `./scripts/gate.sh | tail -60` makes `$?` the exit status of `tail`, so a gate that failed looks
+  like it passed, and the earlier test targets scroll out of the capture. CLAUDE.md already bans
+  hiding a failure behind `tail`; the exit code is the second half of that rule. Redirect the
+  whole run to a file and read the file.
+- **A file directly in `tests/` is its own cargo target, including a helper.** A shared
+  `tests/seeded.rs` compiles twice: once as a module of the suite that declares it, once as a test
+  target of its own, where its `pub` items are dead code and the gate's `-D warnings` fails on
+  them. Shared test helpers belong in a subdirectory (`tests/properties/seeded.rs`).
+- **A property test needs a coverage assertion or it can test nothing and pass.** A32's first
+  generator drew note values up to `u32::MAX` against thresholds around 0.125 ZEC, so one or two
+  notes always reached the threshold and the "more than five notes needed" refusal was never
+  produced: the oracle agreed on all 2,000 cases while one whole path went unexercised. The
+  failure printed `the counts were [230, 599, 0, 1171]`. The fix is a deliberate dust shape, six
+  to eight notes of about a sixth of `REQUIRED_MIN_ZATOSHIS` each, all held.
+- **Clippy 1.91 rejects `x % n == 0` as `manual_is_multiple_of`.** The production rule in
+  `window.rs` already used `is_multiple_of`; the property test restating it with `%` failed the
+  gate under `-D warnings`. Restate a rule with the same call the rule uses, not an equivalent.
+- **User-facing text that names a milestone goes stale in silence.** `unstirred verify` printed
+  "markers not recorded (M2)" for the whole of M2 and kept printing it after M2 closed, because no
+  test asserted that line. It is one constant now, printed by both the human and the JSON path,
+  and A33 fails if the sentence stops naming `verify` and `admit` or starts naming a milestone
+  again. When a milestone closes, grep the user-facing strings for its name.
+
 ## Quality pass: adversarial reorg, property tests, CI, 2026-10-20
 
 - **rustfmt and rustc resolve a test target's nested modules differently.** For the target root
