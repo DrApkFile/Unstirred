@@ -1,22 +1,27 @@
 //! The gate database. **Synthetic** where a package is involved: the notes come from
 //! `store/fixture.rs`. The SQLite file, the immediate transaction and the admission order are
-//! the real ones. A05d and the consumed-challenge half of A07 need no proof.
+//! the real ones. Everything that attacks the store is in `tests/adversarial/`; what is left
+//! here is what an honest admission writes, and what a crash before the commit does not.
 
-mod store {
-    pub mod fixture;
-    mod proofs;
-    pub mod support;
+#[path = "adversarial"]
+mod adversarial {
+    mod challenge_misuse;
+    mod replayed_coins;
 }
 
-use store::support::{
-    admission, clock_at, distinct_markers, expect_admitted, expect_store_code, open_gate, snapshot, TestResult, NOW,
-};
-use unstirred_core::Code;
+mod store {
+    pub mod assertions;
+    mod dump;
+    pub mod fixture;
+    pub mod support;
+    mod two_contexts;
+}
+
+use store::support::{admission, clock_at, distinct_markers, expect_admitted, open_gate, TestResult, NOW};
 use unstirred_verifier::store::{Store, StoreError, CHALLENGE_TTL_SECONDS};
 
 const KEPT: [u8; 32] = [0xa1; 32];
 const INTERRUPTED: [u8; 32] = [0xb1; 32];
-const CONSUMED: [u8; 32] = [0xc1; 32];
 
 /// A05d: the writes of an admission that dies before `COMMIT` are gone, including when an
 /// earlier admission had already committed. Also the file is WAL and this connection waits.
@@ -89,26 +94,6 @@ fn a05d_a_failure_before_commit_persists_nothing() -> TestResult {
         store.admissions()?.len(),
         1,
         "the interrupted admission row must not be stored"
-    );
-    Ok(())
-}
-
-/// A07, store half: a challenge that was already consumed, presented with markers this gate has
-/// not stored, is CHALLENGE_UNKNOWN_OR_EXPIRED. The refusal rolls back, so the file is unchanged.
-#[test]
-fn a07_a_consumed_challenge_with_new_markers_is_refused_and_writes_nothing() -> TestResult {
-    let (_directory, mut store) = open_gate()?;
-    let clock = clock_at(NOW);
-    store.record(&CONSUMED, "holders-room", &clock)?;
-    expect_admitted(store.commit_admission(&admission("holders-room", CONSUMED, distinct_markers(0xc1), NOW))?)?;
-    let before = snapshot(&store)?;
-
-    let outcome = store.commit_admission(&admission("holders-room", CONSUMED, distinct_markers(0xd1), NOW))?;
-    expect_store_code(outcome, Code::ChallengeUnknownOrExpired)?;
-    assert_eq!(
-        snapshot(&store)?,
-        before,
-        "refusing a consumed challenge must write nothing"
     );
     Ok(())
 }

@@ -2,14 +2,16 @@ use std::process::ExitCode;
 
 use unstirred_core::parse_manifest;
 use unstirred_verifier::store::{Store, StoreError, SystemClock};
-use unstirred_verifier::{admit, verdict_object, PinnedRoots, Verdict};
+use unstirred_verifier::{admit, PinnedRoots};
 
 use crate::args::{parse_flags, required, strip_bool_flags, strip_repeatable_flags, Flags};
 use crate::refusal::print_refusal;
-use crate::root_sources::{
-    print_readout_human, print_readout_json_stderr, print_refusal_json_stderr, RootSourceArgs, SOURCE_RULES,
-};
+use crate::root_sources::{print_refusal_json_stderr, RootSourceArgs, SOURCE_RULES};
 use crate::{EXIT_ERROR, EXIT_INCONCLUSIVE, EXIT_REFUSED, EXIT_USAGE};
+
+mod report;
+
+use report::{finish, print_roots};
 
 pub const USAGE: &str = "unstirred admit --db <file> --package <file> --manifest <file> \\
     --root-source <spec> [--root-source <spec>] --h1-root <hex> [--single-root-source] [--json]
@@ -106,54 +108,6 @@ fn read_file(path: &str) -> Result<String, ExitCode> {
 fn local(error: &StoreError) -> ExitCode {
     eprintln!("error: {error}");
     ExitCode::from(EXIT_ERROR)
-}
-
-fn print_roots(
-    json: bool,
-    request: &Request,
-    readout: &unstirred_verifier::RootAuthorityReadout,
-    manifest: &unstirred_core::Manifest,
-) {
-    let h1 = hex::encode(request.h1_root);
-    if json {
-        print_readout_json_stderr(readout, request.sources.single);
-        eprintln!("h1 nullifier-set root pinned by the operator (--h1-root): {h1}");
-        return;
-    }
-    print_readout_human(readout, manifest.network, manifest.window.h0, request.sources.single);
-    println!("h1 nullifier-set root    {h1}");
-    println!(
-        "    pinned by the operator on the command line, labelled operator-pinned (nf-server verify-root is deferred to P1)"
-    );
-}
-
-fn finish(json: bool, verdict: &Verdict, note: Option<&'static str>) -> ExitCode {
-    if json {
-        println!("{}", verdict_object(verdict, note));
-    }
-    match verdict {
-        Verdict::Admitted => {
-            if !json {
-                if let Some(note) = note {
-                    println!("{note}");
-                }
-                println!("ADMITTED");
-            }
-            ExitCode::SUCCESS
-        }
-        Verdict::Refused(refusal) => {
-            if !json {
-                print_refusal(refusal);
-            }
-            ExitCode::from(EXIT_REFUSED)
-        }
-        Verdict::Inconclusive(refusal) => {
-            if !json {
-                print_refusal(refusal);
-            }
-            ExitCode::from(EXIT_INCONCLUSIVE)
-        }
-    }
 }
 
 #[derive(Debug)]

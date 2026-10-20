@@ -173,6 +173,11 @@ Prover (decides before proving): `WALLET_NOT_SYNCED_PAST_H1`, `COINS_TOO_NEW`, `
 - A25 a package whose instance `vote_round_id` belongs to another gate context is refused (CONTEXT_MISMATCH)
 - A26 a verifier root source that cannot be reached or used gives INCONCLUSIVE / ROOT_SOURCE_UNAVAILABLE, never ADMITTED
 - A27 single-source root checking exists only as an explicit `--single-root-source` opt-in: its human output and JSON verdict both carry "ROOT FROM ONE SOURCE: not independently checked", the agreement line says "not checked (one source)" instead of claiming the sources agree, and without the flag exactly two root sources are required
+- A28 the window rule accepts exactly the windows it names and refuses every other, over thousands of random h0, h1 and tip triples, with every failing seed reported
+- A29 `round_id` is derived from network and context only: the same pair always gives the same id, a different context or network always gives a different one, and no height can change it, over thousands of random contexts
+- A30 the manifest context rule accepts exactly the documented charset and length, and a manifest that parses re-serialises and re-parses unchanged, over thousands of random strings
+- A31 the binding message changes whenever any statement field, the session key or the challenge changes, over thousands of random statements
+- A32 the note selection picks a smallest set of notes reaching the threshold, agreeing with a brute-force oracle over every subset, and does not depend on the order the notes arrive in
 
 ## 11. Priorities
 - **P0:** core, prover, verifier, CLI (incl. `gate markers`), gate service, Holders' Room page, GitHub Release binaries, A01–A14, `LEAKS.md`, `SPEC.md`, real testnet evidence, README, demo video.

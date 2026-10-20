@@ -1,16 +1,19 @@
-//! Synthetic witness rebuilds: a note's authentication path at a height the wallet has long since
-//! passed. See `unstirred_prover::testing` for what "synthetic" means here.
+//! Synthetic witness rebuilds: a note's authentication path at a height the wallet has long
+//! since passed. See `unstirred_prover::testing` for what "synthetic" means here. The forged
+//! frontier is in `tests/adversarial/`.
 
-use incrementalmerkletree::frontier::{Frontier, NonEmptyFrontier};
+#[path = "adversarial"]
+mod adversarial {
+    mod wrong_frontier;
+}
+
 use unstirred_core::{Code, Network};
 use unstirred_prover::testing::{
     manifest, refusal_code, NoteA, SyntheticWallet, TestResult, H0, H1, NOTE_A_HEIGHT, NOTE_B_HEIGHT, NOTE_B_ZATOSHIS,
 };
 use unstirred_prover::{
-    eligible_notes, fetch_ironwood_tree_state, witnesses_at, HeldNote, IronwoodTreeState, ProverError, ReadOnlyWallet,
-    Witnesses,
+    eligible_notes, fetch_ironwood_tree_state, witnesses_at, HeldNote, ProverError, ReadOnlyWallet,
 };
-use voting_crypto_deps::orchard::tree::MerkleHashOrchard;
 use zcash_client_sqlite::error::SqliteClientError;
 
 #[test]
@@ -94,31 +97,6 @@ fn a03_a_note_mined_after_h0_gets_no_witness_at_h0() -> TestResult {
     Ok(())
 }
 
-#[test]
-fn a20_a_frontier_that_is_not_the_wallets_tree_at_h0_is_rejected() -> TestResult {
-    let synthetic = SyntheticWallet::build(NoteA::StaysPut)?;
-    let dir = tempfile::tempdir()?;
-    synthetic.write_to(dir.path())?;
-    let wallet = ReadOnlyWallet::open_with_params(dir.path(), synthetic.network())?;
-    let selected = eligible_notes(&wallet, synthetic.account()?, &manifest(H0, H1)?)?.selection;
-    let honest = synthetic.tree_state_at(H0)?;
-
-    let forged = tampered_leaf(&honest)?;
-    assert_ne!(forged.root_bytes(), honest.root_bytes());
-
-    let refused: Result<Witnesses, ProverError> = witnesses_at(&wallet, &forged, &selected.notes);
-
-    assert!(
-        matches!(
-            refused,
-            Err(ProverError::WalletUnreadable(ref error))
-                if matches!(**error, SqliteClientError::HistoricalFrontierInvalid(_))
-        ),
-        "a forged frontier must be rejected as inconsistent with the wallet's own tree: {refused:?}"
-    );
-    Ok(())
-}
-
 /// Nothing answers on this port, so the request fails. It is a local address: running the test
 /// makes no request to anyone else.
 #[test]
@@ -139,18 +117,4 @@ fn note_worth(notes: &[HeldNote], value_zatoshis: u64) -> Result<HeldNote, Box<d
         .find(|note| note.value_zatoshis == value_zatoshis)
         .copied()
         .ok_or_else(|| format!("the wallet holds no note worth {value_zatoshis} zatoshis").into())
-}
-
-/// The same frontier with a different leaf: the shape and height are right, the contents are not.
-fn tampered_leaf(honest: &IronwoodTreeState) -> Result<IronwoodTreeState, Box<dyn std::error::Error>> {
-    let real = honest.frontier()?;
-    let (position, leaf, ommers) = real.into_parts();
-    let forged_leaf = MerkleHashOrchard::from_bytes(&[1u8; 32])
-        .into_option()
-        .ok_or("the test's stand-in leaf is not a canonical field element")?;
-    assert_ne!(forged_leaf.to_bytes(), leaf.to_bytes());
-    let forged = NonEmptyFrontier::from_parts(position, forged_leaf, ommers)
-        .map_err(|e| format!("the test's forged frontier is malformed: {e:?}"))?;
-    let tree = Frontier::try_from(forged).map_err(|e| format!("the test's forged frontier is too deep: {e:?}"))?;
-    Ok(IronwoodTreeState::from_parts(honest.height(), tree))
 }

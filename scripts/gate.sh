@@ -5,9 +5,12 @@ cd "$(dirname "$0")/.."
 echo "== fmt";    cargo fmt --all -- --check
 echo "== clippy"; cargo clippy --release --all-targets --all-features -- -D warnings
 echo "== tests";  cargo test --release --workspace --all-features
+echo "== leaks";  ./scripts/leak-scan.sh
+echo "== claims"; ./scripts/claims-check.sh
 
 echo
-echo "GATE: PARTIAL"
-echo "Implemented checks passed. Not yet implemented (see briefing/BUILD_CONTRACT.md):"
-echo "  - leak scanner (A02)"
-echo "  - claims check (every README claim links to evidence/)"
+echo "GATE: PASS"
+echo "fmt, clippy, the whole test suite, the leak scan (A02, repository half) and the claims check."
+echo "What the gate still cannot see (see briefing/BUILD_CONTRACT.md):"
+echo "  - a leak through a channel rather than a string, in a running process"
+echo "  - whether a recorded run in evidence/ says what this ledger says it says"

@@ -27,7 +27,8 @@ Feasibility spikes (split-height proofs, rejections, spend-key binding) passed b
 
 ## Build
 
-Rust 1.91 or newer.
+Rust 1.91, pinned by `rust-toolchain.toml`, and python3, which the gate's leak scan and claims
+check use. The same gate runs in CI on every push and pull request.
 
 ```
 cargo build --release
@@ -39,6 +40,7 @@ cargo build --release
 - `briefing/PRD.md`: what we are building and how it is verified
 - `briefing/LEAKS.md`: every privacy channel, with its test or stated limit
 - `briefing/BUILD_CONTRACT.md`: rules this repo follows
+- `CLAIMS.md`: every claim on this page, its status, and the evidence file it rests on
 
 ## License
 

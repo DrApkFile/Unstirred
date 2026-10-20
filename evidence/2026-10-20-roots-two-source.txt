@@ -1,0 +1,6 @@
+root sources for the h0 Ironwood note-commitment root (network test, h0 4505790):
+  lwd:https://testnet.zec.rocks:443  root a16809847bf51d60ac6d9bb3f71cbbf27483050868b94b242ca831fe14bf692d  tip 4521439
+  zebra:http://127.0.0.1:18232  root a16809847bf51d60ac6d9bb3f71cbbf27483050868b94b242ca831fe14bf692d  tip 4521439
+agreement: the sources agree on one h0 root a16809847bf51d60ac6d9bb3f71cbbf27483050868b94b242ca831fe14bf692d
+chain tip for the window check: 4521439 (the lower of the answers)
+commit: b9374b0  date: 2026-10-20T07:55:52Z  sources: zec.rocks lightwalletd + own zebrad 7.0.0-rc.0

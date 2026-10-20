@@ -3,6 +3,38 @@
 Things learned while building that the code and the other briefing files do not say. Decisions go
 to `DECISIONS.md`; recorded runs go to `evidence/`. This file is for the facts that cost time.
 
+## Quality pass: adversarial reorg, property tests, CI, 2026-10-20
+
+- **rustfmt and rustc resolve a test target's nested modules differently.** For the target root
+  `tests/store.rs`, rustc resolves `mod store { pub mod fixture; }` to `tests/store/fixture.rs`
+  (the crate root's own directory, plus the inline module's name). rustfmt instead treats the
+  target file's stem as the directory and ignores the inline wrapper, so the two agree only
+  because that wrapper happens to be named after the file. Declaring `mod adversarial { ... }`
+  inside `tests/verify.rs` compiles, but `cargo fmt` fails with "failed to resolve mod
+  `foreign_gate`: tests/verify/foreign_gate.rs does not exist". `#[path = "adversarial"]` on the
+  inline module makes both tools resolve `tests/adversarial/`, which is how one attack directory
+  is shared between several targets.
+- **One real proof per test target, not per file.** Each integration-test target is its own
+  process, so a `OnceLock` fixture is built once per target, not once per run. Giving the attacks
+  their own target would have rebuilt the verifier's four K=12 proofs (about 170 s) and the
+  prover's one (about 55 s) on every gate run; instead each existing target declares the attack
+  modules whose fixture it already pays for.
+- **`rust-toolchain.toml` pins 1.91, and that pin rebuilds everything once.** The next cargo call
+  after adding it makes rustup install 1.91.1 and invalidates every artifact built with the
+  previous default toolchain, so the first gate run after the pin rebuilds the whole dependency
+  graph in release.
+- **Property tests are seeded by case number.** `StdRng::seed_from_u64(seed)` per case, every
+  failure collected as `(seed, reason)` and the list asserted empty, so a failure names the case
+  and nothing depends on OS entropy. The generators are biased on purpose (70% of windows put h1
+  on the nullifier step, 80% put h0 below h1): uniformly random triples almost never make a valid
+  window, and a property that only ever exercises refusals proves little. A28 and A32 assert that
+  every outcome was actually reached.
+- **`git grep`, not `git ls-files | xargs grep`, in the leak scan.** A pattern beginning with `-`
+  is read as an option by grep, and with `|| true` on the end the check passed silently while
+  scanning nothing. `git grep -e <pattern>` separates "no match" (exit 1) from "could not run"
+  (exit above 1), which the scanner now reports as a failure, and it skips tracked files that have
+  been deleted from the working tree. Both patterns were then confirmed against a planted canary.
+
 ## M2 step 2 (challenge and marker store), 2026-10-17
 
 - **BLAKE2b personalisation is 16 bytes.** `unstirred/chal/v1` is 17 and `blake2b_simd` panics on

@@ -33,13 +33,18 @@ pub fn admit(
     if let Err(refusal) = authenticate(&examined.package, &examined.instance) {
         return Ok(as_verdict(refusal));
     }
-    // The proof may have taken long enough for the challenge to expire. The transaction checks
-    // the clock again, so this instant is the one the consume is bound to.
-    let now = clock.unix_seconds();
+    let now = instant_the_consume_is_checked_against(clock);
     match store.commit_admission(&admission(&examined, &manifest.context, challenge, now))? {
         CommitOutcome::Admitted => Ok(Verdict::Admitted),
         CommitOutcome::Refused(refusal) => Ok(as_verdict(refusal)),
     }
+}
+
+/// The clock read after the proof, not before it: proving may have taken long enough for the
+/// challenge to expire, and the admission transaction tests this instant against `expires_at`
+/// before it consumes anything.
+fn instant_the_consume_is_checked_against(clock: &impl Clock) -> i64 {
+    clock.unix_seconds()
 }
 
 fn precheck(store: &Store, challenge: &[u8; 32], context: &str, now: i64) -> Result<bool, StoreError> {

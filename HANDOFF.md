@@ -1,8 +1,9 @@
 # HANDOFF
 
-State of Unstirred at commit `0c5cc1f` — M1 closed and M2 step 1 committed. M2 step 2 (the
-challenge and marker store, `admit`, `gate challenge`, `gate markers`) is in the working tree
-and not committed. Written 2026-10-17. For the next session (agent or human).
+State of Unstirred at commit `b9374b0` — M1 closed, and M2 steps 1 and 2 built, gated and
+committed. The one thing M2 still owes is a real two-source run, which waits on the owner's Zebra
+node (§2). Written 2026-10-20, revised from the 2026-10-17 version. For the next session (agent
+or human).
 Read `briefing/CLAUDE.md` and `briefing/BUILD_CONTRACT.md` first; this file only says where the
 work stopped, what is next, and what the machine around the repo is holding.
 
@@ -21,9 +22,9 @@ and the owner re-ran the same command and confirmed ADMITTED.
 | M1 step 4 (`4c975c4`, `118564f`) | proof package schema, the identity and spending-key path, bundle, prove, sign, `unstirred prove`; first real proof | `evidence/2026-10-17-first-proof.json` |
 | M1 step 5 (`8c52f45`) | `unstirred-verifier`: pure engine over injected roots (PRD §6 steps 1-8), one-server root read, `unstirred verify` with `--json` | `evidence/2026-10-17-verify-first-proof.txt` (synthetic tests only in CI; the real admission is the recorded run) |
 
-Step 5's additions: `crates/unstirred-verifier/src/{engine,roots}.rs`,
-`crates/unstirred-verifier/tests/verify.rs`, `crates/unstirred-verifier/tests/verify/synthetic.rs`,
-`crates/unstirred-cli/src/verify.rs`, and the synthetic harness moved from
+Step 5's additions: `crates/unstirred-verifier/src/{engine,roots}/`,
+`crates/unstirred-verifier/tests/verify.rs`, `crates/unstirred-verifier/tests/verify/`,
+`crates/unstirred-cli/src/verify/`, and the synthetic harness moved from
 `crates/unstirred-prover/tests/harness/` to `crates/unstirred-prover/src/testing/` behind a
 `test-harness` cargo feature.
 
@@ -42,8 +43,9 @@ the tip is the lower of the answers. The h1 root stays operator-pinned and label
 gained `crates/unstirred-cli/src/{roots,root_sources}.rs`. A10 got its positive and refusal tests
 and new IDs A10b and A27 are registered in PRD §10 with `DECISIONS.md` rows.
 
-**M2 step 2 (challenge and marker store)** is built in the working tree and not committed
-(gate log `evidence/2026-10-17-gate-m2-step2.md`, `GATE: PARTIAL`, exit 0). One SQLite file,
+**M2 step 2 (challenge and marker store)** is built and committed (`2639fdd`, then `b9374b0`,
+which adds nothing but the session summary now at `evidence/2026-10-17-two-rooms-summary.md`;
+gate log `evidence/2026-10-17-gate-m2-step2.md`, `GATE: PARTIAL`, exit 0). One SQLite file,
 created on first open, WAL, 10s busy timeout on that connection. Tables are hashed challenges,
 markers (`UNIQUE(context, marker)`) and admission verdicts. The raw challenge is never stored.
 Challenges expire after 10 minutes (`expires_at > now`); the clock is an injected trait.
@@ -58,8 +60,9 @@ markers and admission verdicts, not challenge hashes. `unstirred verify` is stil
 no-database path and still prints "markers not recorded (M2)" on ADMITTED. A one-source run's
 agreement line is "not checked (one source)" in the human output and in the roots JSON.
 Additions: `crates/unstirred-verifier/src/admit.rs`, `crates/unstirred-verifier/src/store/`,
-`crates/unstirred-verifier/src/verdict.rs`, `crates/unstirred-verifier/tests/store.rs`,
-`crates/unstirred-cli/src/admit.rs`, `crates/unstirred-cli/src/gate.rs`. A02b, A05, A05c, A05d,
+`crates/unstirred-verifier/src/verdict.rs`, `crates/unstirred-verifier/tests/store.rs` with
+`crates/unstirred-verifier/tests/store/`, `crates/unstirred-cli/src/admit/`,
+`crates/unstirred-cli/src/gate.rs`. A02b, A05, A05c, A05d,
 A07, A08 and the A11 no-write check pass on synthetic packages. The order is the `DECISIONS.md`
 row that refines PRD §6. The same sequence on the real testnet wallet is
 `evidence/2026-10-17-admit-two-rooms.txt`: holders-room ADMITTED, the same package
@@ -80,10 +83,39 @@ check, with A01 still closed by `evidence/2026-10-17-verify-first-proof.txt`). O
 repo/log scanner as a gate step, A12 (marker stability when a gate is republished with a new
 window), and every live HTTP path in `unstirred-gate`.
 
+**Cleanup pass, 2026-10-20 (uncommitted, nothing behavioural):** every source file over ~180
+lines was split into modules named for what they hold, so several paths this file names are now
+directories. `unstirred-core`: `codes/{mod,spec}.rs`, `package/{mod,instance}.rs`.
+`unstirred-prover`: `pir/{mod,lookup,oracle}.rs`. `unstirred-verifier`: `engine/{mod,checks}.rs`,
+`roots/{mod,agreement,tree_state}.rs`, `roots/zebra/{mod,jsonrpc,treestate}.rs` with the parser's
+unit tests in `roots/zebra/treestate/tests.rs`, `store/{mod,challenge,clock,commit,query}.rs`.
+`unstirred-cli`: `admit/`, `prove/`, `roots/` and `verify/`, each the command plus its `report.rs`.
+Tests: the store's proof tests are now
+`tests/store/{same_coins,challenge_rules,two_contexts,dump,assertions}.rs`, and `tests/roots/`,
+`tests/verify/`, `tests/prove/` and `tests/pir/` hold their fixtures and helpers. No test body,
+assertion, acceptance ID or public name changed; the only visibility changes are `pub(super)` and
+`pub` where a split moved an item away from its caller. `crates/unstirred-prover/src/error.rs`
+(194 lines) is the one file still over the limit: it is a single `enum ProverError`, and one enum
+cannot be spread over two files without changing the public error type.
+
+**Quality pass, 2026-10-20 (uncommitted, nothing behavioural):** run against the code bar in
+`research-and-coding-skill-guide`. The adversarial tests moved into `crates/*/tests/adversarial/`
+as CLAUDE.md always required (package tampering, a foreign gate, replayed coins, challenge misuse,
+hostile root sources, a foreign signer, the PIR lookup under attack, a forged frontier, keys that
+are not the account's), with `#[path = "adversarial"]` on each target's wrapper module so rustfmt
+and rustc agree (see `briefing/BUILD_NOTES.md`). Five property, oracle and determinism tests were
+added as A28-A32, registered in PRD §10 and `DECISIONS.md` first, seeded by case number with no
+new dependency. `scripts/gate.sh` now also runs `scripts/leak-scan.sh` (A02's repository half) and
+`scripts/claims-check.sh` against the new `CLAIMS.md` ledger, and reports **GATE: PASS** instead of
+PARTIAL. CI runs the same gate on push and pull request (`.github/workflows/gate.yml`, actions
+pinned by SHA), `rust-toolchain.toml` pins 1.91, and `Cargo.toml` now carries the real repository
+URL. The two narrating comments in `crates/unstirred-verifier/src/admit.rs` became a named
+function. The README rebuild (a claims table and a 60-second judge path) is deliberately left
+until after M3, at the owner's instruction.
+
 ## 2. What to do next, precisely
 
-M2 step 1 (the verifier's root authority) is committed. M2 step 2 (the store and `admit`) is
-built, gated and not committed; do not commit it unless the owner asks. Two agreeing sources
+M2 steps 1 and 2 (the verifier's root authority; the store and `admit`) are committed. Two agreeing sources
 behind `--root-source` (two required, or one with `--single-root-source`), `ROOT_SOURCES_DISAGREE`
 / `ROOT_SOURCE_UNAVAILABLE` otherwise, h1 still operator-pinned and labelled, nf-server
 `verify-root` deferred (P1, see §6). No second public lightwalletd is reachable (Tatum's gateway
@@ -91,11 +123,11 @@ has no z_gettreestate, testnet.lightwalletd.com no longer resolves, the Logos on
 Tor), so the second source is the owner's own Zebra node. On 2026-10-17 it was still syncing:
 `getblockcount` at `http://127.0.0.1:18232` climbed through 1,675,600 and 1,791,200 and was
 1,836,400 at the start of the live admit, all short of h0 4,505,790, so that admit used
-`--single-root-source`. Remaining, in order:
+`--single-root-source`. Remaining:
 
-1. Commit M2 step 2 when the owner asks.
-2. A real two-source run recorded in `evidence/` once the Zebra node has synced past h1 +
-   finality (`unstirred roots`, then `unstirred verify` with lwd + zebra; commands in §4).
+1. A real two-source run recorded in `evidence/` once the Zebra node has synced past h1 +
+   finality (`unstirred roots`, then `unstirred verify` with lwd + zebra; commands in §4). This
+   is the last open item in M2, and nothing in the repo can close it: it waits on the node.
 
 M3, then: `unstirred-gate` (`/manifest`, `/challenge`, `/admit`, `gate markers`), exposing the M2
 challenge store over HTTP, and the Holders' Room page. The session key stays a fresh random 32
@@ -192,7 +224,7 @@ each source's h0 root, tip, and the agreement. A one-source run says
 `agreement: not checked (one source)` in the human output and
 `"agreement":"not checked (one source)"` in `--json`. It does not say the sources agreed.
 
-**Admitting into the gate database** (M2 step 2, uncommitted). `verify` still writes nothing.
+**Admitting into the gate database** (M2 step 2). `verify` still writes nothing.
 `admit` uses the challenge inside the package, so issue one, prove with it, then admit. With
 Zebra still behind h0, pass `--single-root-source`. The second room below is the holders-room
 manifest with `"context":"second-room"` and the same window; it is not a file in the repo.
@@ -257,9 +289,10 @@ proving or verifying paths. The ones most likely to bite the next step:
 
 ## 6. Open items
 
-- `scripts/gate.sh` still prints `GATE: PARTIAL`: the leak scanner (A02) and the claims check
-  (every README claim links to `evidence/`) are not gate steps yet. A02's package-scan substance
-  exists as tests (prover and verifier sides); the gate does not scan logs or the repo.
+- `scripts/gate.sh` prints `GATE: PASS` since 2026-10-20: fmt, clippy, the whole suite, the leak
+  scan and the claims check. What it still cannot see is a leak through a channel rather than a
+  string in a running process, and whether a file in `evidence/` says what `CLAIMS.md` says it
+  says. A02's package and database scans remain in-process tests.
 - `unstirred-gate`: M3. M2 builds the challenge store in `unstirred-verifier` (issue, single-use
   consume with expiry, hashed); M3 only exposes it over HTTP. The session key stays a fresh
   random 32 bytes with no private half for v1.
@@ -268,7 +301,11 @@ proving or verifying paths. The ones most likely to bite the next step:
   operator-pinned via `--h1-root` and labelled operator-pinned in output and docs.
 - `DECISIONS.md` has one `open` row: whether to reserve the crates.io names now with a 0.0.1
   placeholder. Owner's call. The planned publish is a single 0.1.0 around 2026-10-26.
-- `Cargo.toml` `repository` is still `https://github.com/<owner>/unstirred`.
+- `crates/unstirred-prover/src/error.rs` is 194 lines, over the ~180-line rule, because it is one
+  enum (see the cleanup note in §1). `DECISIONS.md` rows written before 2026-10-20 still cite the
+  pre-split file paths; they are a record of decisions, so they were left as written.
+- The README is still dense prose rather than a claims table and a 60-second judge path. `CLAIMS.md`
+  now holds the ledger it should be built from. Owner's instruction: rebuild it after M3.
 - Second root source for the verifier's two-source rule: no public second lightwalletd is
   reachable (Tatum's gateway has no z_gettreestate, testnet.lightwalletd.com no longer resolves,
   the Logos onion times out over Tor), so it is the owner's Zebra node (§2), still syncing.

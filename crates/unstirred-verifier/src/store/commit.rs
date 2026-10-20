@@ -4,7 +4,9 @@ and SQLite rolls it back, so a conflict or a crash leaves the file unchanged."]
 
 use rusqlite::{params, Transaction, TransactionBehavior};
 
-use super::{already_used, challenge_hash, challenge_refused, Store, StoreError};
+use unstirred_core::{Code, Refusal};
+
+use super::{challenge_hash, challenge_refused, Store, StoreError};
 
 /// What one successful proof asks the store to remember. `challenge` is the raw value; the
 /// transaction hashes it the same way [`super::Store::record`] did.
@@ -62,6 +64,32 @@ impl Store {
             }),
         }
     }
+}
+
+/// One stored marker. `marker` is the 32-byte canonical encoding of a `gov_null` field element.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct MarkerRow {
+    pub context: String,
+    pub marker: [u8; 32],
+    pub admitted_at: i64,
+}
+
+/// One committed admission. `code` is empty when the verdict is ADMITTED: there is no refusal code.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct AdmissionRow {
+    pub context: String,
+    pub verdict: String,
+    pub code: Option<String>,
+    pub at: i64,
+}
+
+/// A marker this gate already holds means these coins were admitted here before. The conflict is
+/// the UNIQUE constraint, so the refusal is a rolled-back transaction, never a read-then-write.
+fn already_used() -> Refusal {
+    Refusal::new(
+        Code::AlreadyUsedInContext,
+        "a marker from this package is already stored for this gate, so the write was rolled back",
+    )
 }
 
 enum Applied {
