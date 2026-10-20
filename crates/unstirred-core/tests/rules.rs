@@ -1,6 +1,8 @@
+use std::error::Error;
+
 use unstirred_core::{
-    binding_message, check_window, derive_round_id, parse_manifest, BindingStatement, Code, Network, VerdictKind,
-    Window, FINALITY_DEPTH,
+    binding_message, build_manifest, check_window, derive_round_id, parse_manifest, BindingStatement, Code, Network,
+    VerdictKind, Window, FINALITY_DEPTH,
 };
 use voting_crypto_deps::pasta_curves::pallas;
 
@@ -141,4 +143,66 @@ fn a07_binding_message_changes_with_session_challenge_and_every_statement_field(
     }
     let collisions = variants.iter().filter(|m| **m == reference).count();
     assert_eq!(collisions, 0);
+}
+
+/// A40: what `unstirred gate init` is allowed to write. The text comes back only when this
+/// crate's own parser accepts it, and every value that cannot make a gate is refused with the
+/// code that names why.
+#[test]
+fn a40_build_manifest_writes_only_a_manifest_core_accepts_and_refuses_the_rest() -> Result<(), Box<dyn Error>> {
+    let window = Window {
+        h0: 4_505_790,
+        h1: 4_506_510,
+    };
+    let written = build_manifest(Network::Test, "holders-room", window)?;
+    let parsed = parse_manifest(&written)?;
+    assert_eq!(parsed.version, "unstirred/v1");
+    assert_eq!(parsed.network, Network::Test);
+    assert_eq!(parsed.context, "holders-room");
+    assert_eq!(parsed.window, window);
+    assert_eq!(parsed.min_zatoshis, "12500000");
+    assert_eq!(
+        parse_manifest(&build_manifest(Network::Main, "a", window)?)?.network,
+        Network::Main
+    );
+
+    let refused = |network, context: &str, h0, h1| {
+        build_manifest(network, context, Window { h0, h1 })
+            .err()
+            .map(|refusal| refusal.code)
+    };
+    assert_eq!(
+        refused(Network::Test, "holders-room", 4_506_510, 4_505_790),
+        Some(Code::WindowInvalid),
+        "h0 must be below h1"
+    );
+    assert_eq!(
+        refused(Network::Test, "holders-room", 4_505_790, 4_505_790),
+        Some(Code::WindowInvalid),
+        "a window of no length is no window"
+    );
+    assert_eq!(
+        refused(Network::Test, "holders-room", 4_505_790, 4_506_511),
+        Some(Code::WindowInvalid),
+        "h1 must be a multiple of the nullifier snapshot step"
+    );
+    assert_eq!(
+        refused(Network::Test, "Holders-Room", 4_505_790, 4_506_510),
+        Some(Code::ManifestInvalid),
+        "the context charset is a-z, 0-9 and '-'"
+    );
+    assert_eq!(
+        refused(Network::Test, "", 4_505_790, 4_506_510),
+        Some(Code::ManifestInvalid)
+    );
+    assert_eq!(
+        refused(Network::Test, "-leading-dash", 4_505_790, 4_506_510),
+        Some(Code::ManifestInvalid)
+    );
+    assert_eq!(
+        refused(Network::Test, &"a".repeat(65), 4_505_790, 4_506_510),
+        Some(Code::ManifestInvalid),
+        "a context is at most 64 characters"
+    );
+    Ok(())
 }

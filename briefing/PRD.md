@@ -179,6 +179,14 @@ Prover (decides before proving): `WALLET_NOT_SYNCED_PAST_H1`, `COINS_TOO_NEW`, `
 - A31 the binding message changes whenever any statement field, the session key or the challenge changes, over thousands of random statements
 - A32 the note selection picks a smallest set of notes reaching the threshold, agreeing with a brute-force oracle over every subset, and does not depend on the order the notes arrive in
 - A33 `unstirred verify`'s ADMITTED output says that this command recorded nothing and names `admit` as the command that does, in the human output and beside the JSON verdict, from one constant, and without naming a milestone that can pass
+- A34 a full HTTP knock against a running gate is admitted: the holder fetches the room's manifest and a challenge over HTTP, proves against them, posts the package and reads the PRD §3.5 verdict (synthetic wallet, synthetic roots)
+- A35 a second knock with the same coins at one room is refused ALREADY_USED_IN_CONTEXT over HTTP, re-posting an already admitted package is refused the same way, and neither attempt writes anything
+- A36 a package answering a challenge the gate never issued is refused CHALLENGE_UNKNOWN_OR_EXPIRED over HTTP, before the signature and the proof, and the gate writes nothing
+- A37 an admit body larger than the gate's limit is rejected before it is parsed, verified or stored, and the rejection invents no verdict code
+- A38 a request for a room this gate does not host is 404 and names no room, marker, challenge or verdict of the gate
+- A39 the gate's log lines carry no IP address other than its own listen address, and neither the log nor any response carries a proof-package body, a raw challenge or a session key (LEAKS L9, L10)
+- A40 `unstirred gate init` writes only a manifest `unstirred-core` parses, and refuses h0 >= h1, an h1 that is not a multiple of 10, and a context outside the documented charset
+- A41 `unstirred gate serve` refuses to start on an invalid room manifest, a missing setting, two rooms with the same context, the wrong number of root sources, or an h1 root that is not 32 bytes of hex
 
 ## 11. Priorities
 - **P0:** core, prover, verifier, CLI (incl. `gate markers`), gate service, Holders' Room page, GitHub Release binaries, A01–A14, `LEAKS.md`, `SPEC.md`, real testnet evidence, README, demo video.

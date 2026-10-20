@@ -5,7 +5,9 @@ use unstirred_core::{Refusal, VerdictKind};
 
 use crate::engine::Verdict;
 
-pub(crate) fn as_verdict(refusal: Refusal) -> Verdict {
+/// The verdict kind the closed code set assigns a refusal. Every caller that has a `Refusal` and
+/// owes someone a verdict goes through this, so no path can report a refusal as the wrong kind.
+pub fn as_verdict(refusal: Refusal) -> Verdict {
     match refusal.code.spec().kind {
         VerdictKind::Refused => Verdict::Refused(refusal),
         VerdictKind::Inconclusive => Verdict::Inconclusive(refusal),

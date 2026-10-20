@@ -13,6 +13,7 @@ path = "src/main.rs"
 unstirred-core = { path = "../unstirred-core" }
 unstirred-prover = { path = "../unstirred-prover" }
 unstirred-verifier = { path = "../unstirred-verifier" }
+unstirred-gate = { path = "../unstirred-gate" }
 hex.workspace = true
 
 [lints]

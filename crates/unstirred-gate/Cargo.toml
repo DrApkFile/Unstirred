@@ -7,6 +7,24 @@ license.workspace = true
 
 [dependencies]
 unstirred-core = { path = "../unstirred-core" }
+unstirred-verifier = { path = "../unstirred-verifier" }
+hyper = { workspace = true, features = ["server"] }
+hyper-util = { workspace = true, features = ["server"] }
+hyper-rustls.workspace = true
+http.workspace = true
+http-body-util.workspace = true
+bytes.workspace = true
+tokio.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+toml.workspace = true
+hex.workspace = true
+thiserror.workspace = true
+
+[dev-dependencies]
+unstirred-prover = { path = "../unstirred-prover", features = ["test-harness"] }
+voting-circuits.workspace = true
+tempfile.workspace = true
 
 [lints]
 workspace = true

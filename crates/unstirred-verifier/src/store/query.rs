@@ -113,7 +113,7 @@ pub struct Durability {
     pub busy_timeout_ms: i64,
 }
 
-fn collect_rows<T>(
+pub(super) fn collect_rows<T>(
     path: &Path,
     rows: rusqlite::Result<impl Iterator<Item = rusqlite::Result<T>>>,
 ) -> Result<Vec<T>, StoreError> {
@@ -126,7 +126,7 @@ fn collect_rows<T>(
     }
 }
 
-fn blob32(bytes: Vec<u8>, column: &'static str) -> rusqlite::Result<[u8; 32]> {
+pub(super) fn blob32(bytes: Vec<u8>, column: &'static str) -> rusqlite::Result<[u8; 32]> {
     <[u8; 32]>::try_from(bytes.as_slice())
         .map_err(|_| rusqlite::Error::InvalidColumnType(0, column.to_owned(), rusqlite::types::Type::Blob))
 }

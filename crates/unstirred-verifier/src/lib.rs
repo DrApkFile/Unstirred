@@ -15,3 +15,4 @@ pub use roots::{
     consult, parse_root_source_spec, root_source_note, AgreedRoots, LightwalletdSource, RootAuthorityReadout,
     RootSource, RootsFromServer, SourceOutcome, ZebraSource, SINGLE_SOURCE_NOTE,
 };
+pub use verdict::as_verdict;

@@ -17,7 +17,7 @@ pub fn admit(
     roots: &PinnedRoots,
     chain_tip: u32,
     store: &mut Store,
-    clock: &impl Clock,
+    clock: &dyn Clock,
 ) -> Result<Verdict, StoreError> {
     let examined = match examine(manifest, package_json, roots, chain_tip) {
         Ok(examined) => examined,
@@ -43,7 +43,7 @@ pub fn admit(
 /// The clock read after the proof, not before it: proving may have taken long enough for the
 /// challenge to expire, and the admission transaction tests this instant against `expires_at`
 /// before it consumes anything.
-fn instant_the_consume_is_checked_against(clock: &impl Clock) -> i64 {
+fn instant_the_consume_is_checked_against(clock: &dyn Clock) -> i64 {
     clock.unix_seconds()
 }
 

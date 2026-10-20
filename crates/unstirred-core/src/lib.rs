@@ -10,6 +10,8 @@ pub mod window;
 pub use binding::{binding_message, rk_from_coordinates, BindingStatement};
 pub use codes::{Code, CodeSpec, Refusal, VerdictKind};
 pub use context::derive_round_id;
-pub use manifest::{parse_manifest, Manifest, Network, Window, PROTOCOL_VERSION, REQUIRED_MIN_ZATOSHIS};
+pub use manifest::{
+    build_manifest, parse_manifest, Manifest, Network, Window, PROTOCOL_VERSION, REQUIRED_MIN_ZATOSHIS,
+};
 pub use package::{ProofPackage, PublicInstance};
-pub use window::{check_window, FINALITY_DEPTH, NULLIFIER_SYNC_STEP};
+pub use window::{check_window, check_window_shape, FINALITY_DEPTH, NULLIFIER_SYNC_STEP};

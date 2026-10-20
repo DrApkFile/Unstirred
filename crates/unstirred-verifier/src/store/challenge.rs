@@ -14,6 +14,16 @@ pub const CHALLENGE_TTL_SECONDS: i64 = 10 * 60;
 
 const CHALLENGE_PERSONALIZATION: &[u8; 16] = b"UnstirredChal_v1";
 
+/// A challenge the store just issued: the raw bytes for the holder, and the two times the file
+/// now holds for it. The gate answers `POST challenge` with `expires_at`, so the expiry a holder
+/// is told is the one the admission transaction will test against (PRD section 3.3).
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct Issued {
+    pub raw: [u8; 32],
+    pub issued_at: i64,
+    pub expires_at: i64,
+}
+
 /// A challenge row as the store knows it. The hash is not here: callers address a row by the
 /// raw challenge, and the file holds only [`challenge_hash`] of it.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -24,29 +34,34 @@ pub struct ChallengeRow {
 }
 
 impl Store {
-    /// Draws a challenge, stores only its hash, and returns the raw bytes for the holder.
-    pub fn issue(&self, context: &str, clock: &impl Clock) -> Result<[u8; 32], StoreError> {
+    /// Draws a challenge, stores only its hash, and returns the raw bytes with the times the file
+    /// now holds for them.
+    pub fn issue(&self, context: &str, clock: &dyn Clock) -> Result<Issued, StoreError> {
         let mut raw = [0u8; 32];
         RngCore::fill_bytes(&mut OsRng, &mut raw);
-        self.record(&raw, context, clock)?;
-        Ok(raw)
+        self.record(&raw, context, clock)
     }
 
-    /// Stores a challenge the caller already chose. The command line uses [`Store::issue`]; tests
-    /// record the challenge a package was built against. The raw bytes are hashed first.
-    pub fn record(&self, raw: &[u8; 32], context: &str, clock: &impl Clock) -> Result<(), StoreError> {
-        let now = clock.unix_seconds();
-        let expires_at = now
+    /// Stores a challenge the caller already chose. The command line and the gate use
+    /// [`Store::issue`]; tests record the challenge a package was built against. The raw bytes
+    /// are hashed first.
+    pub fn record(&self, raw: &[u8; 32], context: &str, clock: &dyn Clock) -> Result<Issued, StoreError> {
+        let issued_at = clock.unix_seconds();
+        let expires_at = issued_at
             .checked_add(CHALLENGE_TTL_SECONDS)
             .ok_or(StoreError::ClockUnusable)?;
         let hash = challenge_hash(raw);
         let inserted = self.conn.execute(
             "INSERT INTO challenges (hash, context, issued_at, expires_at, consumed_at)
              VALUES (?1, ?2, ?3, ?4, NULL)",
-            params![hash.as_slice(), context, now, expires_at],
+            params![hash.as_slice(), context, issued_at, expires_at],
         );
         self.db_result(inserted)?;
-        Ok(())
+        Ok(Issued {
+            raw: *raw,
+            issued_at,
+            expires_at,
+        })
     }
 }
 

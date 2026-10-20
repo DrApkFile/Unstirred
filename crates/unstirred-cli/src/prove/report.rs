@@ -6,7 +6,8 @@ use std::process::ExitCode;
 
 use unstirred_core::Manifest;
 
-use super::{Made, Request};
+use super::Request;
+use crate::proving::Made;
 use crate::refusal::print_refusal;
 use crate::EXIT_ERROR;
 
@@ -52,7 +53,7 @@ fn print_report(request: &Request, manifest: &Manifest, made: &Made) {
 
 fn print_header(wallet_path: &Path, manifest: &Manifest, request: &Request) {
     println!("wallet        {} (read-only)", wallet_path.display());
-    println!("identity      {}", request.identity.display());
+    println!("identity      {}", request.inputs.identity.display());
     println!("network       {}", manifest.network);
     println!("context       {}", manifest.context);
     println!(
@@ -61,10 +62,10 @@ fn print_header(wallet_path: &Path, manifest: &Manifest, request: &Request) {
     );
     println!(
         "lightwalletd  {} (one request: GetTreeState {})",
-        request.lightwalletd, manifest.window.h0
+        request.inputs.lightwalletd, manifest.window.h0
     );
-    println!("pir server    {}", request.pir);
-    match request.expected_h1_root.as_deref() {
+    println!("pir server    {}", request.inputs.pir);
+    match request.inputs.expected_h1_root.as_deref() {
         Some(expected) => println!("expected root {expected}"),
         None => println!("expected root — (none given; the server's own h1 root is used)"),
     }

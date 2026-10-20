@@ -6,12 +6,13 @@ mod challenge;
 mod clock;
 mod commit;
 mod query;
+mod recent;
 
 use std::path::{Path, PathBuf};
 
 use rusqlite::Connection;
 
-pub use challenge::{challenge_hash, ChallengeRow, CHALLENGE_TTL_SECONDS};
+pub use challenge::{challenge_hash, ChallengeRow, Issued, CHALLENGE_TTL_SECONDS};
 pub use clock::{Clock, SystemClock};
 pub use commit::{AdmissionRow, AdmissionWrite, CommitOutcome, MarkerRow};
 pub use query::Durability;

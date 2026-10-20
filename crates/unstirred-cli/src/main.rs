@@ -3,9 +3,11 @@ use std::process::ExitCode;
 mod admit;
 mod args;
 mod gate;
+mod knock;
 mod lookup;
 mod notes;
 mod prove;
+mod proving;
 mod refusal;
 mod root_sources;
 mod roots;
@@ -24,12 +26,14 @@ Commands (status as of this build):
   witness    rebuild each selected note's witness at h0 and check it against the h0 root
   lookup     privately prove each selected note's nullifier absent from the h1 nullifier set
   prove      prove the holding and write a proof package
+  knock      knock on a room of a running gate: fetch its manifest and challenge, prove, admit
   verify     verify a proof package against the gate's root sources and print the verdict
   roots      print the h0 root and tip each root source reports, and whether they agree
   admit      admit a package into the gate database, consuming its challenge and recording markers
+  gate serve       serve one gate over HTTP: rooms, challenges, admissions, room logs
+  gate init        write a gate manifest for one room
   gate challenge   issue a challenge and print its hex
   gate markers     print stored markers and admission verdicts
-  gate init  not built yet (milestone M3)
   codes      list every verdict code with its meaning
 
 Exit codes: 0 success, 1 refused, 2 usage, 3 local error, 4 inconclusive";
@@ -41,6 +45,7 @@ fn main() -> ExitCode {
         Some("witness") => witness::run(&args[1..]),
         Some("lookup") => lookup::run(&args[1..]),
         Some("prove") => prove::run(&args[1..]),
+        Some("knock") => knock::run(&args[1..]),
         Some("verify") => verify::run(&args[1..]),
         Some("roots") => roots::run(&args[1..]),
         Some("admit") => admit::run(&args[1..]),

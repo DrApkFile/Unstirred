@@ -1,9 +1,11 @@
 # HANDOFF
 
-State of Unstirred at commit `15bd859` — **M1 and M2 are both closed**: M2's last open item, a
-real two-source root run, was recorded on 2026-10-20 (§1). M3 is next and nothing in M2 is
-waiting. Written 2026-10-20, revised from the 2026-10-17 version. For the next session (agent or
-human).
+State of Unstirred at commit `9d05cf1` (M2 was wrapped up in `15bd859`), plus **uncommitted M3
+step 1 work recorded in §8** —
+**M1 and M2 are closed** (M2's last open item, a real two-source root run, was recorded on
+2026-10-20, §1) and **M3 step 1 is built and gated but not committed** (§8). What is next is M3
+step 2, the Holders' Room page, and the real two-room knock in §8. Written 2026-10-20, revised
+from the 2026-10-17 version. For the next session (agent or human).
 Read `briefing/CLAUDE.md` and `briefing/BUILD_CONTRACT.md` first; this file only says where the
 work stopped, what is next, and what the machine around the repo is holding.
 
@@ -76,13 +78,16 @@ ones, challenge equality against the challenge on the command line, the binding 
 Halo2 proof. Roots come from the M2 step 1 authority. Every root-source failure is INCONCLUSIVE.
 A25 and A26 stay registered for that path.
 
-`unstirred-gate` HTTP is still a one-line doc stub. `unstirred gate init` is not built (M3).
+`unstirred-gate` is now the HTTP service and `unstirred gate init` and `unstirred knock` are built;
+that is M3 step 1, recorded in section 8 below.
 
-Last gate run: `evidence/2026-10-17-gate-m2-step2.md` — `GATE: PARTIAL`, exit 0; fmt and clippy
-clean, all tests pass (the step 1 set plus A02b, A05, A05c, A05d, A07, A08 and the A11 no-write
-check, with A01 still closed by `evidence/2026-10-17-verify-first-proof.txt`). Open: A02's
-repo/log scanner as a gate step, A12 (marker stability when a gate is republished with a new
-window), and every live HTTP path in `unstirred-gate`.
+Last gate run of M2's own work: `evidence/2026-10-17-gate-m2-step2.md` — `GATE: PARTIAL`, exit 0;
+fmt and clippy clean, all tests pass (the step 1 set plus A02b, A05, A05c, A05d, A07, A08 and the
+A11 no-write check, with A01 still closed by `evidence/2026-10-17-verify-first-proof.txt`). Its
+open items are closed since: A02's repository scanner is a gate step
+(`evidence/2026-10-20-gate-quality-pass.md`) and the live HTTP paths are M3 step 1
+(`evidence/2026-10-20-gate-m3-step1.md`). A12 (marker stability when a gate is republished with a
+new window) is still only covered by the `round_id` rule in core, not by a gate run.
 
 **Cleanup pass, 2026-10-20 (committed in `8398181`, nothing behavioural):** every source file over ~180
 lines was split into modules named for what they hold, so several paths this file names are now
@@ -142,10 +147,14 @@ future second source: no public second lightwalletd is reachable (Tatum's gatewa
 z_gettreestate, testnet.lightwalletd.com no longer resolves, the Logos onion times out over Tor),
 so the owner's own node is the second source.
 
-Next is M3: `unstirred-gate` (`/manifest`, `/challenge`, `/admit`, `gate markers`), exposing the M2
-challenge store over HTTP, and the Holders' Room page. The session key stays a fresh random 32
-bytes with no private half for v1. The judge path decision (hosted Holders' Room) is due by M3,
-2026-10-21.
+**M3 step 1 is built and gated** (section 8): the `unstirred-gate` HTTP service with five routes
+per room, `unstirred knock`, and `unstirred gate init`, with A34-A41 green in
+`evidence/2026-10-20-gate-m3-step1.md` (88 tests, GATE: PASS). It is **not committed** and it has
+**not been run against a gate serving the real testnet wallet**; the commands for that run are in
+section 8.
+
+Next is M3 step 2: the Holders' Room page. The session key stays a fresh random 32 bytes with no
+private half for v1. The judge path decision (hosted Holders' Room) is due by M3, 2026-10-21.
 
 The standing rule holds: register any new acceptance IDs in `briefing/PRD.md` §10 **before**
 writing their tests, with a `DECISIONS.md` row.
@@ -310,9 +319,10 @@ proving or verifying paths. The ones most likely to bite the next step:
   scan and the claims check. What it still cannot see is a leak through a channel rather than a
   string in a running process, and whether a file in `evidence/` says what `CLAIMS.md` says it
   says. A02's package and database scans remain in-process tests.
-- `unstirred-gate`: M3. M2 builds the challenge store in `unstirred-verifier` (issue, single-use
-  consume with expiry, hashed); M3 only exposes it over HTTP. The session key stays a fresh
-  random 32 bytes with no private half for v1.
+- `unstirred-gate` HTTP is built (M3 step 1, section 8) and exposes the M2 store without adding a
+  check of its own. Open on that path: the Holders' Room page (M3 step 2), and the real two-room
+  run, which has not been made. The session key stays a fresh random 32 bytes with no private
+  half for v1.
 - h1 via nf-server `verify-root` is deferred (P1): it needs a full node serving raw blocks back to
   Ironwood activation plus an independently trusted block hash at h1. Until then h1 stays
   operator-pinned via `--h1-root` and labelled operator-pinned in output and docs.
@@ -335,3 +345,115 @@ proving or verifying paths. The ones most likely to bite the next step:
 - A frozen decision in `briefing/BUILD_CONTRACT.md` changes only after a `DECISIONS.md` row.
 - Run `./scripts/gate.sh` before claiming anything works, and record the run.
 - Deadline: last commit before **2026-10-27 08:00 UTC**, nothing after — not even docs.
+
+## 8. M3 step 1, built and gated 2026-10-20 (uncommitted)
+
+`./scripts/gate.sh` reports **GATE: PASS**, exit 0, with 88 tests and the leak and claims checks:
+`evidence/2026-10-20-gate-m3-step1.md`. A34-A41 are green, the twelve new tests are listed in
+that file, and the CLAIMS, README and LEAKS entries for them are written. **Nothing is
+committed**, and nothing in this step has been run against the holder's real wallet or against a
+gate serving it.
+
+What was built:
+
+- **`unstirred-gate` is now the service** (`src/{config,roots,state,router,reply,events,rfc3339,
+  serve,handlers,client}`): `GET /rooms`, `GET /rooms/<context>/manifest`,
+  `POST /rooms/<context>/challenge`, `POST /rooms/<context>/admit`, `GET /rooms/<context>/log`.
+  hyper 1.12 and hyper-util 0.1.21 directly, no axum, no middleware (DECISIONS 2026-10-20). The
+  admit route calls the same `unstirred_verifier::admit` the CLI calls; the gate adds no check.
+  Body limit `MAX_ADMIT_BODY_BYTES` = 256 KiB. ADMITTED 200, REFUSED 403, INCONCLUSIVE 503;
+  404/405/413/400 carry `{"error":…}` and no code from the closed set.
+- **Privacy:** the peer address is dropped at `accept`, one log line per request
+  (`method path -> status CODE`), plus a root-provenance line per admission; no body, no raw
+  challenge, no marker in the log. The single-source label travels in every body of ours and in
+  the `unstirred-root-note` header (the manifest body cannot carry extra fields).
+- **`unstirred gate serve --config <file>`** (TOML; `unstirred gate serve` with no flags prints a
+  full sample config), **`unstirred gate init --network --context --h0 --h1 --out`**, and
+  **`unstirred knock --gate --room --wallet --pir --lightwalletd --identity [--expected-h1-root]
+  [--account] [--json]`**, which fetches the room's manifest and a challenge, proves and posts.
+- **Shared code, not copies:** `crates/unstirred-cli/src/proving.rs` is the one proof path for
+  both `prove` and `knock`; `unstirred-core` gained `build_manifest` and `check_window_shape`;
+  `Store::issue`/`record` now return `Issued { raw, issued_at, expires_at }`; the store gained
+  `recent_markers`/`recent_admissions` (`store/recent.rs`); `admit` and the store take
+  `&dyn Clock`; `as_verdict` is public.
+- **Tests, IDs registered first** (PRD §10 and `DECISIONS.md` rows are already written):
+  A34 full HTTP knock admitted, A35 second knock with the same coins ALREADY_USED_IN_CONTEXT,
+  A36 a challenge the gate never issued (in `tests/adversarial/foreign_challenge.rs`),
+  A37 oversized body (`adversarial/oversized_body.rs`), A38 unknown room
+  (`adversarial/unknown_room.rs`), A39 no address, body or challenge in the log or responses,
+  A40 `build_manifest` (core's `tests/rules.rs`), A41 config refusals
+  (`unstirred-gate/tests/config.rs`), plus unit tests for the router and the RFC 3339 clock.
+
+The service was also exercised by hand on this machine after that run, with a one-room gate whose
+root sources pointed at `127.0.0.1:1` (nothing listening) and a wallet path that does not exist:
+`gate init` wrote a manifest and refused a reversed window and a bad context, all five routes
+answered, `POST admit` was `503 INCONCLUSIVE / ROOT_SOURCE_UNAVAILABLE` rather than a refusal of
+the holder, `knock` fetched the manifest and a challenge over HTTP before failing locally on the
+missing wallet, and the gate's log held one line per request with no address but its own. That was
+a smoke test against no chain and no wallet, so it is not in `evidence/`; A34-A41 are the record.
+
+Still open on this step: it is uncommitted, and the real two-room run below has not been made.
+What cost time is in `briefing/BUILD_NOTES.md` under "M3 step 1": `&impl Clock` cannot take a
+trait object, so the store and `admit` take `&dyn Clock`; `RootSource` and `Store` are not `Send`,
+so the gate keeps its source specs and builds both per request; a non-`Sync` synthetic wallet
+cannot live in a `OnceLock`, so each HTTP test pays its own ~50 s proof; `serde_json::json!`
+renders `Option::None` as `null`, hence `reply::body_with_note`; and clippy's `ptr_arg` and
+`result_large_err` cost one gate run, neither of which `cargo check` can see.
+
+### The real two-room run (not done; nothing was run against the wallet this session)
+
+`./scripts/gate.sh` runs `cargo test --release`, which does not refresh `target/release/unstirred`,
+so **build the binary first** or the old one (without `knock`, `gate serve` or `gate init`) is
+what runs. With `nf-server` up as in §3 and zebrad past the window:
+
+```
+cd /home/kingghidorah/Documents/projects/bounties/zecathon/unstirred
+cargo build --release
+cd /home/kingghidorah/Documents/projects/bounties/zecathon
+U=./unstirred/target/release/unstirred
+mkdir -p gate && cd gate
+$U gate init --network test --context holders-room --h0 4505790 --h1 4506510 --out holders-room.json
+$U gate init --network test --context second-room  --h0 4505790 --h1 4506510 --out second-room.json
+cat > gate.toml <<'TOML'
+listen = "127.0.0.1:8080"
+database = "gate.sqlite"
+root_sources = ["lwd:https://testnet.zec.rocks:443", "zebra:http://127.0.0.1:18232"]
+h1_root = "8af0c16b82ff1c9170de5dc87b3c06ef3a7144befdba71fc40959effe9f5be26"
+
+[[rooms]]
+manifest = "holders-room.json"
+
+[[rooms]]
+manifest = "second-room.json"
+TOML
+$U gate serve --config gate.toml
+```
+
+Both rooms share h1 4,506,510, so one `h1_root` is correct for both (the startup check only
+refuses a shared root when two rooms' windows end at different heights). In a second terminal:
+
+```
+cd /home/kingghidorah/Documents/projects/bounties/zecathon
+U=./unstirred/target/release/unstirred
+W=/home/kingghidorah/Documents/projects/bounties/zecathon/wallet
+ID=/home/kingghidorah/Documents/projects/bounties/zecathon/unstirred.age
+H1=8af0c16b82ff1c9170de5dc87b3c06ef3a7144befdba71fc40959effe9f5be26
+
+curl -s http://127.0.0.1:8080/rooms
+$U knock --gate http://127.0.0.1:8080 --room holders-room --wallet "$W" \
+    --pir http://localhost:3000 --lightwalletd https://testnet.zec.rocks:443 \
+    --identity "$ID" --expected-h1-root "$H1"          # expect ADMITTED, exit 0
+$U knock --gate http://127.0.0.1:8080 --room holders-room --wallet "$W" \
+    --pir http://localhost:3000 --lightwalletd https://testnet.zec.rocks:443 \
+    --identity "$ID" --expected-h1-root "$H1"          # expect ALREADY_USED_IN_CONTEXT, exit 1
+$U knock --gate http://127.0.0.1:8080 --room second-room --wallet "$W" \
+    --pir http://localhost:3000 --lightwalletd https://testnet.zec.rocks:443 \
+    --identity "$ID" --expected-h1-root "$H1"          # expect ADMITTED, different markers
+curl -s http://127.0.0.1:8080/rooms/holders-room/log
+curl -s http://127.0.0.1:8080/rooms/second-room/log
+```
+
+The wallet is opened read-only on every knock and no transaction is created. If zebrad is behind
+h0, every knock is INCONCLUSIVE / ROOT_SOURCE_UNAVAILABLE (exit 4) until the config is changed to
+one source plus `single_root_source = true`, which labels every answer as not independently
+checked.

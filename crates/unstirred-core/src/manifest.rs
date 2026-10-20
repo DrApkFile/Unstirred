@@ -98,3 +98,22 @@ fn require_fixed_threshold(manifest: &Manifest) -> Result<(), Refusal> {
         ))
     }
 }
+
+/// The JSON a gate owner should publish for one room, or a refusal naming what is wrong with the
+/// values. The written text is only returned once [`parse_manifest`] has accepted it, so nothing
+/// this function writes can be a manifest a verifier would reject.
+pub fn build_manifest(network: Network, context: &str, window: Window) -> Result<String, Refusal> {
+    require_valid_context(context)?;
+    crate::window::check_window_shape(window)?;
+    let manifest = Manifest {
+        version: PROTOCOL_VERSION.to_owned(),
+        network,
+        context: context.to_owned(),
+        window,
+        min_zatoshis: REQUIRED_MIN_ZATOSHIS.to_owned(),
+    };
+    let json = serde_json::to_string_pretty(&manifest)
+        .map_err(|e| Refusal::new(Code::ManifestInvalid, format!("the manifest could not be written: {e}")))?;
+    parse_manifest(&json)?;
+    Ok(json)
+}

@@ -1,36 +1,24 @@
+#![doc = "The two commands that read and write the gate database by hand, without a service: issuing \
+one challenge, and printing everything the file holds."]
+
 use std::process::ExitCode;
 
 use unstirred_verifier::store::{Store, SystemClock};
 
+use super::{local, usage};
 use crate::args::{parse_flags, required};
 use crate::refusal::load_manifest;
-use crate::{EXIT_ERROR, EXIT_USAGE};
 
-const CHALLENGE_USAGE: &str = "unstirred gate challenge --db <file> --manifest <file>
+pub(super) const CHALLENGE_USAGE: &str = "unstirred gate challenge --db <file> --manifest <file>
 
 Issues one challenge for the manifest's context and prints its hex. The database stores only a
 hash of it. The challenge expires after 10 minutes.";
 
-const MARKERS_USAGE: &str = "unstirred gate markers --db <file>
+pub(super) const MARKERS_USAGE: &str = "unstirred gate markers --db <file>
 
 Prints the markers and admission verdicts in the gate database. Challenge hashes are not printed.";
 
-pub fn run(args: &[String]) -> ExitCode {
-    match args.first().map(String::as_str) {
-        Some("challenge") => challenge(&args[1..]),
-        Some("markers") => markers(&args[1..]),
-        Some("init") => {
-            eprintln!("unstirred gate init is not built yet (milestone M3)\n");
-            ExitCode::from(EXIT_USAGE)
-        }
-        _ => {
-            eprintln!("unstirred gate <challenge|markers>\n\n{CHALLENGE_USAGE}\n\n{MARKERS_USAGE}");
-            ExitCode::from(EXIT_USAGE)
-        }
-    }
-}
-
-fn challenge(args: &[String]) -> ExitCode {
+pub(super) fn challenge(args: &[String]) -> ExitCode {
     let flags = match parse_flags(args, &["--db", "--manifest"]) {
         Ok(flags) => flags,
         Err(problem) => return usage(&problem, CHALLENGE_USAGE),
@@ -52,15 +40,15 @@ fn challenge(args: &[String]) -> ExitCode {
         Err(error) => return local(&error.to_string()),
     };
     match store.issue(&manifest.context, &SystemClock) {
-        Ok(raw) => {
-            println!("{}", hex::encode(raw));
+        Ok(issued) => {
+            println!("{}", hex::encode(issued.raw));
             ExitCode::SUCCESS
         }
         Err(error) => local(&error.to_string()),
     }
 }
 
-fn markers(args: &[String]) -> ExitCode {
+pub(super) fn markers(args: &[String]) -> ExitCode {
     let flags = match parse_flags(args, &["--db"]) {
         Ok(flags) => flags,
         Err(problem) => return usage(&problem, MARKERS_USAGE),
@@ -99,14 +87,4 @@ fn markers(args: &[String]) -> ExitCode {
         );
     }
     ExitCode::SUCCESS
-}
-
-fn usage(problem: &str, text: &str) -> ExitCode {
-    eprintln!("{problem}\n\n{text}");
-    ExitCode::from(EXIT_USAGE)
-}
-
-fn local(detail: &str) -> ExitCode {
-    eprintln!("error: {detail}");
-    ExitCode::from(EXIT_ERROR)
 }

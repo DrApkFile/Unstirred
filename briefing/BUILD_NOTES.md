@@ -3,6 +3,61 @@
 Things learned while building that the code and the other briefing files do not say. Decisions go
 to `DECISIONS.md`; recorded runs go to `evidence/`. This file is for the facts that cost time.
 
+## M3 step 1 (the HTTP gate, `knock`, `gate init`), 2026-10-20
+
+- **`&impl Clock` cannot take a trait object, and the gate only has one.** The service holds its
+  clock as `Arc<dyn Clock + Send + Sync>` so a test can stop it, but `Store::issue` and
+  `verifier::admit` took `clock: &impl Clock`, which requires `Sized`. Both now take
+  `&dyn Clock`; every existing caller still compiles, because `&SystemClock` and `&FixedClock`
+  coerce. A trait-object parameter is the right default for anything a service might inject.
+- **`RootSource` is a boxed trait object with no `Send` bound, so it cannot cross into
+  `spawn_blocking`.** Neither can `Store`, which holds a rusqlite connection. The gate therefore
+  keeps its `--root-source` *specs* (plain `String`s), parses them once at startup to refuse an
+  unusable one, and builds both the sources and a fresh `Store` inside each request's blocking
+  task. The per-request connection is not a workaround: it is what makes two concurrent
+  admissions race through SQLite's UNIQUE constraint rather than through a mutex in this process
+  (A05c).
+- **Verification has to run on a blocking task.** One admission is a Halo2 verify plus two
+  network root reads plus SQLite, all blocking, and the lightwalletd source builds its own
+  current-thread runtime and calls `block_on` inside. Called from a reactor thread that panics;
+  called from `spawn_blocking` it is fine. The gate runs on a current-thread runtime and does all
+  real work in `spawn_blocking`.
+- **A non-`Sync` fixture cannot live in a `OnceLock`, so the HTTP tests cannot share one proof.**
+  `SyntheticWallet` holds a wallet database, so the `OnceLock` corpus trick the store tests use
+  (BUILD_NOTES: one real proof per target) does not apply: a `static OnceLock<T>` needs `T: Sync`.
+  Each HTTP test builds its own wallet and pays its own ~50 s proof, and the target's four proofs
+  run in parallel across test threads, so the whole target is about 136 s rather than 200.
+- **`serde_json::json!` renders `Option::None` as `null`.** `"note": note` put `"note": null` in
+  every two-source answer, which reads like a field the holder should look at. `reply::body_with_note`
+  inserts the key only when there is a label.
+- **A manifest body cannot carry the single-source label.** `parse_manifest` rejects unknown
+  fields, so adding `note` to `GET manifest` would publish text this gate's own parser refuses.
+  The label goes in the `unstirred-root-note` response header on every route, and in the body of
+  every JSON object the gate owns.
+- **An HTTP-level refusal must not borrow a code from the closed set.** A 413, 404, 405 or 400
+  happens before any package is parsed, so there is no verdict and no code: those answers are
+  `{"error": …}`, and the tests assert the body carries neither `"verdict"` nor `"code"`. The body
+  limit is checked twice, once against `Content-Length` and once while reading, because a chunked
+  body declares no length; `http_body_util::Limited` reports the second case as a
+  `LengthLimitError` that has to be `downcast_ref`'d out of a boxed error.
+- **Two clippy lints cost one gate run, and `cargo check` sees neither.** `fn serve_as(path:
+  &PathBuf)` is `ptr_arg` (take `&Path`), and a helper returning `Result<(), Reply>` is
+  `result_large_err`, because a `http::Response<Full<Bytes>>` is 144 bytes in the `Err` slot. The
+  second one was the better design anyway: "the 404 for a room that is not here, or nothing"
+  is an `Option<Reply>`, not a `Result` whose `Ok` carries no information. Run clippy, not
+  `cargo check`, before claiming a crate is clean.
+- **`cargo clippy -D warnings` applies the workspace's `expect_used = "deny"` to test code too.**
+  A new test written with `.expect("…")` fails the gate even though every assertion passes. No
+  test in this repo uses `unwrap` or `expect`; they return `Result<(), Box<dyn Error>>` and use
+  `?`.
+- **RFC 3339 is written out rather than taken from a date crate.** The challenge expiry is the
+  only timestamp the gate puts on the wire, and `rfc3339.rs` converts unix seconds with Hinnant's
+  `civil_from_days`, checked against six known instants and every day of a 400-year cycle.
+- **`git mv` of a command into a directory of the same name needs the module split too.**
+  `src/gate.rs` became `src/gate/{mod,serve,init,store_commands}.rs`; the two old subcommands kept
+  their text and moved to `store_commands.rs`, so `gate challenge` and `gate markers` behave
+  exactly as the recorded runs show.
+
 ## Closing M2, and what this pass got wrong, 2026-10-20
 
 - **Never amend a commit without asking the remote whether it has it.** `git rev-parse
