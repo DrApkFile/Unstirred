@@ -178,6 +178,7 @@ Prover (decides before proving): `WALLET_NOT_SYNCED_PAST_H1`, `COINS_TOO_NEW`, `
 - A30 the manifest context rule accepts exactly the documented charset and length, and a manifest that parses re-serialises and re-parses unchanged, over thousands of random strings
 - A31 the binding message changes whenever any statement field, the session key or the challenge changes, over thousands of random statements
 - A32 the note selection picks a smallest set of notes reaching the threshold, agreeing with a brute-force oracle over every subset, and does not depend on the order the notes arrive in
+- A33 `unstirred verify`'s ADMITTED output says that this command recorded nothing and names `admit` as the command that does, in the human output and beside the JSON verdict, from one constant, and without naming a milestone that can pass
 
 ## 11. Priorities
 - **P0:** core, prover, verifier, CLI (incl. `gate markers`), gate service, Holders' Room page, GitHub Release binaries, A01–A14, `LEAKS.md`, `SPEC.md`, real testnet evidence, README, demo video.

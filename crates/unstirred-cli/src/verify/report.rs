@@ -11,6 +11,10 @@ use crate::refusal::print_refusal;
 use crate::root_sources::{print_readout_human, print_readout_json_stderr, print_refusal_json_stderr};
 use crate::EXIT_REFUSED;
 
+/// What an ADMITTED verdict from `verify` means, in both outputs: this command keeps no
+/// database, so it enters the package nowhere. One constant, so the two outputs cannot drift.
+const NO_MARKERS_RECORDED: &str = "verify does not record markers; use unstirred admit to enter a gate";
+
 /// Where the verdict and, around it, the provenance of every root went.
 #[derive(Debug)]
 pub(super) struct Report<'a> {
@@ -53,7 +57,7 @@ impl Report<'_> {
         if self.json {
             println!("{}", verdict_object(verdict, note));
             if matches!(verdict, Verdict::Admitted) {
-                eprintln!("markers not recorded (M2)");
+                eprintln!("{NO_MARKERS_RECORDED}");
                 return ExitCode::SUCCESS;
             }
             return match verdict {
@@ -64,11 +68,9 @@ impl Report<'_> {
         }
         match verdict {
             Verdict::Admitted => {
-                if let Some(note) = note {
-                    println!("{note}");
+                for line in admitted_report(note) {
+                    println!("{line}");
                 }
-                println!("ADMITTED");
-                println!("markers not recorded (M2)");
                 ExitCode::SUCCESS
             }
             Verdict::Refused(refusal) => {
@@ -80,5 +82,62 @@ impl Report<'_> {
                 inconclusive()
             }
         }
+    }
+}
+
+/// Every line an ADMITTED verdict prints, in order: the single-source note when only one source
+/// was consulted, the verdict, and what this command did not do. The JSON path prints the verdict
+/// as an object and the last line beside it, so both outputs end on the same sentence.
+fn admitted_report(note: Option<&'static str>) -> Vec<&'static str> {
+    let mut lines = Vec::new();
+    lines.extend(note);
+    lines.push("ADMITTED");
+    lines.push(NO_MARKERS_RECORDED);
+    lines
+}
+
+#[cfg(test)]
+mod tests {
+    use unstirred_verifier::SINGLE_SOURCE_NOTE;
+
+    use super::{admitted_report, NO_MARKERS_RECORDED};
+
+    /// A33: an admitted package is reported as admitted and as recorded nowhere, and the sentence
+    /// that says so names the command that does record, in both outputs.
+    #[test]
+    fn a33_an_admitted_verdict_says_verify_recorded_nothing_and_names_admit() {
+        assert_eq!(admitted_report(None), vec!["ADMITTED", NO_MARKERS_RECORDED]);
+        assert_eq!(
+            admitted_report(Some(SINGLE_SOURCE_NOTE)),
+            vec![SINGLE_SOURCE_NOTE, "ADMITTED", NO_MARKERS_RECORDED],
+            "a one-source run keeps its label above the verdict"
+        );
+        assert_eq!(
+            admitted_report(None).last(),
+            Some(&NO_MARKERS_RECORDED),
+            "the line the JSON path prints beside its verdict is the line the human output ends on"
+        );
+        assert!(
+            NO_MARKERS_RECORDED.contains("verify") && NO_MARKERS_RECORDED.contains("admit"),
+            "the sentence must name the command that records nothing and the one that records: {NO_MARKERS_RECORDED}"
+        );
+        assert!(
+            !NO_MARKERS_RECORDED.contains("not recorded"),
+            "it must say what verify does, not read as a verdict about the markers: {NO_MARKERS_RECORDED}"
+        );
+    }
+
+    /// A33: the sentence must not name a milestone. The line it replaced said "(M2)", which became
+    /// false the moment M2 closed, and nothing failed when it did.
+    #[test]
+    fn a33_the_sentence_names_no_milestone_that_can_pass() {
+        let milestone = NO_MARKERS_RECORDED
+            .chars()
+            .zip(NO_MARKERS_RECORDED.chars().skip(1))
+            .any(|(letter, digit)| letter == 'M' && digit.is_ascii_digit());
+        assert!(
+            !milestone,
+            "the sentence names a milestone, so it will go stale: {NO_MARKERS_RECORDED}"
+        );
     }
 }

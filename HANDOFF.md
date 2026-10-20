@@ -1,9 +1,9 @@
 # HANDOFF
 
-State of Unstirred at commit `b9374b0` — M1 closed, and M2 steps 1 and 2 built, gated and
-committed. The one thing M2 still owes is a real two-source run, which waits on the owner's Zebra
-node (§2). Written 2026-10-20, revised from the 2026-10-17 version. For the next session (agent
-or human).
+State of Unstirred at commit `8398181` — **M1 and M2 are both closed**: M2's last open item, a
+real two-source root run, was recorded on 2026-10-20 (§1). M3 is next and nothing in M2 is
+waiting. Written 2026-10-20, revised from the 2026-10-17 version. For the next session (agent or
+human).
 Read `briefing/CLAUDE.md` and `briefing/BUILD_CONTRACT.md` first; this file only says where the
 work stopped, what is next, and what the machine around the repo is holding.
 
@@ -57,7 +57,8 @@ A consumed challenge presented with new markers fails the consume inside the tra
 `CHALLENGE_UNKNOWN_OR_EXPIRED`, rolled back. Unknown, expired and wrong-context challenges are
 refused before the proof, and an invalid proof writes nothing. `unstirred gate markers` prints
 markers and admission verdicts, not challenge hashes. `unstirred verify` is still the
-no-database path and still prints "markers not recorded (M2)" on ADMITTED. A one-source run's
+no-database path and says so on ADMITTED ("verify does not record markers; use unstirred admit to
+enter a gate", changed from the M2-era wording on 2026-10-20). A one-source run's
 agreement line is "not checked (one source)" in the human output and in the roots JSON.
 Additions: `crates/unstirred-verifier/src/admit.rs`, `crates/unstirred-verifier/src/store/`,
 `crates/unstirred-verifier/src/verdict.rs`, `crates/unstirred-verifier/tests/store.rs` with
@@ -83,7 +84,7 @@ check, with A01 still closed by `evidence/2026-10-17-verify-first-proof.txt`). O
 repo/log scanner as a gate step, A12 (marker stability when a gate is republished with a new
 window), and every live HTTP path in `unstirred-gate`.
 
-**Cleanup pass, 2026-10-20 (uncommitted, nothing behavioural):** every source file over ~180
+**Cleanup pass, 2026-10-20 (committed in `8398181`, nothing behavioural):** every source file over ~180
 lines was split into modules named for what they hold, so several paths this file names are now
 directories. `unstirred-core`: `codes/{mod,spec}.rs`, `package/{mod,instance}.rs`.
 `unstirred-prover`: `pir/{mod,lookup,oracle}.rs`. `unstirred-verifier`: `engine/{mod,checks}.rs`,
@@ -98,7 +99,7 @@ assertion, acceptance ID or public name changed; the only visibility changes are
 (194 lines) is the one file still over the limit: it is a single `enum ProverError`, and one enum
 cannot be spread over two files without changing the public error type.
 
-**Quality pass, 2026-10-20 (uncommitted, nothing behavioural):** run against the code bar in
+**Quality pass, 2026-10-20 (committed in `8398181`, nothing behavioural):** run against the code bar in
 `research-and-coding-skill-guide`. The adversarial tests moved into `crates/*/tests/adversarial/`
 as CLAUDE.md always required (package tampering, a foreign gate, replayed coins, challenge misuse,
 hostile root sources, a foreign signer, the PIR lookup under attack, a forged frontier, keys that
@@ -110,26 +111,34 @@ new dependency. `scripts/gate.sh` now also runs `scripts/leak-scan.sh` (A02's re
 PARTIAL. CI runs the same gate on push and pull request (`.github/workflows/gate.yml`, actions
 pinned by SHA), `rust-toolchain.toml` pins 1.91, and `Cargo.toml` now carries the real repository
 URL. The two narrating comments in `crates/unstirred-verifier/src/admit.rs` became a named
-function. The README rebuild (a claims table and a 60-second judge path) is deliberately left
-until after M3, at the owner's instruction.
+function. Afterwards, `unstirred verify`'s ADMITTED line stopped naming a milestone
+("verify does not record markers; use unstirred admit to enter a gate", one constant for both
+outputs) and A33 was registered to keep it from going stale again; the run that covers all of it
+is `evidence/2026-10-20-gate-quality-pass.md` (76 tests, GATE: PASS). The README rebuild (a claims
+table and a 60-second judge path) is deliberately left until after M3, at the owner's
+instruction; its per-crate test lists name A28-A33 in the meantime.
+
+Note on `8398181`: it carries the whole quality pass as well as the two-source evidence, under the
+subject "Evidence: two-source root agreement and verify (zec.rocks + own Zebra node)" and with no
+body. The subject describes a part of it. The commit has no upstream yet, so the owner can still
+amend the message; nothing in the tree depends on it.
 
 ## 2. What to do next, precisely
 
-M2 steps 1 and 2 (the verifier's root authority; the store and `admit`) are committed. Two agreeing sources
-behind `--root-source` (two required, or one with `--single-root-source`), `ROOT_SOURCES_DISAGREE`
-/ `ROOT_SOURCE_UNAVAILABLE` otherwise, h1 still operator-pinned and labelled, nf-server
-`verify-root` deferred (P1, see §6). No second public lightwalletd is reachable (Tatum's gateway
-has no z_gettreestate, testnet.lightwalletd.com no longer resolves, the Logos onion times out over
-Tor), so the second source is the owner's own Zebra node. On 2026-10-17 it was still syncing:
-`getblockcount` at `http://127.0.0.1:18232` climbed through 1,675,600 and 1,791,200 and was
-1,836,400 at the start of the live admit, all short of h0 4,505,790, so that admit used
-`--single-root-source`. Remaining:
+**M2 is closed. Nothing in it is open.** Both steps are committed, and the two-source rule has
+now run for real: on 2026-10-20 the owner's zebrad 7.0.0-rc.0 had synced past the window, and
+`unstirred roots` and `unstirred verify` were recorded with lightwalletd and Zebra both reporting
+h0 root `a16809847bf51d60ac6d9bb3f71cbbf27483050868b94b242ca831fe14bf692d` at h0 4,505,790, tip
+4,521,439 from each, and ADMITTED with no single-source label
+(`evidence/2026-10-20-roots-two-source.txt`, `evidence/2026-10-20-verify-two-source.txt`).
+Two agreeing sources behind `--root-source` stay the default (two required, or one with
+`--single-root-source`), `ROOT_SOURCES_DISAGREE` / `ROOT_SOURCE_UNAVAILABLE` otherwise, h1 still
+operator-pinned and labelled, nf-server `verify-root` still deferred (P1, see §6). Note for any
+future second source: no public second lightwalletd is reachable (Tatum's gateway has no
+z_gettreestate, testnet.lightwalletd.com no longer resolves, the Logos onion times out over Tor),
+so the owner's own node is the second source.
 
-1. A real two-source run recorded in `evidence/` once the Zebra node has synced past h1 +
-   finality (`unstirred roots`, then `unstirred verify` with lwd + zebra; commands in §4). This
-   is the last open item in M2, and nothing in the repo can close it: it waits on the node.
-
-M3, then: `unstirred-gate` (`/manifest`, `/challenge`, `/admit`, `gate markers`), exposing the M2
+Next is M3: `unstirred-gate` (`/manifest`, `/challenge`, `/admit`, `gate markers`), exposing the M2
 challenge store over HTTP, and the Holders' Room page. The session key stays a fresh random 32
 bytes with no private half for v1. The judge path decision (hosted Holders' Room) is due by M3,
 2026-10-21.
@@ -150,7 +159,9 @@ Paths are absolute because none of this is inside the repo.
   `/home/kingghidorah/Documents/projects/bounties/zecathon/holders-room.json`
   — `test` / `holders-room` / h0 4,505,790 / h1 4,506,510 / 12,500,000 zatoshis.
 - **lightwalletd:** `https://testnet.zec.rocks:443`. The second root source is the owner's Zebra
-  node, `http://127.0.0.1:18232` (§2, still syncing on 2026-10-17).
+  node, `http://127.0.0.1:18232` (zebrad 7.0.0-rc.0, no cookie auth). It was still syncing on
+  2026-10-17; by 2026-10-20 it had reached tip 4,521,439, past h1 + finality, and the two-source
+  run in §1 used it.
 - **nf-server:** built from `vote-nullifier-pir` tag `v0.12.3` (`ac15ed2`) — *not* HEAD, see
   `DECISIONS.md`. Needed only for `lookup` and `prove`, not for `verify`. It was running during
   the step 3 and step 4 runs as:
@@ -207,8 +218,10 @@ checked"):
 ```
 
 Without `--single-root-source`, exactly two `--root-source` values are required and must agree on
-the h0 root; the tip is the lower of the two answers. Once the Zebra node (§2) has synced past
-h1 + finality, the two-source form is:
+the h0 root; the tip is the lower of the two answers. That is the form that closed M2, recorded as
+`evidence/2026-10-20-roots-two-source.txt` and `evidence/2026-10-20-verify-two-source.txt`; the
+verify run there was made at commit `b9374b0`, whose last line still read "markers not recorded
+(M2)" before that wording changed on 2026-10-20:
 
 ```
 ./target/release/unstirred verify --package evidence/2026-10-17-first-proof.json \
@@ -306,9 +319,6 @@ proving or verifying paths. The ones most likely to bite the next step:
   pre-split file paths; they are a record of decisions, so they were left as written.
 - The README is still dense prose rather than a claims table and a 60-second judge path. `CLAIMS.md`
   now holds the ledger it should be built from. Owner's instruction: rebuild it after M3.
-- Second root source for the verifier's two-source rule: no public second lightwalletd is
-  reachable (Tatum's gateway has no z_gettreestate, testnet.lightwalletd.com no longer resolves,
-  the Logos onion times out over Tor), so it is the owner's Zebra node (§2), still syncing.
 - Judge path 1 (hosted Holders' Room) has to be decided by M3, 2026-10-21.
 - Stated limit worth re-reading before any claim about key hygiene: `orchard 0.15.5` does not
   zeroize its key types on drop (`briefing/BUILD_NOTES.md`, `LEAKS.md` L15b).
