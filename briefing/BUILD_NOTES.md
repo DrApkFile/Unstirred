@@ -53,6 +53,10 @@ to `DECISIONS.md`; recorded runs go to `evidence/`. This file is for the facts t
 - **RFC 3339 is written out rather than taken from a date crate.** The challenge expiry is the
   only timestamp the gate puts on the wire, and `rfc3339.rs` converts unix seconds with Hinnant's
   `civil_from_days`, checked against six known instants and every day of a 400-year cycle.
+- **A shell variable holding a relative path does not survive the `cd` two lines later.** The
+  HANDOFF §8 command block set `U=./unstirred/target/release/unstirred` from `zecathon/` and then
+  `cd gate`, so every `$U` in the block pointed at nothing. A path a command block carries across
+  a `cd` is written absolute.
 - **`git mv` of a command into a directory of the same name needs the module split too.**
   `src/gate.rs` became `src/gate/{mod,serve,init,store_commands}.rs`; the two old subcommands kept
   their text and moved to `store_commands.rs`, so `gate challenge` and `gate markers` behave

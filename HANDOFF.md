@@ -1,11 +1,11 @@
 # HANDOFF
 
-State of Unstirred at commit `9d05cf1` (M2 was wrapped up in `15bd859`), plus **uncommitted M3
-step 1 work recorded in §8** —
+State of Unstirred at commit `34c3146` (M2 was wrapped up in `15bd859`) —
 **M1 and M2 are closed** (M2's last open item, a real two-source root run, was recorded on
-2026-10-20, §1) and **M3 step 1 is built and gated but not committed** (§8). What is next is M3
-step 2, the Holders' Room page, and the real two-room knock in §8. Written 2026-10-20, revised
-from the 2026-10-17 version. For the next session (agent or human).
+2026-10-20, §1) and **M3 step 1 is built, gated and committed** (`6c2a288`, `34c3146`; §8),
+with its real two-room knock over HTTP made on 2026-10-20. What is next is M3 step 2, the
+Holders' Room page. Written 2026-10-20, revised 2026-10-21 and from the 2026-10-17 version.
+For the next session (agent or human).
 Read `briefing/CLAUDE.md` and `briefing/BUILD_CONTRACT.md` first; this file only says where the
 work stopped, what is next, and what the machine around the repo is holding.
 
@@ -147,11 +147,15 @@ future second source: no public second lightwalletd is reachable (Tatum's gatewa
 z_gettreestate, testnet.lightwalletd.com no longer resolves, the Logos onion times out over Tor),
 so the owner's own node is the second source.
 
-**M3 step 1 is built and gated** (section 8): the `unstirred-gate` HTTP service with five routes
-per room, `unstirred knock`, and `unstirred gate init`, with A34-A41 green in
-`evidence/2026-10-20-gate-m3-step1.md` (88 tests, GATE: PASS). It is **not committed** and it has
-**not been run against a gate serving the real testnet wallet**; the commands for that run are in
-section 8.
+**M3 step 1 is built, gated and committed** (`6c2a288`, with the knock evidence in `34c3146`;
+section 8): the `unstirred-gate` HTTP service with five routes per room, `unstirred knock`, and
+`unstirred gate init`, with A34-A41 green in `evidence/2026-10-20-gate-m3-step1.md` (88 tests,
+GATE: PASS). It has also **been run against a gate serving the real testnet wallet**: on
+2026-10-20 a knock at `holders-room` was ADMITTED, the same coins there were REFUSED
+`ALREADY_USED_IN_CONTEXT`, and `second-room` was ADMITTED, each room's `/log` showing five
+markers with none shared between the two, over two agreeing root sources with no single-source
+label (`evidence/2026-10-20-two-room-knock.txt`, header in
+`evidence/2026-10-20-two-room-knock.meta.md`; the commands are in section 8).
 
 Next is M3 step 2: the Holders' Room page. The session key stays a fresh random 32 bytes with no
 private half for v1. The judge path decision (hosted Holders' Room) is due by M3, 2026-10-21.
@@ -319,9 +323,11 @@ proving or verifying paths. The ones most likely to bite the next step:
   scan and the claims check. What it still cannot see is a leak through a channel rather than a
   string in a running process, and whether a file in `evidence/` says what `CLAIMS.md` says it
   says. A02's package and database scans remain in-process tests.
-- `unstirred-gate` HTTP is built (M3 step 1, section 8) and exposes the M2 store without adding a
-  check of its own. Open on that path: the Holders' Room page (M3 step 2), and the real two-room
-  run, which has not been made. The session key stays a fresh random 32 bytes with no private
+- `unstirred-gate` HTTP is built and committed (M3 step 1, section 8) and exposes the M2 store
+  without adding a check of its own. Its real two-room run was made on 2026-10-20 — ADMITTED,
+  `ALREADY_USED_IN_CONTEXT` for the same coins at that room, ADMITTED at the second room, with
+  disjoint marker sets (`evidence/2026-10-20-two-room-knock.txt`). Open on that path: the
+  Holders' Room page (M3 step 2). The session key stays a fresh random 32 bytes with no private
   half for v1.
 - h1 via nf-server `verify-root` is deferred (P1): it needs a full node serving raw blocks back to
   Ironwood activation plus an independently trusted block hash at h1. Until then h1 stays
@@ -346,13 +352,15 @@ proving or verifying paths. The ones most likely to bite the next step:
 - Run `./scripts/gate.sh` before claiming anything works, and record the run.
 - Deadline: last commit before **2026-10-27 08:00 UTC**, nothing after — not even docs.
 
-## 8. M3 step 1, built and gated 2026-10-20 (uncommitted)
+## 8. M3 step 1, built and gated 2026-10-20, committed as `6c2a288` and `34c3146`
 
 `./scripts/gate.sh` reports **GATE: PASS**, exit 0, with 88 tests and the leak and claims checks:
 `evidence/2026-10-20-gate-m3-step1.md`. A34-A41 are green, the twelve new tests are listed in
-that file, and the CLAIMS, README and LEAKS entries for them are written. **Nothing is
-committed**, and nothing in this step has been run against the holder's real wallet or against a
-gate serving it.
+that file, and the CLAIMS, README and LEAKS entries for them are written. The code and those
+entries are **committed as `6c2a288`**, and the step's HTTP paths have been run against a gate
+serving the holder's real wallet: the two-room knock below was made on 2026-10-20, recorded in
+`evidence/2026-10-20-two-room-knock.txt` (committed as `34c3146`) with its header in
+`evidence/2026-10-20-two-room-knock.meta.md`.
 
 What was built:
 
@@ -392,7 +400,7 @@ the holder, `knock` fetched the manifest and a challenge over HTTP before failin
 missing wallet, and the gate's log held one line per request with no address but its own. That was
 a smoke test against no chain and no wallet, so it is not in `evidence/`; A34-A41 are the record.
 
-Still open on this step: it is uncommitted, and the real two-room run below has not been made.
+Nothing is open on this step's runs: the real two-room run below was made.
 What cost time is in `briefing/BUILD_NOTES.md` under "M3 step 1": `&impl Clock` cannot take a
 trait object, so the store and `admit` take `&dyn Clock`; `RootSource` and `Store` are not `Send`,
 so the gate keeps its source specs and builds both per request; a non-`Sync` synthetic wallet
@@ -400,17 +408,24 @@ cannot live in a `OnceLock`, so each HTTP test pays its own ~50 s proof; `serde_
 renders `Option::None` as `null`, hence `reply::body_with_note`; and clippy's `ptr_arg` and
 `result_large_err` cost one gate run, neither of which `cargo check` can see.
 
-### The real two-room run (not done; nothing was run against the wallet this session)
+### The real two-room run, made 2026-10-20
 
-`./scripts/gate.sh` runs `cargo test --release`, which does not refresh `target/release/unstirred`,
-so **build the binary first** or the old one (without `knock`, `gate serve` or `gate init`) is
-what runs. With `nf-server` up as in §3 and zebrad past the window:
+Recorded in `evidence/2026-10-20-two-room-knock.txt`: holders-room ADMITTED, the same coins at
+that room REFUSED `ALREADY_USED_IN_CONTEXT`, second-room ADMITTED, and each room's `/log`
+showing five markers with none shared between the two. Both root sources were live
+(zec.rocks lightwalletd and the owner's zebrad), so no answer carried the single-source label.
+That closes the `CLAIMS.md` row for this run.
+
+The commands, as they were run. `./scripts/gate.sh` runs `cargo test --release`, which does not
+refresh `target/release/unstirred`, so **build the binary first** or the old one (without
+`knock`, `gate serve` or `gate init`) is what runs. With `nf-server` up as in §3 and zebrad past
+the window:
 
 ```
 cd /home/kingghidorah/Documents/projects/bounties/zecathon/unstirred
 cargo build --release
 cd /home/kingghidorah/Documents/projects/bounties/zecathon
-U=./unstirred/target/release/unstirred
+U=/home/kingghidorah/Documents/projects/bounties/zecathon/unstirred/target/release/unstirred
 mkdir -p gate && cd gate
 $U gate init --network test --context holders-room --h0 4505790 --h1 4506510 --out holders-room.json
 $U gate init --network test --context second-room  --h0 4505790 --h1 4506510 --out second-room.json
@@ -434,7 +449,7 @@ refuses a shared root when two rooms' windows end at different heights). In a se
 
 ```
 cd /home/kingghidorah/Documents/projects/bounties/zecathon
-U=./unstirred/target/release/unstirred
+U=/home/kingghidorah/Documents/projects/bounties/zecathon/unstirred/target/release/unstirred
 W=/home/kingghidorah/Documents/projects/bounties/zecathon/wallet
 ID=/home/kingghidorah/Documents/projects/bounties/zecathon/unstirred.age
 H1=8af0c16b82ff1c9170de5dc87b3c06ef3a7144befdba71fc40959effe9f5be26
