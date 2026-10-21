@@ -1,0 +1,99 @@
+{
+  "mode": "replay",
+  "source": "real-testnet",
+  "replay": "act3-refused",
+  "room": "holders-room",
+  "members": 1000,
+  "gate": {
+    "root_sources": [
+      "lwd:https://testnet.zec.rocks:443",
+      "zebra:http://127.0.0.1:18232"
+    ],
+    "note": null
+  },
+  "codes": {
+    "ALREADY_USED_IN_CONTEXT": {
+      "kind": "REFUSED",
+      "message": "These coins have already been used at this gate. Nothing was admitted.",
+      "retryable": false
+    }
+  },
+  "rooms": [
+    {
+      "context": "holders-room",
+      "network": "test",
+      "window": {
+        "h0": 4505790,
+        "h1": 4506510
+      },
+      "min_zatoshis": "12500000",
+      "h1_root": "8af0c16b82ff1c9170de5dc87b3c06ef3a7144befdba71fc40959effe9f5be26",
+      "h1_root_provenance": "operator-pinned",
+      "limit": 50,
+      "markers": [
+        {
+          "marker": "09942963af798839f4f2c1f4f686c4ab04e211649a995d8c42bb02a63b4e2b3f",
+          "admitted_at": 1792506814
+        },
+        {
+          "marker": "2feaab828bf2067ac507545f1864895a93b6416b8116dcb9fbbc7c0fe038a12f",
+          "admitted_at": 1792506814
+        },
+        {
+          "marker": "7a39fa90ddd2d52094abb342cb185a3efad6c5354afa44a1ce3f45d443e60011",
+          "admitted_at": 1792506814
+        },
+        {
+          "marker": "a42e74b5d40d869d9f9c2e3eb99dc06bbaf028ab9316d6f21c03979fd5a79d2b",
+          "admitted_at": 1792506814
+        },
+        {
+          "marker": "8fb721ee97c8a47f9e88f91d046ccd576ea2cbc527f1be2ac86e20c67a50cd2f",
+          "admitted_at": 1792506814
+        }
+      ],
+      "verdicts": [
+        {
+          "verdict": "ADMITTED",
+          "code": null,
+          "at": 1792506814,
+          "at_note": null
+        }
+      ],
+      "recent": [
+        {
+          "verdict": "REFUSED",
+          "code": "ALREADY_USED_IN_CONTEXT",
+          "at": 1792507727,
+          "at_note": "time derived: the second this knock's challenge was issued. A refusal is never written down, so the run holds no time of its own for it."
+        },
+        {
+          "verdict": "ADMITTED",
+          "code": null,
+          "at": 1792506814,
+          "at_note": null
+        }
+      ]
+    },
+    {
+      "context": "second-room",
+      "network": "test",
+      "window": {
+        "h0": 4505790,
+        "h1": 4506510
+      },
+      "min_zatoshis": "12500000",
+      "h1_root": "8af0c16b82ff1c9170de5dc87b3c06ef3a7144befdba71fc40959effe9f5be26",
+      "h1_root_provenance": "operator-pinned",
+      "limit": 50,
+      "markers": [],
+      "verdicts": [],
+      "recent": []
+    }
+  ],
+  "provenance": [
+    "Replay of the two-room knock recorded on the real Zcash testnet on 2026-10-20: evidence/2026-10-20-two-room-knock.txt (header: evidence/2026-10-20-two-room-knock.meta.md).",
+    "The same coins were knocked at this room a second time and were refused. The store wrote nothing for it: the five markers and the one admission above are unchanged.",
+    "The refusal is shown at the second its challenge was issued (2026-10-20T14:58:47Z less the store's 600-second TTL). A refusal is never written down, so the run holds no timestamp of its own for it."
+  ]
+}

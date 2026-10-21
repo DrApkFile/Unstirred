@@ -59,4 +59,39 @@ for path in sorted(pathlib.Path("evidence").glob("*.json")):
     print(f"leak scan: {path} carries only the package schema's fields")
 PY
 
+# A02c, repository half: no page the gate serves may reference another origin at all. The served
+# document is scanned in-process (A02c, crates/unstirred-gate/tests/page.rs); this is the same rule
+# over the sources that document is assembled from, so a third-party font, script or tracking pixel
+# cannot be added to ui/ and reviewed away.
+python3 -I - <<'UISCAN'
+import pathlib
+import re
+import sys
+
+UI = pathlib.Path("crates/unstirred-gate/ui")
+ASKS_ELSEWHERE = re.compile(
+    r"<script\s+src|<link|<img|<iframe|<frame|<object|<embed|<video|<audio|<track|<base"
+    r"|@import|url\(|srcset|integrity=|crossorigin|sendBeacon|importScripts",
+    re.IGNORECASE,
+)
+ABSOLUTE_IN_CODE = re.compile(r"""["']\s*(?:https?:)?//""")
+
+problems = []
+for path in sorted(UI.rglob("*")):
+    if not path.is_file() or path.suffix == ".json" or path.suffix == ".md":
+        continue
+    text = path.read_text()
+    for found in ASKS_ELSEWHERE.findall(text):
+        problems.append(f"{path} asks for a subresource: {found!r}")
+    for found in ABSOLUTE_IN_CODE.findall(text):
+        problems.append(f"{path} names an absolute or protocol-relative URL: {found!r}")
+
+if problems:
+    print("LEAK SCAN FAILED: a page the gate serves would ask another origin for something:", file=sys.stderr)
+    for problem in problems:
+        print(f"  - {problem}", file=sys.stderr)
+    sys.exit(1)
+print(f"leak scan: no third-party reference in {UI}")
+UISCAN
+
 echo "leak scan: no key material and no address in any tracked file"

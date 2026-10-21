@@ -25,10 +25,17 @@ Serves one gate over HTTP. The config is TOML:
     # h1_root = \"<64 hex characters>\" # per room, when its window ends at another height
 
 Paths are relative to the config file. Each room is one manifest, and its context is the
-manifest's own. Routes: GET /rooms, GET /rooms/<context>/manifest, POST
-/rooms/<context>/challenge, POST /rooms/<context>/admit, GET /rooms/<context>/log. The gate
-refuses to start on an invalid manifest or a missing setting, and it logs no addresses, no
-request bodies and no challenges.";
+manifest's own.
+
+JSON routes: GET /rooms, GET /rooms/<context>/manifest, POST /rooms/<context>/challenge, POST
+/rooms/<context>/admit, GET /rooms/<context>/log, GET /rooms/<context>/recent.
+Pages: GET / is the room picker and GET /room/<context> is that room's Holders' Room page, one
+self-contained document that fetches nothing from anywhere but this gate. GET
+/room/<context>?replay=<act> renders a recorded act of the demo with no polling at all; the acts
+are act1-rule, act2-admitted, act3-refused and act5-second-room.
+
+The gate refuses to start on an invalid manifest or a missing setting, and it logs no addresses,
+no request bodies and no challenges.";
 
 pub(super) fn run(args: &[String]) -> ExitCode {
     let flags = match parse_flags(args, &["--config"]) {

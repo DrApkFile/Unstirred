@@ -144,6 +144,7 @@ Prover (decides before proving): `WALLET_NOT_SYNCED_PAST_H1`, `COINS_TOO_NEW`, `
 - A01 a note held through the window is admitted (real testnet run recorded in `evidence/`)
 - A02 the proof package and verifier logs contain no address, note value, txid or position (scanner test)
 - A02b a dump of the gate database contains no IP address, proof-package body, note position or note value
+- A02c no page the gate serves asks for anything from anywhere else: no script, stylesheet, font, image, frame or beacon from another origin, no analytics, and the only paths it fetches are this gate's own JSON routes (LEAKS L10)
 - A03 a note created after h0 is refused by the prover (COINS_TOO_NEW) and by the verifier (ROOT_MISMATCH)
 - A04 a note spent inside the window cannot be proven unspent
 - A05 the same coins at the same gate are refused and nothing is written
@@ -187,6 +188,9 @@ Prover (decides before proving): `WALLET_NOT_SYNCED_PAST_H1`, `COINS_TOO_NEW`, `
 - A39 the gate's log lines carry no IP address other than its own listen address, and neither the log nor any response carries a proof-package body, a raw challenge or a session key (LEAKS L9, L10)
 - A40 `unstirred gate init` writes only a manifest `unstirred-core` parses, and refuses h0 >= h1, an h1 that is not a multiple of 10, and a context outside the documented charset
 - A41 `unstirred gate serve` refuses to start on an invalid room manifest, a missing setting, two rooms with the same context, the wrong number of root sources, or an h1 root that is not 32 bytes of hex
+- A42 the gate serves the room picker at `GET /` and one Holders' Room page per hosted room at `GET /room/<context>`, 404 for any other room, naming no room, marker, challenge or verdict it holds
+- A43 `GET /rooms/<context>/recent` answers a bounded feed of verdicts this process has answered, each one a verdict, a code and a time and nothing else; it shows refusals the store never wrote, writes nothing itself, and a gate restarted on the same database answers with none (LEAKS L16)
+- A44 every replay act the gate ships is a valid page state whose code words are `unstirred-core`'s own, each act renders in a document that carries no network call site at all, and a replay page names an act only for the room that act belongs to
 
 ## 11. Priorities
 - **P0:** core, prover, verifier, CLI (incl. `gate markers`), gate service, Holders' Room page, GitHub Release binaries, A01–A14, `LEAKS.md`, `SPEC.md`, real testnet evidence, README, demo video.

@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="referrer" content="no-referrer" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; connect-src /*CONNECT*/; form-action 'none'; base-uri 'none'"
+    />
+    <title>This gate's rooms</title>
+    <style>
+      /*TOKENS*/
+    </style>
+  </head>
+  <body>
+    <main class="frame" id="app"></main>
+    <noscript>
+      <p>
+        This page renders this gate's own data and fetches nothing from anywhere else. With
+        scripting off, the same data is published as JSON: <a href="/rooms">the rooms</a> this gate
+        hosts, and each room's manifest, log and recent verdicts beneath it.
+      </p>
+    </noscript>
+    <script type="application/json" id="unstirred-state">
+      /*STATE*/
+    </script>
+    <script>
+      /*RENDERER*/
+    </script>
+    /*POLLER*/
+  </body>
+</html>

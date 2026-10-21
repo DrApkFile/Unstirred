@@ -1,7 +1,7 @@
 #![doc = "What a running gate holds: its rooms by context, the path of the one database it opens \
-per request, its root authority, its clock and its log. No connection, no source and no secret \
-lives here, so every request can be answered from a blocking task without sharing anything that \
-cannot cross threads."]
+per request, its root authority, its clock, its log and the in-memory feed of verdicts it has \
+just answered. No connection, no source and no secret lives here, so every request can be \
+answered from a blocking task without sharing anything that cannot cross threads."]
 
 use std::collections::BTreeMap;
 use std::net::SocketAddr;
@@ -12,14 +12,17 @@ use unstirred_verifier::store::{Clock, SystemClock};
 
 use crate::config::{GateConfig, Room};
 use crate::events::{GateLog, StdoutLog};
+use crate::recent::RecentVerdicts;
 use crate::roots::{RootAuthority, SpecRootAuthority};
 
 /// The largest admit body a gate will read. A real package is about 24 KB; anything near this
 /// limit is not one, and nothing above it is parsed, verified or stored (A37).
 pub const MAX_ADMIT_BODY_BYTES: usize = 256 * 1024;
 
-/// How many rows a room's log answers with, newest first.
-pub const ROOM_LOG_ROWS: u32 = 50;
+/// The most rows a room's log answers with, newest first. It is a cap on the answer, not a
+/// count of what the gate stores: a room with nothing in it answers with this limit and an
+/// empty list.
+pub const ROOM_LOG_LIMIT: u32 = 50;
 
 #[derive(Debug, Clone)]
 pub struct GateState {
@@ -28,6 +31,8 @@ pub struct GateState {
     pub roots: Arc<dyn RootAuthority>,
     pub clock: Arc<dyn Clock + Send + Sync>,
     pub log: Arc<dyn GateLog>,
+    /// The verdicts this process has answered, for the room pages. Never written to disk.
+    pub recent: Arc<RecentVerdicts>,
     rooms: Arc<BTreeMap<String, Room>>,
 }
 
@@ -56,6 +61,7 @@ impl GateState {
             roots,
             clock,
             log,
+            recent: Arc::new(RecentVerdicts::default()),
             rooms: Arc::new(rooms),
         }
     }

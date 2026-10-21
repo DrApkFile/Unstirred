@@ -24,10 +24,20 @@ pub fn body_with_note(mut value: serde_json::Value, note: Option<&str>) -> Strin
     value.to_string()
 }
 
+/// One page, as its own document. Same headers as every other answer, so a page is as
+/// uncacheable and as unremarkable as the JSON beside it.
+pub fn html(body: String, note: Option<&str>) -> Reply {
+    reply(StatusCode::OK, "text/html; charset=utf-8", body, note)
+}
+
 pub fn json(status: StatusCode, body: String, note: Option<&str>) -> Reply {
+    reply(status, "application/json", body, note)
+}
+
+fn reply(status: StatusCode, content_type: &'static str, body: String, note: Option<&str>) -> Reply {
     let mut builder = Response::builder()
         .status(status)
-        .header(CONTENT_TYPE, "application/json")
+        .header(CONTENT_TYPE, content_type)
         .header(CACHE_CONTROL, "no-store");
     if let Some(note) = note {
         builder = builder.header(ROOT_NOTE_HEADER, note);

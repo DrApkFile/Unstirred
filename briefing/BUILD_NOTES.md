@@ -3,6 +3,47 @@
 Things learned while building that the code and the other briefing files do not say. Decisions go
 to `DECISIONS.md`; recorded runs go to `evidence/`. This file is for the facts that cost time.
 
+## M3 step 2 (the Holders' Room page), 2026-10-21
+
+- **`GET /` was already a route.** The router trimmed trailing slashes and treated an empty path as
+  the room list, so `/` answered the room-list JSON. The picker needed `/` split from `/rooms`, and
+  the room pages a prefix of their own (`/room/<context>`), so that no page path can ever be
+  mistaken for a path under `/rooms` and no room name can collide with a route leaf.
+- **A page that displays the gate's root sources contains an IP address.** A live page prints
+  `zebra:http://127.0.0.1:18232` because that is what the operator configured, so A39's "no address
+  in a response" scan must not be widened to the pages: it would fail on the gate's own
+  configuration. This is also why the A02c scan separates the state block from the code. A root
+  source the page *shows* is text; only the code can make a request. Scanning the whole document
+  for `https://` would have flagged the gate's own published configuration as a leak.
+- **The one `fetch` call takes a variable, so scanning its arguments proves nothing.** The way to
+  make "a replayed act reaches no network" checkable was structural: a replay document is assembled
+  without `ui/live.js` at all, so `fetch(`, `setInterval(` and the rest are absent from the document,
+  and its own `Content-Security-Policy` is `connect-src 'none'`. A test can then assert absence
+  rather than intent.
+- **`--ink-faint` at `#767c88` is 3.78:1 on `--paper`.** It carries all of the small print (panel
+  titles, provenance, the struck-through list), so that is below AA for body text. It is `#616874`
+  now, 5.06:1. Contrast has to be computed; no palette that looks reasonable can be assumed to pass.
+- **A helper in `tests/gate/` is compiled only into the targets that declare it, and every item in
+  it must be used by each of them.** `tests/http.rs` and `tests/page.rs` both declare `mod gate`,
+  but each lists only the files it needs, so a page-only scanner cannot live in `support.rs`: the
+  HTTP target would fail `-D warnings` on dead code. Unused *fields* count too — a fixture struct
+  carrying a `database` nothing reads is a dead-code failure.
+- **The page tests build no wallet, so they cost no proof.** Everything about the routes, the pages
+  and the feed is observable without a package that verifies: a body that is not a package is
+  refused by the engine, which is a verdict, which is all A43 needs. `tests/gate/plain.rs` starts a
+  gate with two rooms, injected roots and no wallet, and the whole target runs in about a tenth of a
+  second.
+- **`ui/` lives inside the gate crate, not at the repository root.** The replay acts and the
+  templates are compiled in with `include_str!`, and `cargo publish` packages only the crate's own
+  directory, so a repo-root `ui/` would build here and fail from the published crate.
+- **The recorded run holds no timestamp for a refusal**, because the store writes nothing for one.
+  Act 3's time is derived from that knock's recorded challenge expiry less the 600-second TTL, which
+  is the second the challenge was issued. Rather than print a derived number as if it had been
+  observed, the page state carries an `at_note` per verdict and the page prints it beside the time.
+- **A shell heredoc can eat a single-backslash escape.** `"\u00b7"` written into `ui/render.js`
+  arrived as the character itself. That is harmless in a UTF-8 JavaScript file, but a patch written
+  against the text as typed then fails to match. Read a generated file back before patching it.
+
 ## M3 step 1 (the HTTP gate, `knock`, `gate init`), 2026-10-20
 
 - **`&impl Clock` cannot take a trait object, and the gate only has one.** The service holds its

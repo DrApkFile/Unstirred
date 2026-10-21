@@ -1,0 +1,51 @@
+{
+  "mode": "replay",
+  "source": "real-testnet",
+  "replay": "act1-rule",
+  "room": "holders-room",
+  "members": 1000,
+  "gate": {
+    "root_sources": [
+      "lwd:https://testnet.zec.rocks:443",
+      "zebra:http://127.0.0.1:18232"
+    ],
+    "note": null
+  },
+  "codes": {},
+  "rooms": [
+    {
+      "context": "holders-room",
+      "network": "test",
+      "window": {
+        "h0": 4505790,
+        "h1": 4506510
+      },
+      "min_zatoshis": "12500000",
+      "h1_root": "8af0c16b82ff1c9170de5dc87b3c06ef3a7144befdba71fc40959effe9f5be26",
+      "h1_root_provenance": "operator-pinned",
+      "limit": 50,
+      "markers": [],
+      "verdicts": [],
+      "recent": []
+    },
+    {
+      "context": "second-room",
+      "network": "test",
+      "window": {
+        "h0": 4505790,
+        "h1": 4506510
+      },
+      "min_zatoshis": "12500000",
+      "h1_root": "8af0c16b82ff1c9170de5dc87b3c06ef3a7144befdba71fc40959effe9f5be26",
+      "h1_root_provenance": "operator-pinned",
+      "limit": 50,
+      "markers": [],
+      "verdicts": [],
+      "recent": []
+    }
+  ],
+  "provenance": [
+    "Replay of the two-room knock recorded on the real Zcash testnet on 2026-10-20: evidence/2026-10-20-two-room-knock.txt (header: evidence/2026-10-20-two-room-knock.meta.md).",
+    "The rule, the window, the threshold, the root sources and the h1 root are that run's own. Nothing had been admitted at this point in it."
+  ]
+}

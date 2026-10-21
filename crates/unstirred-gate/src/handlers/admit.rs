@@ -61,7 +61,12 @@ pub(super) async fn admit(state: &GateState, context: &str, body: Vec<u8>) -> (R
     })
     .await;
     match decided {
-        Ok(Ok(verdict)) => answer(&verdict, note),
+        Ok(Ok(verdict)) => {
+            // The store writes nothing for a refusal, so the room page would never see one. The
+            // feed remembers the verdict, its code and this second, in memory only (LEAKS L16).
+            state.recent.record(context, &verdict, state.clock.unix_seconds());
+            answer(&verdict, note)
+        }
         Ok(Err(fault)) => (database_fault(&fault, note), None),
         Err(detail) => (
             error(

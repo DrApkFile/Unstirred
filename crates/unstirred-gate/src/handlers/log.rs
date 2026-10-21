@@ -7,7 +7,7 @@ use unstirred_verifier::store::{AdmissionRow, MarkerRow, Store};
 
 use crate::handlers::blocking;
 use crate::reply::{body_with_note, error, json, Reply};
-use crate::state::{GateState, ROOM_LOG_ROWS};
+use crate::state::{GateState, ROOM_LOG_LIMIT};
 
 pub(super) async fn room_log(state: &GateState, context: &str) -> Reply {
     let note = state.note();
@@ -15,9 +15,9 @@ pub(super) async fn room_log(state: &GateState, context: &str) -> Reply {
     let room = context.to_owned();
     let read = blocking(move || {
         let store = Store::open(&database).map_err(|e| e.to_string())?;
-        let markers = store.recent_markers(&room, ROOM_LOG_ROWS).map_err(|e| e.to_string())?;
+        let markers = store.recent_markers(&room, ROOM_LOG_LIMIT).map_err(|e| e.to_string())?;
         let verdicts = store
-            .recent_admissions(&room, ROOM_LOG_ROWS)
+            .recent_admissions(&room, ROOM_LOG_LIMIT)
             .map_err(|e| e.to_string())?;
         Ok::<_, String>((markers, verdicts))
     })
@@ -28,7 +28,7 @@ pub(super) async fn room_log(state: &GateState, context: &str) -> Reply {
             body_with_note(
                 serde_json::json!({
                     "context": context,
-                    "rows": ROOM_LOG_ROWS,
+                    "limit": ROOM_LOG_LIMIT,
                     "markers": markers.iter().map(marker).collect::<Vec<_>>(),
                     "verdicts": verdicts.iter().map(verdict).collect::<Vec<_>>(),
                     "stored_and_nothing_else":

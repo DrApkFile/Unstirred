@@ -1,11 +1,13 @@
 # HANDOFF
 
-State of Unstirred at commit `34c3146` (M2 was wrapped up in `15bd859`) —
+State of Unstirred at commit `34c3146` (M2 was wrapped up in `15bd859`), plus **uncommitted M3
+step 2 work recorded in §9** —
 **M1 and M2 are closed** (M2's last open item, a real two-source root run, was recorded on
-2026-10-20, §1) and **M3 step 1 is built, gated and committed** (`6c2a288`, `34c3146`; §8),
-with its real two-room knock over HTTP made on 2026-10-20. What is next is M3 step 2, the
-Holders' Room page. Written 2026-10-20, revised 2026-10-21 and from the 2026-10-17 version.
-For the next session (agent or human).
+2026-10-20, §1), **M3 step 1 is built, gated and committed** (`6c2a288`, `34c3146`; §8) with its
+real two-room knock over HTTP made on 2026-10-20, and **M3 step 2, the Holders' Room page, is
+built and gated but not committed** (§9). That closes M3. What is next is M4: a second testnet
+wallet funded after h0, for the demo's act 4. Written 2026-10-20, revised 2026-10-21 and from the
+2026-10-17 version. For the next session (agent or human).
 Read `briefing/CLAUDE.md` and `briefing/BUILD_CONTRACT.md` first; this file only says where the
 work stopped, what is next, and what the machine around the repo is holding.
 
@@ -79,7 +81,8 @@ Halo2 proof. Roots come from the M2 step 1 authority. Every root-source failure 
 A25 and A26 stay registered for that path.
 
 `unstirred-gate` is now the HTTP service and `unstirred gate init` and `unstirred knock` are built;
-that is M3 step 1, recorded in section 8 below.
+that is M3 step 1, recorded in section 8 below. It also serves the Holders' Room page itself, which
+is M3 step 2, recorded in section 9.
 
 Last gate run of M2's own work: `evidence/2026-10-17-gate-m2-step2.md` — `GATE: PARTIAL`, exit 0;
 fmt and clippy clean, all tests pass (the step 1 set plus A02b, A05, A05c, A05d, A07, A08 and the
@@ -157,8 +160,17 @@ markers with none shared between the two, over two agreeing root sources with no
 label (`evidence/2026-10-20-two-room-knock.txt`, header in
 `evidence/2026-10-20-two-room-knock.meta.md`; the commands are in section 8).
 
-Next is M3 step 2: the Holders' Room page. The session key stays a fresh random 32 bytes with no
-private half for v1. The judge path decision (hosted Holders' Room) is due by M3, 2026-10-21.
+**M3 step 2 is built and gated** (section 9): the gate serves the room picker at `GET /` and one
+Holders' Room page per room at `GET /room/<context>`, with `GET /rooms/<context>/recent` beside
+them, and renders a recorded act of the demo at `GET /room/<context>?replay=<act>`. A02c, A42, A43
+and A44 are green in `evidence/2026-10-21-gate-m3-step2.md`. It is **not committed**, and nobody
+has opened it in a browser yet (section 6).
+
+**That closes M3.** Next is M4: a second testnet wallet, funded after h0, so the demo's act 4 (a
+holder whose coins are newer than the window) can be recorded rather than described. It is why
+there is no `act4` replay file: the page would have to be given numbers no run produced. The
+session key stays a fresh random 32 bytes with no private half for v1. The judge path decision
+(hosted Holders' Room) is still open and was due by M3, 2026-10-21.
 
 The standing rule holds: register any new acceptance IDs in `briefing/PRD.md` §10 **before**
 writing their tests, with a `DECISIONS.md` row.
@@ -326,9 +338,17 @@ proving or verifying paths. The ones most likely to bite the next step:
 - `unstirred-gate` HTTP is built and committed (M3 step 1, section 8) and exposes the M2 store
   without adding a check of its own. Its real two-room run was made on 2026-10-20 — ADMITTED,
   `ALREADY_USED_IN_CONTEXT` for the same coins at that room, ADMITTED at the second room, with
-  disjoint marker sets (`evidence/2026-10-20-two-room-knock.txt`). Open on that path: the
-  Holders' Room page (M3 step 2). The session key stays a fresh random 32 bytes with no private
-  half for v1.
+  disjoint marker sets (`evidence/2026-10-20-two-room-knock.txt`). The session key stays a fresh
+  random 32 bytes with no private half for v1.
+- **Nobody has opened the Holders' Room page in a browser.** There is no browser in the session
+  that built it. `ui/render.js` was run against a minimal DOM shim under node, which proves every
+  act renders and prints the right words, and A02c/A42/A43/A44 cover the routes, the state and
+  what the document may contain — none of that is a look at the thing. The layout is a fixed
+  1920×1080 stage with fixed rows, so content that does not fit clips inside its panel rather
+  than breaking the frame; whether anything clips is unverified. Open it once (the commands are in
+  section 9) before any of it is recorded for the video.
+- The demo script's act 4 (a holder whose coins are newer than h0) and act 7 (the chain itself)
+  have no replay file, because no run has produced their numbers. Act 4 is M4.
 - h1 via nf-server `verify-root` is deferred (P1): it needs a full node serving raw blocks back to
   Ironwood activation plus an independently trusted block hash at h1. Until then h1 stays
   operator-pinned via `--h1-root` and labelled operator-pinned in output and docs.
@@ -337,6 +357,13 @@ proving or verifying paths. The ones most likely to bite the next step:
 - `crates/unstirred-prover/src/error.rs` is 194 lines, over the ~180-line rule, because it is one
   enum (see the cleanup note in §1). `DECISIONS.md` rows written before 2026-10-20 still cite the
   pre-split file paths; they are a record of decisions, so they were left as written.
+- Two page files are also over the ~180-line rule, for the same kind of reason.
+  `crates/unstirred-gate/ui/render.js` (470) is one pure function and its private helpers in one
+  closure; splitting it would mean a namespace object quoted on every call, which is worse to read
+  than the length it saves. `ui/tokens.css` (441) is the one `:root` token block the video's design
+  system mirrors, plus the styles that use it, and the only way CSS has to split a file is
+  `@import`, which is a third-party request waiting to happen and is what LEAKS L10 forbids. Every
+  Rust file in the step is under the limit.
 - The README is still dense prose rather than a claims table and a 60-second judge path. `CLAIMS.md`
   now holds the ledger it should be built from. Owner's instruction: rebuild it after M3.
 - Judge path 1 (hosted Holders' Room) has to be decided by M3, 2026-10-21.
@@ -472,3 +499,82 @@ The wallet is opened read-only on every knock and no transaction is created. If 
 h0, every knock is INCONCLUSIVE / ROOT_SOURCE_UNAVAILABLE (exit 4) until the config is changed to
 one source plus `single_root_source = true`, which labels every answer as not independently
 checked.
+
+## 9. M3 step 2, the Holders' Room page, built and gated 2026-10-21 (uncommitted)
+
+`./scripts/gate.sh` reports **GATE: PASS**, exit 0, with 95 tests and the leak and claims checks:
+`evidence/2026-10-21-gate-m3-step2.md`. A02c, A42, A43 and A44 are registered in PRD §10 with
+`DECISIONS.md` rows, and the CLAIMS, README and LEAKS (L10, L16) entries are written. **Nothing is
+committed**, and **nobody has opened the page in a browser** (§6).
+
+What was built:
+
+- **Two page routes, served by the gate itself**: `GET /` is the room picker and
+  `GET /room/<context>` is that room's page, 404 for a room it does not host. Each is one
+  self-contained HTML document assembled per request from
+  `crates/unstirred-gate/ui/{picker,room}.html` + `tokens.css` + `render.js` (+ `live.js` when the
+  page is live), with the state inlined as JSON. Nothing is read from disk at request time and
+  nothing is fetched from any other origin; every page carries its own
+  `Content-Security-Policy: default-src 'none'`.
+- **One state, one renderer.** `crates/unstirred-gate/src/page/contract.rs` is the page state as a
+  Rust type with `deny_unknown_fields`; `ui/render.js` is one pure `render(state)` that reads
+  exactly those fields and no clock, no randomness and no network. A live page serialises the type;
+  a replay act is deserialised into it; the same `check` runs over both, so a field cannot be added
+  to an act without being added to the renderer.
+- **What the page shows**, all of it computed from the gate's own data: the door rule in words from
+  the manifest ("Held at least 0.125 ZEC privately, unmoved from block 4,505,790 through
+  4,506,510."), the latest verdict large and in colour with the plain message from
+  `unstirred-core`'s closed code set, what the gate wrote down beside a struck-through list of what
+  it never saw, the window as a bar with its block count, both rooms' markers with the computed
+  "markers shared between rooms: 0", and the bot-cost counter (fake members × 0.125 ZEC held
+  unmoved across the window).
+- **`GET /rooms/<context>/recent`**: a bounded in-memory feed (20 per room) of the verdicts this
+  process has answered — a verdict, a code and the second it was answered, nothing else, never
+  written to disk, gone on restart. It exists because the store writes nothing for a refusal, so
+  the demo's third act could not otherwise appear on the page (`DECISIONS.md` 2026-10-21, LEAKS
+  L16).
+- **Replay mode**: `GET /room/<context>?replay=<act>` renders a recorded act with no polling, no
+  clock and no randomness. The document is assembled *without* `live.js`, so it has no network call
+  site at all, and its policy is `connect-src 'none'`. The four acts are `act1-rule`,
+  `act2-admitted`, `act3-refused` and `act5-second-room`, generated from
+  `evidence/2026-10-20-two-room-knock.txt` by `scripts/replay-from-evidence.py` and compiled in
+  with `include_str!`. An act belongs to one room and is 404 at any other.
+- **`ui/frame.md`** mirrors the `:root` token block as the design system the demo video is cut
+  against, and a unit test fails if the two drift.
+- **The leak scan** gained A02c's repository half over `crates/unstirred-gate/ui/`. Both halves
+  were confirmed against a planted third-party stylesheet and a planted beacon.
+- Also in this step: the room log's `rows` field is now `limit`, because it published the cap on
+  the answer under a name that read as a count of stored rows.
+
+### Opening it
+
+The page needs no wallet, no nf-server and no proof — only a gate. Live, with the two rooms of §8:
+
+```
+cd /home/kingghidorah/Documents/projects/bounties/zecathon/unstirred
+cargo build --release
+cd /home/kingghidorah/Documents/projects/bounties/zecathon/gate
+/home/kingghidorah/Documents/projects/bounties/zecathon/unstirred/target/release/unstirred \
+    gate serve --config gate.toml
+```
+
+Then open `http://127.0.0.1:8080/` (the picker) and
+`http://127.0.0.1:8080/room/holders-room`. The live page polls `/rooms/<context>/log` and
+`/rooms/<context>/recent` every two seconds, so a knock from §8 turns the verdict green while it is
+open, and a second knock with the same coins turns it red. The two root sources in that config are
+only read when something is admitted; the page itself needs neither.
+
+The four acts, which need nothing running but the gate and no chain at all:
+
+```
+http://127.0.0.1:8080/room/holders-room?replay=act1-rule
+http://127.0.0.1:8080/room/holders-room?replay=act2-admitted
+http://127.0.0.1:8080/room/holders-room?replay=act3-refused
+http://127.0.0.1:8080/room/second-room?replay=act5-second-room
+```
+
+Any gate hosting rooms named `holders-room` and `second-room` serves all four, whatever its own
+database holds and whatever its root sources are: an act carries its own numbers, and the route
+only checks that the gate hosts a room by that name. So `unstirred gate init` two manifests, point
+a `gate.toml` at them, and the acts render. Render the video at exactly 1920×1080 and the stage is
+at scale 1, which is the layout a browser shows at that size.

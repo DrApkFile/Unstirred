@@ -30,7 +30,7 @@ Commands (status as of this build):
   verify     verify a proof package against the gate's root sources and print the verdict
   roots      print the h0 root and tip each root source reports, and whether they agree
   admit      admit a package into the gate database, consuming its challenge and recording markers
-  gate serve       serve one gate over HTTP: rooms, challenges, admissions, room logs
+  gate serve       serve one gate over HTTP: rooms, challenges, admissions, logs, pages
   gate init        write a gate manifest for one room
   gate challenge   issue a challenge and print its hex
   gate markers     print stored markers and admission verdicts

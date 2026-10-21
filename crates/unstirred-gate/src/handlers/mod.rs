@@ -6,6 +6,8 @@ it is accepted, so there is nothing to pass down and nothing to log (A39)."]
 mod admit;
 mod challenge;
 mod log;
+mod page;
+mod recent;
 mod rooms;
 
 use http_body_util::{BodyExt, Limited};
@@ -23,7 +25,8 @@ use crate::state::{GateState, MAX_ADMIT_BODY_BYTES};
 pub async fn dispatch(state: &GateState, request: Request<Incoming>) -> Reply {
     let method = request.method().clone();
     let path = request.uri().path().to_owned();
-    let (reply, code) = answer(state, request, &path).await;
+    let query = request.uri().query().map(str::to_owned);
+    let (reply, code) = answer(state, request, &path, query.as_deref()).await;
     state.log.line(&request_line(
         method.as_str(),
         &path,
@@ -35,7 +38,12 @@ pub async fn dispatch(state: &GateState, request: Request<Incoming>) -> Reply {
 
 /// The reply, plus the verdict code when the answer was a verdict. An HTTP-level refusal has no
 /// code: the gate decided nothing about the holding it was never shown.
-async fn answer(state: &GateState, request: Request<Incoming>, path: &str) -> (Reply, Option<String>) {
+async fn answer(
+    state: &GateState,
+    request: Request<Incoming>,
+    path: &str,
+    query: Option<&str>,
+) -> (Reply, Option<String>) {
     let note = state.note();
     let route = match route(request.method(), path) {
         Ok(route) => route,
@@ -43,6 +51,8 @@ async fn answer(state: &GateState, request: Request<Incoming>, path: &str) -> (R
         Err(NoRoute::WrongMethod { allowed }) => return (method_not_allowed(allowed, note), None),
     };
     match route {
+        Route::Picker => (page::picker(state).await, None),
+        Route::RoomPage(context) => (page::room(state, &context, query).await, None),
         Route::RoomList => (rooms::listing(state), None),
         Route::Manifest(context) => (with_room(state, &context, |room| rooms::manifest(room, note)), None),
         Route::Challenge(context) => match missing_room(state, &context, note) {
@@ -52,6 +62,10 @@ async fn answer(state: &GateState, request: Request<Incoming>, path: &str) -> (R
         Route::Log(context) => match missing_room(state, &context, note) {
             Some(reply) => (reply, None),
             None => (log::room_log(state, &context).await, None),
+        },
+        Route::Recent(context) => match missing_room(state, &context, note) {
+            Some(reply) => (reply, None),
+            None => (recent::feed(state, &context), None),
         },
         Route::Admit(context) => match missing_room(state, &context, note) {
             Some(reply) => (reply, None),

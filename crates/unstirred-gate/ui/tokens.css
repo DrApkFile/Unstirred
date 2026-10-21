@@ -1,0 +1,441 @@
+/* The design system of both the page and the demo video, in one block. Every colour, type size,
+   space and radius the page uses is a token here and nowhere else, and ui/frame.md mirrors this
+   block for the video. No font, image or stylesheet is fetched from anywhere: the only families
+   named are the ones the viewer's system already has (LEAKS L10). Nothing here animates or
+   transitions, so every change on screen is a plain state change a video can step through. */
+
+:root {
+  --stage-w: 1920px;
+  --stage-h: 1080px;
+
+  --paper: #f4f3ef;
+  --panel: #ffffff;
+  --panel-edge: #d8d5cc;
+  --ink: #14161b;
+  --ink-dim: #4a4f59;
+  --ink-faint: #616874;
+
+  --admit: #0c6b3d;
+  --admit-wash: #e0f2e7;
+  --admit-edge: #9bd3b3;
+  --refuse: #a0152a;
+  --refuse-wash: #fce9ec;
+  --refuse-edge: #efb3bd;
+  --unknown: #8a5600;
+  --unknown-wash: #fdf1dc;
+  --unknown-edge: #e4c48a;
+  --accent: #1b4f8f;
+  --accent-wash: #e6eef8;
+
+  --type-hero: 46px;
+  --type-title: 42px;
+  --type-head: 27px;
+  --type-body: 21px;
+  --type-small: 17px;
+  --type-mono: 18px;
+  --type-mono-small: 15px;
+
+  --leading-tight: 1.1;
+  --leading-body: 1.45;
+
+  --gap-1: 8px;
+  --gap-2: 16px;
+  --gap-3: 24px;
+  --gap-4: 36px;
+  --gap-5: 56px;
+
+  --radius-1: 10px;
+  --radius-2: 18px;
+  --edge: 1px;
+
+  /* Contrast against --paper and --panel, light and dark, is at least 4.5:1 for every ink token
+     here, including --ink-faint, which carries the small print. */
+  --sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --paper: #0d0f13;
+    --panel: #171a20;
+    --panel-edge: #2e333c;
+    --ink: #edeff3;
+    --ink-dim: #b2b9c6;
+    --ink-faint: #868e9d;
+
+    --admit: #5ed39b;
+    --admit-wash: #10301f;
+    --admit-edge: #2b6b48;
+    --refuse: #ff8e9c;
+    --refuse-wash: #341319;
+    --refuse-edge: #7c333f;
+    --unknown: #e8bb6b;
+    --unknown-wash: #2f2512;
+    --unknown-edge: #6e5725;
+    --accent: #8fbcf2;
+    --accent-wash: #15263c;
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--sans);
+  font-size: var(--type-body);
+  line-height: var(--leading-body);
+}
+
+.frame {
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* One 1920 by 1080 stage, scaled to whatever is showing it. The video renders it at scale 1, so
+   the page a judge opens and the frame in the video are the same layout, not two of them. */
+.stage {
+  width: var(--stage-w);
+  height: var(--stage-h);
+  transform: scale(var(--scale, 1));
+  transform-origin: center center;
+  flex: none;
+  padding: var(--gap-4);
+  display: grid;
+  gap: var(--gap-3);
+}
+
+/* The head, the rule and the provenance take the height they need; the two rows of panels share
+   whatever is left, equally, and can only shrink. Nothing can push the stage past 1080px, and a
+   panel whose content does not fit clips inside its own border rather than breaking the frame. */
+.stage-room {
+  grid-template-rows: auto auto minmax(0, 1fr) minmax(0, 1fr) auto;
+}
+
+.stage-picker {
+  grid-template-rows: auto auto minmax(0, 1fr) auto;
+}
+
+.thirds {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: var(--gap-3);
+  min-height: 0;
+}
+
+.wide-and-narrow {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: var(--gap-3);
+  min-height: 0;
+}
+
+h1,
+h2,
+h3 {
+  margin: 0;
+  line-height: var(--leading-tight);
+  font-weight: 650;
+}
+
+h1 {
+  font-size: var(--type-title);
+}
+
+h2 {
+  font-size: var(--type-head);
+}
+
+h3 {
+  font-size: var(--type-body);
+  font-weight: 600;
+}
+
+p {
+  margin: 0;
+}
+
+ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+a {
+  color: var(--accent);
+}
+
+:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 3px;
+}
+
+.panel {
+  background: var(--panel);
+  border: var(--edge) solid var(--panel-edge);
+  border-radius: var(--radius-2);
+  padding: var(--gap-3);
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap-2);
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.panel-title {
+  font-size: var(--type-small);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+
+.head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--gap-3);
+}
+
+.badge {
+  font-size: var(--type-small);
+  border: var(--edge) solid var(--panel-edge);
+  border-radius: var(--radius-1);
+  padding: var(--gap-1) var(--gap-2);
+  color: var(--ink-dim);
+  background: var(--accent-wash);
+  white-space: nowrap;
+}
+
+.rule {
+  font-size: var(--type-hero);
+  line-height: var(--leading-tight);
+  font-weight: 700;
+  letter-spacing: -0.015em;
+}
+
+.rule-aside {
+  font-size: var(--type-small);
+  color: var(--ink-dim);
+}
+
+.verdict {
+  font-size: var(--type-hero);
+  line-height: var(--leading-tight);
+  font-weight: 750;
+}
+
+.verdict-panel {
+  border-width: 2px;
+}
+
+.verdict-admitted {
+  background: var(--admit-wash);
+  border-color: var(--admit-edge);
+}
+
+.verdict-admitted .verdict {
+  color: var(--admit);
+}
+
+.verdict-refused {
+  background: var(--refuse-wash);
+  border-color: var(--refuse-edge);
+}
+
+.verdict-refused .verdict {
+  color: var(--refuse);
+}
+
+.verdict-inconclusive {
+  background: var(--unknown-wash);
+  border-color: var(--unknown-edge);
+}
+
+.verdict-inconclusive .verdict {
+  color: var(--unknown);
+}
+
+.verdict-none .verdict {
+  color: var(--ink-faint);
+  font-size: var(--type-title);
+}
+
+.code {
+  font-family: var(--mono);
+  font-size: var(--type-mono);
+  color: var(--ink);
+}
+
+.message {
+  font-size: var(--type-body);
+  color: var(--ink-dim);
+}
+
+.learned {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--gap-2);
+  min-height: 0;
+  overflow: hidden;
+}
+
+.learned > div {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap-1);
+  min-width: 0;
+}
+
+.kept li,
+.never li {
+  font-size: var(--type-small);
+  padding: 2px 0;
+}
+
+.kept li {
+  font-family: var(--mono);
+  font-size: var(--type-mono-small);
+}
+
+.never li {
+  color: var(--ink-faint);
+  text-decoration: line-through;
+}
+
+.timeline {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap-1);
+}
+
+.timeline-bar {
+  height: 26px;
+  border-radius: var(--radius-1);
+  border: var(--edge) solid var(--accent);
+  background: var(--accent-wash);
+  display: flex;
+  align-items: stretch;
+}
+
+.timeline-held {
+  flex: 1;
+  background: var(--accent);
+  border-radius: calc(var(--radius-1) - 2px);
+  margin: 3px;
+}
+
+.timeline-ends {
+  display: flex;
+  justify-content: space-between;
+  font-family: var(--mono);
+  font-size: var(--type-mono-small);
+  color: var(--ink-dim);
+}
+
+.rooms {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
+  gap: var(--gap-3);
+  min-height: 0;
+}
+
+.room-card {
+  background: var(--paper);
+  border: var(--edge) solid var(--panel-edge);
+  border-radius: var(--radius-2);
+  padding: var(--gap-2) var(--gap-3);
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap-1);
+  min-width: 0;
+}
+
+.room-card-here {
+  border-color: var(--accent);
+  border-width: 2px;
+}
+
+.markers li {
+  font-family: var(--mono);
+  font-size: var(--type-mono-small);
+  color: var(--ink-dim);
+}
+
+.shared {
+  font-size: var(--type-head);
+  font-weight: 650;
+}
+
+.shared-zero {
+  color: var(--admit);
+}
+
+.bot {
+  display: flex;
+  align-items: center;
+  gap: var(--gap-2);
+  flex-wrap: wrap;
+}
+
+label {
+  font-size: var(--type-small);
+  color: var(--ink-dim);
+}
+
+input[type="number"] {
+  font-family: var(--mono);
+  font-size: var(--type-mono);
+  color: var(--ink);
+  background: var(--paper);
+  border: var(--edge) solid var(--panel-edge);
+  border-radius: var(--radius-1);
+  padding: var(--gap-1) var(--gap-2);
+  width: 9ch;
+}
+
+.cost {
+  font-size: var(--type-title);
+  font-weight: 700;
+}
+
+.foot {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: var(--type-small);
+  color: var(--ink-faint);
+}
+
+.picker-rooms {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
+  gap: var(--gap-3);
+  align-items: stretch;
+}
+
+.picker-rooms a {
+  font-size: var(--type-head);
+  font-weight: 650;
+  text-decoration: none;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
