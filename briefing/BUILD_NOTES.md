@@ -61,6 +61,18 @@ to `DECISIONS.md`; recorded runs go to `evidence/`. This file is for the facts t
   `scripts/page-layout-check.mjs` drives the browser over the DevTools protocol with no dependency
   at all — `Runtime.evaluate` to measure, `Page.captureScreenshot` to look. A visual review is a
   look, not an estimate, and the estimates in this file's first draft were wrong by 100px.
+- **An absolutely positioned element cannot clip, so it overlaps instead — and the probe cannot
+  see it.** The window's caption was `position: absolute` over the band. In presentation mode the
+  larger type wrapped it to two lines, which grew downwards straight through the band, and the
+  layout check reported nothing: the element was inside the stage and its parent hid nothing. It
+  is in normal flow now, pinned to the band's span by `margin-left` and `width`, so a wrap pushes
+  the rail down. Only a screenshot found this one; measuring is not the same as looking.
+- **A claim settled by a browser is not settled by the gate.** `CLAIMS.md` had four statuses and
+  none of them fitted: `scripts/gate.sh` needs neither a browser nor a node and gains neither, so
+  calling the layout check GATED would say the gate checked something it cannot, and PROVEN would
+  claim the chain. Hence a fifth status, MEASURED — a recorded run of a named tool, with its
+  version and its command in the evidence file. When a check does not fit the ledger's vocabulary,
+  widen the vocabulary; do not borrow the nearest word.
 - **`pkill -f "unstirred gate serve"` kills the shell that runs it.** The pattern matches the
   shell's own command line, which contains the whole script. `pkill -x unstirred` matches the
   process name instead.

@@ -1,13 +1,12 @@
 # HANDOFF
 
-State of Unstirred at commit `bf3fe87`, plus the **uncommitted visual-review pass recorded at the
-end of §9** —
+State of Unstirred at commit `e02230d`, with a clean tree —
 **M1 and M2 are closed** (M2's last open item, a real two-source root run, was recorded on
 2026-10-20, §1), **M3 step 1 is built, gated and committed** (`6c2a288`, `34c3146`; §8) with its
 real two-room knock over HTTP made on 2026-10-20, and **M3 step 2, the Holders' Room page, is
 built, gated and committed** (`bf3fe87`; §9), reviewed in a browser on 2026-10-21 with the fixes
-for that review still uncommitted. That closes M3. What is next is M4: a second testnet wallet
-funded after h0, for the demo's act 4. Written 2026-10-20, revised 2026-10-21 and from the
+for that review committed as `e02230d`. That closes M3. What is next is M4: Bob's wallet — a second
+testnet wallet funded after h0, for the demo's act 4. Written 2026-10-20, revised 2026-10-21 and from the
 2026-10-17 version. For the next session (agent or human).
 Read `briefing/CLAUDE.md` and `briefing/BUILD_CONTRACT.md` first; this file only says where the
 work stopped, what is next, and what the machine around the repo is holding.
@@ -165,11 +164,16 @@ label (`evidence/2026-10-20-two-room-knock.txt`, header in
 Holders' Room page per room at `GET /room/<context>`, with `GET /rooms/<context>/recent` beside
 them, and renders a recorded act of the demo at `GET /room/<context>?replay=<act>`. A02c, A42, A43
 and A44 are green in `evidence/2026-10-21-gate-m3-step2.md`. It is **committed as `bf3fe87`**, and
-it has been reviewed in a browser since (section 9), with the fixes for that review uncommitted.
+it has been reviewed in a browser since, and the fixes for that review are committed as `e02230d`
+(section 9).
 
-**That closes M3.** Next is M4: a second testnet wallet, funded after h0, so the demo's act 4 (a
-holder whose coins are newer than the window) can be recorded rather than described. It is why
-there is no `act4` replay file: the page would have to be given numbers no run produced. The
+**That closes M3. Next is act 4: Bob, the newcomer.** M4 is a second testnet wallet funded *after*
+h0, so that the demo's act 4 — a holder whose coins are newer than the window — can be recorded
+rather than described: the prover should refuse him COINS_TOO_NEW, and a forced submit should be
+refused ROOT_MISMATCH by the verifier (A03). It is why there is no `act4` replay file; the page
+would have to be given numbers no run produced. The page is already ready for him: a room state may
+carry one `holder` line (label, from, to), drawn short of the band and in the refusal colour when
+it does not cover the window (§9, `ui/frame.md`). The
 session key stays a fresh random 32 bytes with no private half for v1. The judge path decision
 (hosted Holders' Room) is still open and was due by M3, 2026-10-21.
 
@@ -507,7 +511,7 @@ checked.
 when this step was built: `evidence/2026-10-21-gate-m3-step2.md`. A02c, A42, A43 and A44 are
 registered in PRD §10 with `DECISIONS.md` rows, and the CLAIMS, README and LEAKS (L10, L16)
 entries are written. The page was then **reviewed in a browser**, and the fixes for that review are
-at the end of this section and are **not committed**.
+at the end of this section and are **committed as `e02230d`**.
 
 What was built:
 
