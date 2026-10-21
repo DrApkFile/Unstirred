@@ -271,6 +271,97 @@ fn the_room_log_names_its_limit_and_not_a_count_of_stored_rows() -> TestResult {
     Ok(())
 }
 
+/// Presentation mode is a way of reading a page, not part of what the page says: `?present=1`
+/// works on a live page and on any act, changes `present` and nothing else about the state, and
+/// takes the gate's own technical lines off the provenance foot without touching what a verdict
+/// says about itself.
+#[test]
+fn present_mode_is_a_way_of_reading_a_page_and_not_part_of_it() -> TestResult {
+    let directory = tempfile::tempdir()?;
+    let gate = start_in(directory.path())?;
+    let act = act_state("act3-refused")?;
+    assert!(!act.present, "an act on disk is not a presentation");
+
+    let plain = gate.client.request(
+        http::Method::GET,
+        &format!("/room/{HOLDERS_ROOM}?replay=act3-refused"),
+        Vec::new(),
+    )?;
+    let presented = gate.client.request(
+        http::Method::GET,
+        &format!("/room/{HOLDERS_ROOM}?replay=act3-refused&present=1"),
+        Vec::new(),
+    )?;
+    assert_eq!(presented.status, 200, "{}", presented.body);
+    let plain_state = state_of(&plain.body)?;
+    let presented_state = state_of(&presented.body)?;
+    assert!(!plain_state.present);
+    assert!(presented_state.present, "?present=1 is carried into the state");
+    assert_eq!(
+        PageState {
+            present: false,
+            ..presented_state.clone()
+        },
+        plain_state,
+        "presentation mode changes nothing else about the act"
+    );
+
+    let technical = plain_state.rooms[0].h1_root.clone();
+    assert!(
+        plain.body.contains(&technical),
+        "the pinned root is on the page a judge reads"
+    );
+    assert!(
+        !presented.body.contains(&format!("h1 nullifier-set root {technical}")),
+        "the presented page drops the gate's technical lines"
+    );
+    assert!(
+        presented.body.contains("time derived"),
+        "what a verdict says about its own time stays, wherever the page is read"
+    );
+
+    let live = gate.client.request(
+        http::Method::GET,
+        &format!("/room/{HOLDERS_ROOM}?present=1"),
+        Vec::new(),
+    )?;
+    assert_eq!(live.status, 200, "{}", live.body);
+    assert!(state_of(&live.body)?.present, "a live page can be presented too");
+    Ok(())
+}
+
+/// A holder line is an act's own illustration of somebody against the rule. A live gate never
+/// draws one, and a line the page could not place is refused rather than drawn wrong.
+#[test]
+fn a_holder_line_is_an_acts_own_and_is_refused_when_it_is_not_a_range() -> TestResult {
+    let directory = tempfile::tempdir()?;
+    let gate = start_in(directory.path())?;
+    let live = gate
+        .client
+        .request(http::Method::GET, &format!("/room/{HOLDERS_ROOM}"), Vec::new())?;
+    for room in state_of(&live.body)?.rooms {
+        assert!(
+            room.holder.is_none(),
+            "a gate knows no holder's block range, so a live page draws no holder line"
+        );
+    }
+    for (act, _) in REPLAY_ACTS {
+        for room in act_state(act)?.rooms {
+            assert!(room.holder.is_none(), "{act} draws a holder no recorded run produced");
+        }
+    }
+
+    let mut backwards: serde_json::Value = serde_json::from_str(REPLAY_ACTS[0].1)?;
+    backwards["rooms"][0]["holder"] = serde_json::json!({ "label": "backwards", "from": 9, "to": 8 });
+    let refused: PageState = serde_json::from_value(backwards)?;
+    let problem = refused.check().err().ok_or("a backwards holder line was accepted")?;
+    assert!(
+        problem.contains("backwards"),
+        "the refusal says what is wrong: {problem}"
+    );
+    Ok(())
+}
+
 fn act_state(act: &str) -> Result<PageState, Box<dyn Error>> {
     match replay_state(act) {
         Some(Ok(state)) => Ok(state),

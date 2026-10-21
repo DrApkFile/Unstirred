@@ -61,6 +61,9 @@ def room_state(described, log, markers, verdicts, recent):
         "h1_root": described["h1_root"],
         "h1_root_provenance": described["h1_root_provenance"],
         "limit": ROOM_LOG_LIMIT,
+        # A holder line illustrates one act against the rule. None of these four draws one: the
+        # recorded run holds no holder's block range, only its verdicts and markers.
+        "holder": None,
         "markers": [{"marker": row["marker"], "admitted_at": row["admitted_at"]} for row in markers],
         "verdicts": [
             {"verdict": row["verdict"], "code": row["code"], "at": row["at"], "at_note": None}
@@ -76,6 +79,9 @@ def act(name, room, rooms, listing, codes, provenance):
         "source": "real-testnet",
         "replay": name,
         "room": room,
+        # Presentation mode is a way of reading an act, not part of it: the gate sets it from
+        # ?present=1 on whichever act is asked for.
+        "present": False,
         "members": MEMBERS_AT_FIRST_PAINT,
         "gate": {"root_sources": listing["root_sources"], "note": listing.get("note")},
         "codes": codes,

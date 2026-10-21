@@ -1,12 +1,13 @@
 # HANDOFF
 
-State of Unstirred at commit `34c3146` (M2 was wrapped up in `15bd859`), plus **uncommitted M3
-step 2 work recorded in §9** —
+State of Unstirred at commit `bf3fe87`, plus the **uncommitted visual-review pass recorded at the
+end of §9** —
 **M1 and M2 are closed** (M2's last open item, a real two-source root run, was recorded on
 2026-10-20, §1), **M3 step 1 is built, gated and committed** (`6c2a288`, `34c3146`; §8) with its
 real two-room knock over HTTP made on 2026-10-20, and **M3 step 2, the Holders' Room page, is
-built and gated but not committed** (§9). That closes M3. What is next is M4: a second testnet
-wallet funded after h0, for the demo's act 4. Written 2026-10-20, revised 2026-10-21 and from the
+built, gated and committed** (`bf3fe87`; §9), reviewed in a browser on 2026-10-21 with the fixes
+for that review still uncommitted. That closes M3. What is next is M4: a second testnet wallet
+funded after h0, for the demo's act 4. Written 2026-10-20, revised 2026-10-21 and from the
 2026-10-17 version. For the next session (agent or human).
 Read `briefing/CLAUDE.md` and `briefing/BUILD_CONTRACT.md` first; this file only says where the
 work stopped, what is next, and what the machine around the repo is holding.
@@ -163,8 +164,8 @@ label (`evidence/2026-10-20-two-room-knock.txt`, header in
 **M3 step 2 is built and gated** (section 9): the gate serves the room picker at `GET /` and one
 Holders' Room page per room at `GET /room/<context>`, with `GET /rooms/<context>/recent` beside
 them, and renders a recorded act of the demo at `GET /room/<context>?replay=<act>`. A02c, A42, A43
-and A44 are green in `evidence/2026-10-21-gate-m3-step2.md`. It is **not committed**, and nobody
-has opened it in a browser yet (section 6).
+and A44 are green in `evidence/2026-10-21-gate-m3-step2.md`. It is **committed as `bf3fe87`**, and
+it has been reviewed in a browser since (section 9), with the fixes for that review uncommitted.
 
 **That closes M3.** Next is M4: a second testnet wallet, funded after h0, so the demo's act 4 (a
 holder whose coins are newer than the window) can be recorded rather than described. It is why
@@ -340,13 +341,13 @@ proving or verifying paths. The ones most likely to bite the next step:
   `ALREADY_USED_IN_CONTEXT` for the same coins at that room, ADMITTED at the second room, with
   disjoint marker sets (`evidence/2026-10-20-two-room-knock.txt`). The session key stays a fresh
   random 32 bytes with no private half for v1.
-- **Nobody has opened the Holders' Room page in a browser.** There is no browser in the session
-  that built it. `ui/render.js` was run against a minimal DOM shim under node, which proves every
-  act renders and prints the right words, and A02c/A42/A43/A44 cover the routes, the state and
-  what the document may contain — none of that is a look at the thing. The layout is a fixed
-  1920×1080 stage with fixed rows, so content that does not fit clips inside its panel rather
-  than breaking the frame; whether anything clips is unverified. Open it once (the commands are in
-  section 9) before any of it is recorded for the video.
+- The Holders' Room page **has** been opened in a browser now, and reviewed: the owner's review of
+  2026-10-21 and the fixes for it are in §9, and `evidence/2026-10-21-page-layout-check.md` records
+  a headless Chromium measuring all twelve page variants at 1920×1080 and at 1326×683 with nothing
+  clipped and nothing hidden. What is still unverified: any browser but that one Chromium build,
+  any viewport but those two (the stage is fixed and scaled, so the layout is the same at every
+  size, but an engine that lays text out differently could still differ), and whether the result
+  reads well to anyone who has not been staring at it.
 - The demo script's act 4 (a holder whose coins are newer than h0) and act 7 (the chain itself)
   have no replay file, because no run has produced their numbers. Act 4 is M4.
 - h1 via nf-server `verify-root` is deferred (P1): it needs a full node serving raw blocks back to
@@ -500,12 +501,13 @@ h0, every knock is INCONCLUSIVE / ROOT_SOURCE_UNAVAILABLE (exit 4) until the con
 one source plus `single_root_source = true`, which labels every answer as not independently
 checked.
 
-## 9. M3 step 2, the Holders' Room page, built and gated 2026-10-21 (uncommitted)
+## 9. M3 step 2, the Holders' Room page, committed as `bf3fe87` 2026-10-21
 
-`./scripts/gate.sh` reports **GATE: PASS**, exit 0, with 95 tests and the leak and claims checks:
-`evidence/2026-10-21-gate-m3-step2.md`. A02c, A42, A43 and A44 are registered in PRD §10 with
-`DECISIONS.md` rows, and the CLAIMS, README and LEAKS (L10, L16) entries are written. **Nothing is
-committed**, and **nobody has opened the page in a browser** (§6).
+`./scripts/gate.sh` reported **GATE: PASS**, exit 0, with 95 tests and the leak and claims checks
+when this step was built: `evidence/2026-10-21-gate-m3-step2.md`. A02c, A42, A43 and A44 are
+registered in PRD §10 with `DECISIONS.md` rows, and the CLAIMS, README and LEAKS (L10, L16)
+entries are written. The page was then **reviewed in a browser**, and the fixes for that review are
+at the end of this section and are **not committed**.
 
 What was built:
 
@@ -578,3 +580,42 @@ database holds and whatever its root sources are: an act carries its own numbers
 only checks that the gate hosts a room by that name. So `unstirred gate init` two manifests, point
 a `gate.toml` at them, and the acts render. Render the video at exactly 1920×1080 and the stage is
 at scale 1, which is the layout a browser shows at that size.
+
+Add `&present=1` (or `?present=1` on a live page) for the frame to record: the smallest type on the
+page goes from 15-16px to 19-20px and the gate's own technical lines come off the provenance foot.
+Nothing load-bearing is lost — a derived time is still explained beside the time itself.
+
+### The visual review, 2026-10-21
+
+The owner reviewed the page from browser screenshots at about 1326×683 and found it clipping. What
+changed, in the order it was asked for:
+
+1. **Nothing clips.** The grid rows were fixed pixel heights and the panels had `overflow: hidden`,
+   so a longer act silently cut "your transaction history", the window's last line and "and 1 more".
+   Rows are `minmax(auto, 1fr)` now and can only grow; panels clip nothing; `.frame` scrolls if a
+   page ever outgrows the stage, so an overflow would be visible rather than hidden.
+2. **The verdict is the hero** of any act that has one, at `--type-verdict`, and the door rule is
+   one compact line above it. Before a door has answered anything the rule leads, as it did.
+3. **"markers shared between rooms" appears only when two rooms hold markers.** Until then the page
+   says "nothing to compare yet" and why, because a zero drawn from one room reads as a finding.
+4. **The window is a timeline**, not a bar: h0 and h1 are named points on an axis that runs past
+   both, and the band between them carries the rule in words. A room state may carry one `holder`
+   (label, from, to), drawn as a second line: one that covers the band is `--admit`, one that does
+   not is `--refuse` and says so. That is how act 4's newcomer will read. No recorded act draws one.
+5. **The picker's cards size to their content**, each with an "Open room" link, and the rule and the
+   cards are one block centred in what is left, so there is no hole under them.
+6. **Act 3 says "unchanged: the refusal wrote nothing"** under what the door wrote down. It is
+   computed: any verdict that is not an admission says the store was not changed.
+7. **`?present=1`**, on a live page or any act, documented in `ui/frame.md`.
+8. The badge no longer says "live from this gate · gate".
+9. The bot counter names the window's length: "held unmoved for 720 blocks (about 5 hours at ~25 s
+   per block)", computed from the manifest. The 25 s is testnet's NU7 target from
+   `briefing/CLAUDE.md`, which is why the line says "about" and names it.
+
+The page state gained two fields for this (`holder` per room, `present` per page), so the four acts
+were regenerated by `scripts/replay-from-evidence.py` with `holder: null` and `present: false`.
+`scripts/page-layout-check.mjs` is how the first point is held: it drives a headless Chromium over
+the DevTools protocol across every page variant at both sizes and fails if anything is hidden. It
+is **not** a gate step — `scripts/gate.sh` needs neither a browser nor a node — so it is run by
+hand and its run is recorded in `evidence/2026-10-21-page-layout-check.md`, which is the first
+`MEASURED` row in `CLAIMS.md`.

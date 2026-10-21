@@ -12,11 +12,17 @@
 
   var ZATOSHIS_PER_ZEC = 100000000;
   var MARKER_PREFIX_BYTES = 6;
-  var MARKERS_SHOWN = 4;
+  var MARKERS_SHOWN = 3;
   var MEMBERS_MAX = 1000000;
   var STAGE_W = 1920;
   var STAGE_H = 1080;
   var MEMBERS_INPUT = "members";
+  /* Testnet's NU7 block target, which briefing/CLAUDE.md records as 25 s (observed ~27 s). It is a
+     property of the chain, not of this gate, so every line that uses it says "about" and names it. */
+  var SECONDS_PER_BLOCK = 25;
+  /* How much of the timeline sits outside the window, so h0 and h1 are points on an axis rather
+     than its ends, and a holder line can run past either of them. */
+  var AXIS_MARGIN = 0.14;
 
   function node(tag, className, content) {
     var element = document.createElement(tag);
@@ -74,6 +80,24 @@
       fraction = fraction.slice(0, fraction.length - 1);
     }
     return fraction.length > 0 ? digits(whole) + "." + fraction : digits(whole);
+  }
+
+  function oneDecimal(value) {
+    var rounded = Math.round(value * 10) / 10;
+    return rounded === Math.round(rounded) ? String(Math.round(rounded)) : String(rounded);
+  }
+
+  /* How long a run of blocks takes, roughly, at the chain's target block time. */
+  function roughly(blocks) {
+    var seconds = blocks * SECONDS_PER_BLOCK;
+    var hours = seconds / 3600;
+    if (hours < 1) {
+      return Math.round(seconds / 60) + " minutes";
+    }
+    if (hours < 48) {
+      return oneDecimal(hours) + (oneDecimal(hours) === "1" ? " hour" : " hours");
+    }
+    return oneDecimal(hours / 24) + " days";
   }
 
   /* A time the page was given, in UTC. Not a clock read: the same number always renders the same
@@ -141,17 +165,26 @@
     return "verdict-inconclusive";
   }
 
-  function sharedMarkerCount(state) {
+  /* How many markers more than one room holds. Only meaningful once at least two rooms hold any:
+     before that there is nothing to compare, and a zero would read as a finding. */
+  function sharing(state) {
+    var holding = [];
     var seenIn = {};
     for (var i = 0; i < state.rooms.length; i += 1) {
       var room = state.rooms[i];
+      if (room.markers.length > 0) {
+        holding.push(room.context);
+      }
       for (var m = 0; m < room.markers.length; m += 1) {
         var marker = room.markers[m].marker;
-        if (!seenIn[marker]) {
+        if (!Object.prototype.hasOwnProperty.call(seenIn, marker)) {
           seenIn[marker] = {};
         }
         seenIn[marker][room.context] = true;
       }
+    }
+    if (holding.length < 2) {
+      return { comparable: false, rooms: holding.length, shared: 0 };
     }
     var shared = 0;
     for (var key in seenIn) {
@@ -167,14 +200,16 @@
         }
       }
     }
-    return shared;
+    return { comparable: true, rooms: holding.length, shared: shared };
   }
 
   function sourceBadge(state) {
-    var label =
-      state.mode === "replay"
-        ? "replay · " + state.replay + " · " + state.source
-        : "live from this gate · " + state.source;
+    var label;
+    if (state.mode === "replay") {
+      label = "replay · " + state.replay + " · " + state.source;
+    } else {
+      label = state.source === "gate" ? "live from this gate" : "live from this gate · " + state.source;
+    }
     return node("p", "badge", label);
   }
 
@@ -194,26 +229,25 @@
     var head = node("div", "head");
     var left = node("div");
     left.appendChild(node("h1", null, room ? room.context : "This gate's rooms"));
-    left.appendChild(
-      node(
-        "p",
-        "rule-aside",
-        "network " + (room ? room.network : state.rooms[0].network) + " · one door, one rule, the same for everyone"
-      )
-    );
+    left.appendChild(node("p", "rule-aside", "network " + (room ? room.network : state.rooms[0].network)));
     head.appendChild(left);
     head.appendChild(sourceBadge(state));
     return head;
   }
 
-  function rulePanel(room) {
-    return panel("rule-panel", [node("h2", "panel-title", "The door rule"), node("p", "rule", ruleSentence(room))]);
+  /* The rule is the hero until this door has answered something; after that the verdict is, and
+     the rule holds its ground as one compact line. */
+  function rulePanel(room, asHero) {
+    return panel(asHero ? "rule-panel rule-hero" : "rule-panel rule-line", [
+      node("h2", "panel-title", "The door rule"),
+      node("p", "rule", ruleSentence(room))
+    ]);
   }
 
-  function verdictPanel(state, room) {
+  function verdictPanel(state, room, asHero) {
     var newest = latest(room);
     var children = [node("h2", "panel-title", "The latest verdict at this door")];
-    children.push(node("p", "verdict", newest ? newest.verdict : "NOBODY HAS KNOCKED YET"));
+    children.push(node("p", "verdict", newest ? newest.verdict : "Nobody has knocked yet"));
     if (newest && newest.code) {
       children.push(node("p", "code", newest.code));
       if (state.codes[newest.code]) {
@@ -226,34 +260,51 @@
     }
     if (newest) {
       var when = "answered " + utcStamp(newest.at);
-      var retry = newest.code ? state.codes[newest.code] : null;
-      if (retry) {
-        when += retry.retryable ? " · retryable: yes" : " · retryable: no";
+      var words = newest.code ? state.codes[newest.code] : null;
+      if (words) {
+        when += words.retryable ? " · retryable: yes" : " · retryable: no";
       }
       children.push(node("p", "rule-aside", when));
       if (newest.at_note) {
         children.push(node("p", "rule-aside", newest.at_note));
       }
     }
-    var section = panel("verdict-panel " + verdictClass(newest), children);
+    var section = panel(
+      "verdict-panel " + verdictClass(newest) + (asHero ? " verdict-hero" : ""),
+      children
+    );
     /* The one thing on a live page that changes on its own, so it is the one live region. */
     section.setAttribute("aria-live", "polite");
     return section;
   }
 
+  /* What a refusal did to the store, in the store's own terms: nothing. */
+  function unchangedLine(room) {
+    var newest = latest(room);
+    if (!newest || newest.verdict === "ADMITTED") {
+      return null;
+    }
+    return newest.verdict === "REFUSED"
+      ? "unchanged: the refusal wrote nothing"
+      : "unchanged: nothing was decided, so nothing was written";
+  }
+
   function learnedPanel(room) {
-    var kept = markerLines(room.markers, "nothing yet");
     var written = room.verdicts.length > 0 ? room.verdicts[0] : null;
     var left = node("div");
     left.appendChild(node("h3", null, "What the door wrote down"));
-    left.appendChild(list("kept", kept));
+    left.appendChild(list("kept", markerLines(room.markers, "nothing yet")));
+    var unchanged = unchangedLine(room);
+    if (unchanged) {
+      left.appendChild(node("p", "unchanged", unchanged));
+    }
     left.appendChild(
       node(
         "p",
         "rule-aside",
         written
-          ? digits(room.markers.length) + " markers, " + written.verdict + " at " + utcStamp(written.at) + ", nothing else"
-          : "nothing written down in this room yet"
+          ? digits(room.markers.length) + " markers, " + written.verdict + ", nothing else"
+          : "nothing written down here yet"
       )
     );
     var right = node("div");
@@ -272,35 +323,101 @@
     return panel(null, [node("h2", "panel-title", "What the door learned"), grid]);
   }
 
+  /* The axis a window is drawn on: the window itself plus a margin on each side, widened to take
+     in a holder line that starts before h0 or ends after h1. */
+  function axisOf(room) {
+    var low = room.window.h0;
+    var high = room.window.h1;
+    if (room.holder) {
+      low = Math.min(low, room.holder.from);
+      high = Math.max(high, room.holder.to);
+    }
+    var margin = Math.max(1, Math.round((high - low) * AXIS_MARGIN));
+    return { low: low - margin, high: high + margin };
+  }
+
+  function atPercent(axis, height) {
+    return ((height - axis.low) / (axis.high - axis.low)) * 100;
+  }
+
+  function placed(className, axis, from, to, text) {
+    var element = node("div", className, text);
+    var left = atPercent(axis, from);
+    element.style.left = left + "%";
+    if (to !== null) {
+      element.style.width = atPercent(axis, to) - left + "%";
+    }
+    return element;
+  }
+
+  /* The window as a line with two named points and the band between them, with room for one
+     holder's own line underneath. A holder whose line does not cover the whole band has nothing to
+     prove here, and is drawn short of it rather than described. */
   function timelinePanel(room) {
-    var bar = node("div", "timeline-bar");
-    bar.appendChild(node("div", "timeline-held"));
-    var ends = filled(node("div", "timeline-ends"), [
-      node("span", null, "h0 " + digits(room.window.h0)),
-      node("span", null, "h1 " + digits(room.window.h1))
-    ]);
-    var timeline = filled(node("div", "timeline"), [bar, ends]);
-    return panel(null, [
-      node("h2", "panel-title", "The window"),
-      timeline,
+    var axis = axisOf(room);
+    var window_ = room.window;
+    /* The caption sits in the flow above the rail, pinned to the band's own span: in flow it can
+       wrap to a second line and push the rail down, rather than growing over it. */
+    var caption = node("div", "axis-caption", "coins must exist here and stay unspent through here");
+    var captionLeft = atPercent(axis, window_.h0);
+    caption.style.marginLeft = captionLeft + "%";
+    caption.style.width = atPercent(axis, window_.h1) - captionLeft + "%";
+    var rail = node("div", "axis");
+    rail.appendChild(node("div", "axis-rule"));
+    rail.appendChild(placed("axis-band", axis, window_.h0, window_.h1, null));
+    rail.appendChild(placed("axis-point", axis, window_.h0, null, null));
+    rail.appendChild(placed("axis-point", axis, window_.h1, null, null));
+    rail.appendChild(placed("axis-mark axis-mark-start", axis, window_.h0, null, "h0 " + digits(window_.h0)));
+    rail.appendChild(placed("axis-mark axis-mark-end", axis, window_.h1, null, "h1 " + digits(window_.h1)));
+    var children = [node("h2", "panel-title", "The window"), caption, rail];
+    if (room.holder) {
+      var covers = room.holder.from <= window_.h0 && room.holder.to >= window_.h1;
+      var holder = node("div", "axis holder-rail");
+      holder.appendChild(
+        placed(
+          "axis-holder " + (covers ? "holder-covers" : "holder-short"),
+          axis,
+          room.holder.from,
+          room.holder.to,
+          null
+        )
+      );
+      children.push(holder);
+      children.push(
+        node(
+          "p",
+          covers ? "holder-note holder-covers-note" : "holder-note holder-short-note",
+          room.holder.label +
+            ": blocks " +
+            digits(room.holder.from) +
+            " to " +
+            digits(room.holder.to) +
+            (covers ? " — covers the whole window" : " — does not cover the window, so there is nothing to prove")
+        )
+      );
+    }
+    children.push(
       node(
         "p",
         "message",
-        "Coins that already existed at block " +
-          digits(room.window.h0) +
-          " and were still unspent at block " +
-          digits(room.window.h1) +
+        "Coins must exist by block " +
+          digits(window_.h0) +
+          " and stay unspent through block " +
+          digits(window_.h1) +
           ": " +
-          digits(room.window.h1 - room.window.h0) +
-          " blocks of holding still. Arrive later, or spend inside it, and there is nothing to prove."
+          digits(window_.h1 - window_.h0) +
+          " blocks, about " +
+          roughly(window_.h1 - window_.h0) +
+          "."
       )
-    ]);
+    );
+    return panel(null, children);
   }
 
   function roomCard(state, room) {
     var here = state.room === room.context;
     var card = node("div", here ? "room-card room-card-here" : "room-card");
-    card.appendChild(node("h3", null, room.context + (here ? "  (this room)" : "")));
+    card.appendChild(node("h3", null, room.context + (here ? " (this room)" : "")));
     card.appendChild(node("p", "rule-aside", "markers: " + digits(room.markers.length)));
     card.appendChild(list("markers", markerLines(room.markers, "none yet")));
     return card;
@@ -311,25 +428,31 @@
     for (var i = 0; i < state.rooms.length; i += 1) {
       cards.push(roomCard(state, state.rooms[i]));
     }
-    var shared = sharedMarkerCount(state);
-    var tally = node("div", "room-card");
-    tally.appendChild(
-      node("p", shared === 0 ? "shared shared-zero" : "shared", "markers shared between rooms: " + digits(shared))
-    );
-    tally.appendChild(
-      node(
-        "p",
-        "rule-aside",
-        "Each door derives its own markers, so the same coins at two doors cannot be linked by what either keeps."
-      )
-    );
-    cards.push(tally);
-    return panel(null, [node("h2", "panel-title", "The same coins at two doors"), filled(node("div", "rooms"), cards)]);
+    var tally = sharing(state);
+    var headline = tally.comparable
+      ? node(
+          "p",
+          tally.shared === 0 ? "shared shared-zero" : "shared",
+          "markers shared between rooms: " + digits(tally.shared)
+        )
+      : node("p", "shared shared-waiting", "nothing to compare yet");
+    var aside = tally.comparable
+      ? "Each door derives its own markers, so the same coins at two doors cannot be linked by what either keeps."
+      : tally.rooms === 0
+        ? "No room here holds a marker yet, so there is nothing to compare between doors."
+        : "Only one room here holds markers. A second room has to admit something before the two can be compared.";
+    return panel(null, [
+      node("h2", "panel-title", "The same coins at two doors"),
+      filled(node("div", "rooms"), cards),
+      headline,
+      node("p", "rule-aside", aside)
+    ]);
   }
 
   function botPanel(state, room, onMembers) {
     var members = Math.max(0, Math.min(MEMBERS_MAX, Math.floor(Number(state.members) || 0)));
     var perMember = Number(room.min_zatoshis);
+    var blocks = room.window.h1 - room.window.h0;
     var label = node("label", null, "fake members");
     label.setAttribute("for", MEMBERS_INPUT);
     var input = node("input");
@@ -342,32 +465,37 @@
     input.addEventListener("input", function () {
       onMembers(input.value);
     });
-    var cost = node("p", "cost", zec(members * perMember) + " ZEC");
-    var row = filled(node("div", "bot"), [label, input, cost]);
+    var row = filled(node("div", "bot"), [label, input]);
     return panel(null, [
       node("h2", "panel-title", "What a bot army would cost"),
       row,
+      node("p", "cost", zec(members * perMember) + " ZEC"),
       node(
         "p",
         "message",
         digits(members) +
           " members at " +
           zec(perMember) +
-          " ZEC each, held unmoved across the whole window. Not staked, not locked: simply not spent, and provably so."
+          " ZEC each, held unmoved for " +
+          digits(blocks) +
+          " blocks (about " +
+          roughly(blocks) +
+          " at ~" +
+          SECONDS_PER_BLOCK +
+          " s per block). Not staked, not locked: simply not spent, and provably so."
       )
     ]);
   }
 
+  /* Where these numbers came from. In presentation mode the technical notes come off — nobody
+     checks a root hex off a projector — and what is left is the one line saying where the numbers
+     came from. Nothing load-bearing is lost: a derived time is explained beside the time itself,
+     in the verdict card, and a refusal that wrote nothing says so where it was written down. */
   function footPanel(state, room) {
-    var lines = state.provenance.slice(0);
-    if (room) {
-      lines.unshift(
-        "The rule above is this room's published manifest: nothing else qualifies a holder, and nothing else is asked."
-      );
-      lines.push(
-        "h1 nullifier-set root " + room.h1_root + " (" + room.h1_root_provenance + ")."
-      );
-      lines.push("room log shows at most " + digits(room.limit) + " rows, newest first.");
+    var lines = state.present ? state.provenance.slice(0, 1) : state.provenance.slice(0);
+    if (room && !state.present) {
+      lines.push("h1 nullifier-set root " + room.h1_root + " (" + room.h1_root_provenance + ").");
+      lines.push("Room log shows at most " + digits(room.limit) + " rows, newest first.");
     }
     if (state.gate.note) {
       lines.push(state.gate.note);
@@ -375,26 +503,37 @@
     return list("foot", lines);
   }
 
-  /* Five fixed rows on a fixed stage, so the layout is the same pixel for pixel in a browser and
-     in the rendered video, and no act can push the frame out of shape. */
+  function stageClasses(state, extra) {
+    return "stage " + extra + (state.present ? " present" : "");
+  }
+
+  /* No row is ever smaller than its own content: the two rows of panels take what they need and
+     then share what is left, so nothing is cut off to make a row fit. The stage itself stays
+     exactly 1920 by 1080 at scale 1, which is the frame the video is rendered in. */
   function roomStage(state, onMembers) {
     var room = roomOf(state, state.room);
-    var stage = node("div", "stage stage-room");
+    var verdictIsHero = latest(room) !== null;
+    var stage = node("div", stageClasses(state, "stage-room"));
     stage.appendChild(headPanel(state, room));
-    stage.appendChild(rulePanel(room));
+    stage.appendChild(rulePanel(room, !verdictIsHero));
     stage.appendChild(
-      filled(node("div", "thirds"), [verdictPanel(state, room), learnedPanel(room), timelinePanel(room)])
+      filled(node("div", "hero-row"), [verdictPanel(state, room, verdictIsHero), learnedPanel(room)])
     );
-    stage.appendChild(filled(node("div", "wide-and-narrow"), [roomsPanel(state), botPanel(state, room, onMembers)]));
+    stage.appendChild(
+      filled(node("div", "thirds"), [timelinePanel(room), roomsPanel(state), botPanel(state, room, onMembers)])
+    );
     stage.appendChild(footPanel(state, room));
     return stage;
   }
 
   function pickerStage(state) {
-    var stage = node("div", "stage stage-picker");
+    var stage = node("div", stageClasses(state, "stage-picker"));
     stage.appendChild(headPanel(state, null));
-    stage.appendChild(
-      panel(null, [
+    /* The rule and the rooms are one block, centred in what is left, so the room cards stay the
+       height of their own content without leaving a hole under them. */
+    var body = node("div", "picker-body");
+    body.appendChild(
+      panel("rule-panel rule-hero", [
         node("h2", "panel-title", "What a door here asks"),
         node("p", "rule", "One rule, published in advance, the same for everyone who knocks."),
         node(
@@ -407,17 +546,19 @@
     var cards = [];
     for (var i = 0; i < state.rooms.length; i += 1) {
       var room = state.rooms[i];
-      var link = node("a", null, room.context);
-      link.href = "/room/" + encodeURIComponent(room.context);
-      var card = node("div", "room-card");
-      card.appendChild(link);
+      var card = node("div", "room-card picker-card");
+      card.appendChild(node("h3", null, room.context));
       card.appendChild(node("p", "message", ruleSentence(room)));
       card.appendChild(
         node("p", "rule-aside", "network " + room.network + " · markers: " + digits(room.markers.length))
       );
+      var link = node("a", "open-room", "Open room");
+      link.href = "/room/" + encodeURIComponent(room.context);
+      card.appendChild(link);
       cards.push(card);
     }
-    stage.appendChild(filled(node("div", "picker-rooms"), cards));
+    body.appendChild(filled(node("div", "picker-rooms"), cards));
+    stage.appendChild(body);
     stage.appendChild(footPanel(state, null));
     return stage;
   }

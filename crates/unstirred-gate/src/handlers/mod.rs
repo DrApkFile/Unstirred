@@ -51,7 +51,7 @@ async fn answer(
         Err(NoRoute::WrongMethod { allowed }) => return (method_not_allowed(allowed, note), None),
     };
     match route {
-        Route::Picker => (page::picker(state).await, None),
+        Route::Picker => (page::picker(state, query).await, None),
         Route::RoomPage(context) => (page::room(state, &context, query).await, None),
         Route::RoomList => (rooms::listing(state), None),
         Route::Manifest(context) => (with_room(state, &context, |room| rooms::manifest(room, note)), None),

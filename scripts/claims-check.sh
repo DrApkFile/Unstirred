@@ -9,7 +9,7 @@ import pathlib
 import re
 import sys
 
-STATUSES = {"PROVEN", "SYNTHETIC", "GATED", "NOT BUILT"}
+STATUSES = {"PROVEN", "SYNTHETIC", "GATED", "MEASURED", "NOT BUILT"}
 ledger = pathlib.Path("CLAIMS.md")
 problems = []
 
@@ -58,9 +58,11 @@ if problems:
 proven = sum(1 for row in rows if row[1] == "PROVEN")
 synthetic = sum(1 for row in rows if row[1] == "SYNTHETIC")
 gated = sum(1 for row in rows if row[1] == "GATED")
+measured = sum(1 for row in rows if row[1] == "MEASURED")
 not_built = sum(1 for row in rows if row[1] == "NOT BUILT")
 print(
     f"claims check: {len(rows)} claims, {proven} proven on the real testnet, {synthetic} synthetic, "
-    f"{gated} settled by a recorded gate run, {not_built} named as not built"
+    f"{gated} settled by a recorded gate run, {measured} measured by a recorded tool run, "
+    f"{not_built} named as not built"
 )
 PY

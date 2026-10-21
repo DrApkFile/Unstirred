@@ -44,6 +44,33 @@ to `DECISIONS.md`; recorded runs go to `evidence/`. This file is for the facts t
   arrived as the character itself. That is harmless in a UTF-8 JavaScript file, but a patch written
   against the text as typed then fails to match. Read a generated file back before patching it.
 
+## M3 step 2, visual review in a real browser, 2026-10-21
+
+- **A fixed grid row is a silent clipper, and nothing in Rust can see one.** The first layout gave
+  `.stage-room` fixed pixel rows and `.panel` `overflow: hidden`, so a longer act pushed its row
+  past its height and the browser quietly cut the rest: at 1326x683, act 3 lost half of "your
+  transaction history", the window's last line and "and 1 more". Every Rust test passed, because a
+  line box is not something the gate can measure. Rows are `minmax(auto, 1fr)` now, panels clip
+  nothing, and `.frame` scrolls if a page ever outgrows the stage, so an overflow is visible rather
+  than hidden.
+- **`scrollHeight > clientHeight` is not clipping.** Nearly every text node reports two to five
+  pixels of it, because the font's line box is taller than `line-height: 1.08`. The first probe
+  flagged fifteen elements on a page where nothing was wrong. What matters is overflow on a box
+  whose computed `overflow` is not `visible`, plus each leaf's bounding rect against the stage's.
+- **This session can see the page: chromium is installed and node 24 has a built-in WebSocket.**
+  `scripts/page-layout-check.mjs` drives the browser over the DevTools protocol with no dependency
+  at all — `Runtime.evaluate` to measure, `Page.captureScreenshot` to look. A visual review is a
+  look, not an estimate, and the estimates in this file's first draft were wrong by 100px.
+- **`pkill -f "unstirred gate serve"` kills the shell that runs it.** The pattern matches the
+  shell's own command line, which contains the whole script. `pkill -x unstirred` matches the
+  process name instead.
+- **The design-token mirror test paid for itself the same day it was written.** `--type-hero` moved
+  from 52px to 46px and `ui/frame.md` still said 52px; the gate failed on exactly that. A document
+  that restates a value drifts from it within the hour unless something fails when it does.
+- **A `0` computed from one room reads as a finding.** "markers shared between rooms: 0" was true
+  and meaningless with one room holding markers and the other empty. A count across a set needs the
+  set to exist before it says anything; the page says "nothing to compare yet" until it does.
+
 ## M3 step 1 (the HTTP gate, `knock`, `gate init`), 2026-10-20
 
 - **`&impl Clock` cannot take a trait object, and the gate only has one.** The service holds its

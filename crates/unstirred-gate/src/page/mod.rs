@@ -9,7 +9,9 @@ mod document;
 mod live;
 mod replay;
 
-pub use contract::{CodeFacts, GateFacts, MarkerState, Mode, PageState, RoomState, VerdictState, WindowState};
+pub use contract::{
+    CodeFacts, GateFacts, HolderLine, MarkerState, Mode, PageState, RoomState, VerdictState, WindowState,
+};
 pub use document::{picker_document, room_document};
 pub use live::{every_code, live_state, MEMBERS_AT_FIRST_PAINT};
 pub use replay::{is_act_name, replay_state, REPLAY_ACTS};

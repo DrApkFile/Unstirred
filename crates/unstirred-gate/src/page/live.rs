@@ -17,7 +17,7 @@ pub const MEMBERS_AT_FIRST_PAINT: u64 = 1_000;
 
 /// Reads this gate's own state for one page. Opens the database once, like every other route, so
 /// it must be called from a blocking task.
-pub fn live_state(state: &GateState, room: Option<&str>) -> Result<PageState, String> {
+pub fn live_state(state: &GateState, room: Option<&str>, present: bool) -> Result<PageState, String> {
     let store = Store::open(&state.database).map_err(|e| e.to_string())?;
     let mut rooms = Vec::new();
     for hosted in state.rooms() {
@@ -39,6 +39,8 @@ pub fn live_state(state: &GateState, room: Option<&str>) -> Result<PageState, St
             h1_root: hex::encode(hosted.h1_root),
             h1_root_provenance: "operator-pinned".to_owned(),
             limit: ROOM_LOG_LIMIT,
+            // A holder line illustrates one act; it is not something a gate knows about anyone.
+            holder: None,
             markers: markers
                 .iter()
                 .map(|row| MarkerState {
@@ -73,6 +75,7 @@ pub fn live_state(state: &GateState, room: Option<&str>) -> Result<PageState, St
         source: "gate".to_owned(),
         replay: None,
         room: room.map(str::to_owned),
+        present,
         members: MEMBERS_AT_FIRST_PAINT,
         gate: GateFacts {
             root_sources: state.roots.describe(),

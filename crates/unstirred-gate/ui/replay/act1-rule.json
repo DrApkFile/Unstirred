@@ -3,6 +3,7 @@
   "source": "real-testnet",
   "replay": "act1-rule",
   "room": "holders-room",
+  "present": false,
   "members": 1000,
   "gate": {
     "root_sources": [
@@ -24,6 +25,7 @@
       "h1_root": "8af0c16b82ff1c9170de5dc87b3c06ef3a7144befdba71fc40959effe9f5be26",
       "h1_root_provenance": "operator-pinned",
       "limit": 50,
+      "holder": null,
       "markers": [],
       "verdicts": [],
       "recent": []
@@ -39,6 +41,7 @@
       "h1_root": "8af0c16b82ff1c9170de5dc87b3c06ef3a7144befdba71fc40959effe9f5be26",
       "h1_root_provenance": "operator-pinned",
       "limit": 50,
+      "holder": null,
       "markers": [],
       "verdicts": [],
       "recent": []

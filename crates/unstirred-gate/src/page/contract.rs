@@ -32,6 +32,10 @@ pub struct PageState {
     pub room: Option<String>,
     /// The bot-cost counter's input: how many fake members to price.
     pub members: u64,
+    /// Presentation mode: the smallest type on the page gets larger and the gate's own technical
+    /// lines come off the provenance footer. Nothing else changes, so a presented act and a read
+    /// act are the same state.
+    pub present: bool,
     pub gate: GateFacts,
     /// The words for every code the page may have to show, from `unstirred-core`.
     pub codes: BTreeMap<String, CodeFacts>,
@@ -67,6 +71,10 @@ pub struct RoomState {
     /// The cap the log route answers with, so the page can say what it is showing at most.
     pub limit: u32,
     pub markers: Vec<MarkerState>,
+    /// One holder's own line across the window, for an act that shows somebody against the rule
+    /// rather than only the rule. Nothing the gate knows, so a live page never has one: it is an
+    /// act's own illustration, and the page draws it short of the band when it does not cover it.
+    pub holder: Option<HolderLine>,
     pub verdicts: Vec<VerdictState>,
     /// The verdicts this gate has just answered, including refusals, which the store never writes.
     pub recent: Vec<VerdictState>,
@@ -77,6 +85,16 @@ pub struct RoomState {
 pub struct WindowState {
     pub h0: u32,
     pub h1: u32,
+}
+
+/// One holder's coins on the timeline: what to call them, and the blocks they existed unspent
+/// between. A line that does not cover the whole window is drawn as not covering it.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct HolderLine {
+    pub label: String,
+    pub from: u32,
+    pub to: u32,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -152,6 +170,17 @@ impl RoomState {
             .parse::<u64>()
             .map_err(|e| format!("room {:?} has min_zatoshis {:?}: {e}", self.context, self.min_zatoshis))?;
         require_hex(&self.h1_root, &format!("room {:?}'s h1 root", self.context))?;
+        if let Some(holder) = &self.holder {
+            if holder.from > holder.to {
+                return Err(format!(
+                    "room {:?} draws a holder from block {} to {}, which is backwards",
+                    self.context, holder.from, holder.to
+                ));
+            }
+            if holder.label.is_empty() {
+                return Err(format!("room {:?} draws a holder with no name", self.context));
+            }
+        }
         for marker in &self.markers {
             require_hex(&marker.marker, &format!("a marker of room {:?}", self.context))?;
         }

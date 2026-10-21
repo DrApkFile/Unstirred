@@ -10,8 +10,8 @@ use crate::page::{is_act_name, live_state, picker_document, replay_state, room_d
 use crate::reply::{error, html, Reply};
 use crate::state::GateState;
 
-pub(super) async fn picker(state: &GateState) -> Reply {
-    match live(state, None).await {
+pub(super) async fn picker(state: &GateState, query: Option<&str>) -> Reply {
+    match live(state, None, presenting(query)).await {
         Ok(page) => serve(picker_document(&page), state),
         Err(reply) => reply,
     }
@@ -25,12 +25,13 @@ pub(super) async fn room(state: &GateState, context: &str, query: Option<&str>) 
             state.note(),
         );
     }
+    let present = presenting(query);
     match act_asked_for(query) {
-        Some(act) => match replayed(&act, context) {
+        Some(act) => match replayed(&act, context, present) {
             Ok(page) => serve(room_document(&page), state),
             Err(message) => error(StatusCode::NOT_FOUND, &message, state.note()),
         },
-        None => match live(state, Some(context)).await {
+        None => match live(state, Some(context), present).await {
             Ok(page) => serve(room_document(&page), state),
             Err(reply) => reply,
         },
@@ -40,17 +41,27 @@ pub(super) async fn room(state: &GateState, context: &str, query: Option<&str>) 
 /// The act named in `?replay=<name>`, when one is named at all. A name outside the act charset is
 /// not looked up: it is answered with the same 404 as a name no act has.
 fn act_asked_for(query: Option<&str>) -> Option<String> {
+    parameter(query, "replay")
+}
+
+/// `?present=1`: the page for a projector or a video frame rather than a desk. It works on a live
+/// page and on a replayed act alike, and changes nothing but how the page is read.
+fn presenting(query: Option<&str>) -> bool {
+    parameter(query, "present").as_deref() == Some("1")
+}
+
+fn parameter(query: Option<&str>, wanted: &str) -> Option<String> {
     query?.split('&').find_map(|pair| {
         let (name, value) = pair.split_once('=')?;
-        (name == "replay").then(|| value.to_owned())
+        (name == wanted).then(|| value.to_owned())
     })
 }
 
-fn replayed(act: &str, context: &str) -> Result<PageState, String> {
+fn replayed(act: &str, context: &str, present: bool) -> Result<PageState, String> {
     if !is_act_name(act) {
         return Err("this gate serves no replay by that name".to_owned());
     }
-    let page = match replay_state(act) {
+    let mut page = match replay_state(act) {
         Some(Ok(page)) => page,
         Some(Err(detail)) => return Err(format!("this gate's own replay {act} cannot be rendered: {detail}")),
         None => return Err("this gate serves no replay by that name".to_owned()),
@@ -61,15 +72,16 @@ fn replayed(act: &str, context: &str) -> Result<PageState, String> {
     if page.mode != Mode::Replay {
         return Err(format!("this gate's own replay {act} is not a replay"));
     }
+    page.present = present;
     Ok(page)
 }
 
 /// This gate's own state, read in a blocking task because it opens the database, like every other
 /// route that reads it.
-async fn live(state: &GateState, context: Option<&str>) -> Result<PageState, Reply> {
+async fn live(state: &GateState, context: Option<&str>, present: bool) -> Result<PageState, Reply> {
     let reading = state.clone();
     let room = context.map(str::to_owned);
-    let read = blocking(move || live_state(&reading, room.as_deref())).await;
+    let read = blocking(move || live_state(&reading, room.as_deref(), present)).await;
     match read {
         Ok(Ok(page)) => Ok(page),
         Ok(Err(detail)) | Err(detail) => Err(error(
