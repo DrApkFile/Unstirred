@@ -67,7 +67,7 @@
           "verdict": "REFUSED",
           "code": "ALREADY_USED_IN_CONTEXT",
           "at": 1792507727,
-          "at_note": "Time derived: the second this knock's challenge was issued (2026-10-20T14:58:47Z less the store's 600-second TTL). A refusal is never written down, so the run holds no timestamp of its own for it."
+          "at_note": "Time derived: the second this knock's challenge was issued (2026-10-20T14:58:47Z less the store's 600-second TTL); a refusal is never written down, so the run holds none of its own."
         },
         {
           "verdict": "ADMITTED",

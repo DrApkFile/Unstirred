@@ -2,9 +2,10 @@
 // hand: re-run the script instead, which writes both from the recorded runs in evidence/.
 
 /// Every act, in demo order: the name a URL asks for, and the state it renders.
-pub const REPLAY_ACTS: [(&str, &str); 4] = [
+pub const REPLAY_ACTS: [(&str, &str); 5] = [
     ("act1-rule", include_str!("act1-rule.json")),
     ("act2-admitted", include_str!("act2-admitted.json")),
     ("act3-refused", include_str!("act3-refused.json")),
+    ("act4-newcomer", include_str!("act4-newcomer.json")),
     ("act5-second-room", include_str!("act5-second-room.json")),
 ];

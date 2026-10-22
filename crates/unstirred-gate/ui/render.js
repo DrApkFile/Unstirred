@@ -23,6 +23,8 @@
   /* How much of the timeline sits outside the window, so h0 and h1 are points on an axis rather
      than its ends, and a holder line can run past either of them. */
   var AXIS_MARGIN = 0.14;
+  /* How much of the rail a holder line that runs off the end is drawn as, before it fades out. */
+  var HOLDER_STUB = 0.07;
 
   function node(tag, className, content) {
     var element = document.createElement(tag);
@@ -325,17 +327,65 @@
     return panel(null, [node("h2", "panel-title", "What the door learned"), grid]);
   }
 
-  /* The axis a window is drawn on: the window itself plus a margin on each side, widened to take
-     in a holder line that starts before h0 or ends after h1. */
+  /* The axis a window is drawn on: the window itself plus a margin on each side, whatever a
+     holder's line does. Stretching it to reach a line that begins twenty thousand blocks after h1
+     would leave the window a sliver of the rail with its caption wrapped into a column of single
+     words; the window is what the room is about, so it keeps the axis. A line that runs past an
+     end is drawn to that end, faded off it, and the note underneath says in blocks how far it
+     really goes. */
   function axisOf(room) {
-    var low = room.window.h0;
-    var high = room.window.h1;
-    if (room.holder) {
-      low = Math.min(low, room.holder.from);
-      high = Math.max(high, room.holder.to);
+    var margin = Math.max(1, Math.round((room.window.h1 - room.window.h0) * AXIS_MARGIN));
+    return { low: room.window.h0 - margin, high: room.window.h1 + margin };
+  }
+
+  /* One holder's line against one window: where it can be drawn on an axis that may not reach it,
+     and what to say about it. Every number here is computed from the two block heights the state
+     carries, so a line that is off the end still names where it really is. */
+  function holderOnAxis(axis, window_, holder) {
+    var stub = Math.max(1, Math.round((axis.high - axis.low) * HOLDER_STUB));
+    var label = holder.label + ": blocks " + digits(holder.from) + " to " + digits(holder.to);
+    if (holder.from <= window_.h0 && holder.to >= window_.h1) {
+      return {
+        from: holder.from,
+        to: holder.to,
+        rail: "holder-covers",
+        note: "holder-covers-note",
+        text: label + " — covers the whole window"
+      };
     }
-    var margin = Math.max(1, Math.round((high - low) * AXIS_MARGIN));
-    return { low: low - margin, high: high + margin };
+    if (holder.from > window_.h1) {
+      return {
+        from: axis.high - stub,
+        to: axis.high,
+        rail: "holder-short holder-beyond-end",
+        note: "holder-short-note",
+        text:
+          label +
+          " — " +
+          digits(holder.from - window_.h1) +
+          " blocks after h1, never inside this window"
+      };
+    }
+    if (holder.to < window_.h0) {
+      return {
+        from: axis.low,
+        to: axis.low + stub,
+        rail: "holder-short holder-beyond-start",
+        note: "holder-short-note",
+        text:
+          label +
+          " — gone " +
+          digits(window_.h0 - holder.to) +
+          " blocks before h0, never inside this window"
+      };
+    }
+    return {
+      from: Math.max(axis.low, holder.from),
+      to: Math.min(axis.high, holder.to),
+      rail: "holder-short",
+      note: "holder-short-note",
+      text: label + " — does not cover the window, so there is nothing to prove"
+    };
   }
 
   function atPercent(axis, height) {
@@ -373,30 +423,11 @@
     rail.appendChild(placed("axis-mark axis-mark-end", axis, window_.h1, null, "h1 " + digits(window_.h1)));
     var children = [node("h2", "panel-title", "The window"), caption, rail];
     if (room.holder) {
-      var covers = room.holder.from <= window_.h0 && room.holder.to >= window_.h1;
+      var line = holderOnAxis(axis, window_, room.holder);
       var holder = node("div", "axis holder-rail");
-      holder.appendChild(
-        placed(
-          "axis-holder " + (covers ? "holder-covers" : "holder-short"),
-          axis,
-          room.holder.from,
-          room.holder.to,
-          null
-        )
-      );
+      holder.appendChild(placed("axis-holder " + line.rail, axis, line.from, line.to, null));
       children.push(holder);
-      children.push(
-        node(
-          "p",
-          covers ? "holder-note holder-covers-note" : "holder-note holder-short-note",
-          room.holder.label +
-            ": blocks " +
-            digits(room.holder.from) +
-            " to " +
-            digits(room.holder.to) +
-            (covers ? " — covers the whole window" : " — does not cover the window, so there is nothing to prove")
-        )
-      );
+      children.push(node("p", "holder-note " + line.note, line.text));
     }
     children.push(
       node(
@@ -502,7 +533,10 @@
         lines.push(newest.at_note);
       }
       lines.push("h1 nullifier-set root " + room.h1_root + " (" + room.h1_root_provenance + ").");
-      lines.push("Room log shows at most " + digits(room.limit) + " rows, newest first.");
+      /* The cap is on what the log route answers, which only a live page ever asks. */
+      if (state.mode === "live") {
+        lines.push("Room log shows at most " + digits(room.limit) + " rows, newest first.");
+      }
     }
     if (state.gate.note) {
       lines.push(state.gate.note);

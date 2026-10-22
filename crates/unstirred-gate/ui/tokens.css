@@ -439,6 +439,16 @@ a {
   background: var(--refuse);
 }
 
+/* A line the axis does not reach is drawn to the end it runs past and faded off it, so it reads as
+   carrying on. How far it carries on is in the note under the rail, in blocks. */
+.holder-beyond-end {
+  background: linear-gradient(to right, var(--refuse), transparent);
+}
+
+.holder-beyond-start {
+  background: linear-gradient(to left, var(--refuse), transparent);
+}
+
 .holder-note {
   font-size: var(--type-small);
   font-weight: 600;

@@ -1,0 +1,19 @@
+gate          http://127.0.0.1:8080
+room          holders-room
+network       test
+window        h0 4505790 through h1 4506510
+threshold     12500000 zatoshis
+DEMO: submitting a proof that does not meet this room's rule
+  this room refuses these coins: COINS_TOO_NEW  the account held no unspent Ironwood note at h0
+  proving instead against the latest note-commitment root these coins appear in, at block 4528029
+  your coins: 1 note(s), first mined at block 4526842, unspent through block 4528029 (read from your own wallet; the gate is told no height and no value of yours)
+  expect the gate to refuse this with ROOT_MISMATCH: it decides from the roots it pinned, not from anything the package says
+challenge     issued by the gate, expires 2026-10-22T06:09:43Z
+proving now; 1 note(s) against the note-commitment root at block 4528029; this takes seconds and reveals nothing to the gate but the package
+REFUSED
+  ROOT_MISMATCH
+  The proof does not match this gate's window: the coins were not held unmoved from h0 through h1.
+  retryable: false
+the gate was sent one package and nothing else: 1 note(s) behind it, and no address, note value, tree position or nullifier
+wallet /home/kingghidorah/Documents/projects/bounties/zecathon/bob-wallet/data.sqlite was opened read-only; no transaction was created
+{"context":"holders-room","limit":50,"markers":[{"admitted_at":1792506814,"marker":"09942963af798839f4f2c1f4f686c4ab04e211649a995d8c42bb02a63b4e2b3f"},{"admitted_at":1792506814,"marker":"2feaab828bf2067ac507545f1864895a93b6416b8116dcb9fbbc7c0fe038a12f"},{"admitted_at":1792506814,"marker":"7a39fa90ddd2d52094abb342cb185a3efad6c5354afa44a1ce3f45d443e60011"},{"admitted_at":1792506814,"marker":"a42e74b5d40d869d9f9c2e3eb99dc06bbaf028ab9316d6f21c03979fd5a79d2b"},{"admitted_at":1792506814,"marker":"8fb721ee97c8a47f9e88f91d046ccd576ea2cbc527f1be2ac86e20c67a50cd2f"}],"stored_and_nothing_else":"markers and admission verdicts; no challenge, no package, no address","verdicts":[{"at":1792506814,"code":null,"verdict":"ADMITTED"}]}

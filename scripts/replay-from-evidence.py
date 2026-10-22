@@ -257,23 +257,21 @@ def newcomer_act(newcomer, first, first_log, second, second_log, listing, admitt
         "at_note": derived_time_note(newcomer["expiry"]),
     }
     holder = {
-        "label": "the newcomer's coins, from the holder's own wallet (the gate never sees this)",
+        "label": "the newcomer's coins — from their wallet, not the gate's",
         "from": newcomer["from"],
         "to": newcomer["to"],
     }
     provenance = [
-        f"The room's five markers and its earlier admission are the two-room knock of 2026-10-20: "
-        f"{RECORDED_RUN} (header: {HEADER}).",
-        f"The proof was built against the latest note-commitment root these coins appear in, at block "
-        f"{newcomer['root_at']:,}, which is not this room's h0. The gate decides from the roots it pinned, "
-        f"so it refused the package without reading what the package claims.",
-        "The holder's line is read from the holder's own wallet by that knock and is never sent: the gate "
-        "is told no height and no value of theirs.",
+        "The two block heights under the window are read from that holder's own wallet by the knock itself, and "
+        "are never sent: the gate is told no height and no value of theirs.",
+        f"The proof is real and about block {newcomer['root_at']:,}'s note-commitment root, not this room's "
+        f"h0: a gate compares the roots it pinned, never what a package claims.",
+        f"The five markers and the admission are the two-room knock of 2026-10-20: {RECORDED_RUN}.",
     ]
     if newcomer["rule_run"]:
         provenance.append(
-            f"Before that, the room's own rule refused these coins COINS_TOO_NEW on the holder's side and no "
-            f"proof was made: {newcomer['rule_run']}."
+            f"The room's own rule refused these coins first, COINS_TOO_NEW, with nothing sent: "
+            f"{newcomer['rule_run']}."
         )
     as_recent = lambda row: {"verdict": row["verdict"], "code": row["code"], "at": row["at"], "at_note": None}
     return act(
@@ -294,8 +292,8 @@ def newcomer_act(newcomer, first, first_log, second, second_log, listing, admitt
         ROOT_MISMATCH,
         provenance,
         replayed_from=(
-            f"Replay of the newcomer's forced knock, recorded against the real Zcash testnet: "
-            f"{newcomer['forced_run']}. The gate answered REFUSED / ROOT_MISMATCH."
+            f"Replay of the newcomer's forced knock against the real Zcash testnet, REFUSED / ROOT_MISMATCH: "
+            f"{newcomer['forced_run']}."
         ),
     )
 
@@ -321,8 +319,7 @@ def derived_time_note(expiry):
     itself as derived, so a derived number is never shown as an observed one."""
     return (
         f"Time derived: the second this knock's challenge was issued ({expiry} less the store's "
-        f"{CHALLENGE_TTL_SECONDS}-second TTL). A refusal is never written down, so the run holds no "
-        "timestamp of its own for it."
+        f"{CHALLENGE_TTL_SECONDS}-second TTL); a refusal is never written down, so the run holds none of its own."
     )
 
 

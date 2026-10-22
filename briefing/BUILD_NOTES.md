@@ -3,6 +3,38 @@
 Things learned while building that the code and the other briefing files do not say. Decisions go
 to `DECISIONS.md`; recorded runs go to `evidence/`. This file is for the facts that cost time.
 
+## M4 step 2 (act 4 recorded, and the 413 race closed), 2026-10-22
+
+- **The forced proof used one note, not two.** The newcomer's wallet holds two coins, and the
+  selection picked the fewest that reach the threshold, which was one (mined 4,526,842; the other,
+  4,526,839, was not needed). So act 4's holder line is the span of the coin the proof is about —
+  4,526,842 to 4,528,029 — and not the wallet's whole history, which the gate never learns either.
+  A line drawn from a selection is a line about that selection; the act's provenance says which run
+  printed it.
+- **An axis that stretches to reach a holder 21,519 blocks away destroys the window.** `axisOf`
+  used to widen to take in a holder line, which was right for a line a few hundred blocks off and
+  wrong for act 4: the 720-block window became three per cent of the rail, its h0 and h1 marks
+  overlapped into `h1 4,506,51h0 4,505,790`, and the caption pinned to the band's span wrapped into
+  a column of one word per line that pushed the page 128px past its 1080. Measuring found the
+  overflow; only the screenshot showed why. The axis is the window plus its margin now, whatever a
+  holder does, and a line that runs past an end is drawn to that end as a short stub faded off it,
+  with the note underneath saying in blocks how far it really goes ("20,332 blocks after h1, never
+  inside this window"). An axis break with the real number beside it is honest; a window squeezed
+  to a sliver is not readable, which is its own kind of dishonest.
+- **The line could not be drawn "from the coins' mined height through h1" as first asked**, because
+  those coins are *newer* than h1: `from` would have been greater than `to`, which the page state
+  contract refuses outright. It runs from the first block the proof's coin was mined in to the
+  block it is still unspent through, which is what the knock prints.
+- **`?present=1` is where a long holder label bites.** The label is one line under the rail, and in
+  presentation mode it is set in larger type; it wraps rather than clipping, because the rail is in
+  normal flow (the lesson from the first review's absolutely positioned caption). Act 4 fits at
+  1080 only after three trims measured one at a time: a shorter label, a provenance foot the length
+  of the other acts', and the log route's row cap dropped from a replayed page, where it describes
+  a route that page never calls. The browser is the only thing that can say which trim was enough.
+- **An evidence file is cited before the gate can pass.** Both Bob runs and their header had to
+  have `CLAIMS.md` rows written *before* the gate run that covers them, because the claims check
+  fails on a recorded run nothing cites. Only the gate log's own row can be added afterwards.
+
 ## M4 step 1 (act 4: the knock's local check, and the forced demo), 2026-10-22
 
 - **The nullifier read height is not the witness height, and the PIR server pins the other one.**
@@ -37,17 +69,20 @@ to `DECISIONS.md`; recorded runs go to `evidence/`. This file is for the facts t
   now forbids. An evidence file is never edited, so the `CLAIMS.md` row says the run predates the
   fix. (The same session found the claims check already failing, because that run had been added to
   `evidence/` without a row: a recorded run nothing cites is a gate failure by design.)
-- **A37 is load-dependent, and the race is the gate's own 413.** The first full gate run of this
-  step failed on A37 with `Unreachable { … /admit, "client error (SendRequest)" }`: the gate refuses
-  an over-long `Content-Length` *without reading the body* (which is what A37 is about), hyper then
-  answers and closes, and the client — still writing its 256 KiB — can be reset before it reads the
-  answer. Whether it wins that race is a matter of socket buffers and scheduling, so it passes alone
-  (`cargo test -p unstirred-gate --test http`, 7 passed, 97 s) and fails under a loaded machine
-  (139 s for the same target in the failing run). Nothing in this step touches that path. It is the
-  gate's design that is right and the observation that is racy, so the options are a client that
-  sends `Expect: 100-continue` on admit, or a test that retries once on a send error; the behaviour
-  a holder would see is "the gate could not be reached" instead of the 413 it did answer. Left as a
-  finding, not changed, and the run was repeated.
+- **A37 was load-dependent, and the race was the gate's own 413.** A full gate run failed on A37
+  with `Unreachable { … /admit, "client error (SendRequest)" }`: the gate refused an over-long
+  `Content-Length` without reading the body at all, hyper answered and closed, and the client —
+  still writing its 256 KiB — was reset before it could read the answer. Whether it won that race
+  was a matter of socket buffers and scheduling, so the target passed alone (7 passed, 97 s) and
+  failed under load (139 s for the same target in the failing run). **The fix is at the server**
+  (step 2, `handlers/mod.rs`): a body refused on its declared length is now read and thrown away up
+  to `DRAIN_LIMIT_BYTES`, four times what the gate would accept, before the 413 is written, so the
+  client is never reset mid-send; past that cap it is still left to the close, because a gate that
+  reads an unbounded body to be polite is a gate anyone can make read. Nothing drained is kept,
+  parsed, verified or stored. What the fix costs is one word of the refusal's own text: "nothing
+  was read" became "nothing was parsed, verified or stored", because the gate does now read it —
+  and reading a body is not reading it as a package, which is what A37's claim was always about.
+  The test stayed strict: no retry, no tolerance of a send error.
 - **"proving now" was printed before any proof was built.** The line came from the header, which
   was written when the header was the last thing printed before the proof. Anything that announces
   work belongs where the work starts, not where the output happens to be grouped.

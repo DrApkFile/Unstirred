@@ -20,6 +20,11 @@ use crate::reply::{error, Reply};
 use crate::router::{route, NoRoute, Route};
 use crate::state::{GateState, MAX_ADMIT_BODY_BYTES};
 
+/// How much of a body the gate will read and throw away after refusing it, so that the refusal
+/// reaches the client. Four times what it would ever accept: enough for a package somebody built
+/// too large, not enough to be made to read whatever a stranger decides to send.
+const DRAIN_LIMIT_BYTES: usize = 4 * MAX_ADMIT_BODY_BYTES;
+
 /// Answers one request and logs the answer. The log line is written here, once, so no handler can
 /// add a line of its own with something in it that this one leaves out.
 pub async fn dispatch(state: &GateState, request: Request<Incoming>) -> Reply {
@@ -81,7 +86,7 @@ async fn admit_body(state: &GateState, context: &str, request: Request<Incoming>
         Err(BodyProblem::TooLarge) => (
             error(
                 StatusCode::PAYLOAD_TOO_LARGE,
-                &format!("a proof package this gate accepts is at most {MAX_ADMIT_BODY_BYTES} bytes; nothing was read, verified or stored"),
+                &format!("a proof package this gate accepts is at most {MAX_ADMIT_BODY_BYTES} bytes; nothing was parsed, verified or stored"),
                 note,
             ),
             None,
@@ -102,18 +107,37 @@ enum BodyProblem {
     Unreadable,
 }
 
-/// Reads at most [`MAX_ADMIT_BODY_BYTES`]. A declared length above the limit is refused without
-/// reading anything, and a body that grows past it stops the read.
+/// Keeps at most [`MAX_ADMIT_BODY_BYTES`]. A declared length above the limit is refused on the
+/// header alone — nothing of it is kept, parsed, verified or stored — and a body that grows past
+/// the limit stops being kept at that point.
 async fn read_body(request: Request<Incoming>) -> Result<Vec<u8>, BodyProblem> {
-    if declared_too_long(&request) {
+    let refused_on_its_declared_length = declared_too_long(&request);
+    let body = request.into_body();
+    if refused_on_its_declared_length {
+        drain(body).await;
         return Err(BodyProblem::TooLarge);
     }
-    match Limited::new(request.into_body(), MAX_ADMIT_BODY_BYTES).collect().await {
+    match Limited::new(body, MAX_ADMIT_BODY_BYTES).collect().await {
         Ok(collected) => Ok(collected.to_bytes().to_vec()),
         Err(problem) if problem.downcast_ref::<http_body_util::LengthLimitError>().is_some() => {
             Err(BodyProblem::TooLarge)
         }
         Err(_) => Err(BodyProblem::Unreadable),
+    }
+}
+
+/// Reads what the client is still sending and throws it away, up to [`DRAIN_LIMIT_BYTES`], so that
+/// the refusal this gate has already decided on can be delivered at all: answering and closing
+/// while a client is mid-send resets the connection, and the client sees a transport error instead
+/// of the 413 the gate did make. Nothing read here is kept, parsed, verified or stored — every
+/// frame is dropped where it arrives — and a client that keeps sending past the cap is left to the
+/// close, because this gate will not read an unbounded body to be polite.
+async fn drain(body: Incoming) {
+    let mut body = Limited::new(body, DRAIN_LIMIT_BYTES);
+    while let Some(frame) = body.frame().await {
+        if frame.is_err() {
+            break;
+        }
     }
 }
 

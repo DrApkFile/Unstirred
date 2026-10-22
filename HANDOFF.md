@@ -3,13 +3,12 @@
 State of Unstirred at commit `7c95671` **plus an uncommitted working tree holding M4 step 1**
 (§10) — **M1, M2 and M3 are closed** (M2's last open item, a real two-source root run, was recorded
 on 2026-10-20, §1; M3 step 1 is `6c2a288` and `34c3146`, §8; M3 step 2, the Holders' Room page, is
-`bf3fe87` with the browser review's fixes in `e02230d`, §9). **M4, the demo's act 4, is under way:**
-the newcomer's wallet exists and the room's rule refused it for real on 2026-10-21, and the gate's
-half of that act — `knock --force-unqualified-demo`, A03's verifier half, and the two fixes the
-recorded run exposed — is built and gated but **not committed**, by instruction (§10). What it
-waits on is one run: the forced knock itself, whose commands are in §10. Written 2026-10-20,
-revised 2026-10-21 and 2026-10-22, from the 2026-10-17 version. For the next session (agent or
-human).
+`bf3fe87` with the browser review's fixes in `e02230d`, §9). **M4, the demo's act 4, is built and
+recorded** (§10): the newcomer's wallet was refused by the room's own rule on 2026-10-22 with
+nothing sent, and its forced submission was refused by the gate itself, REFUSED / ROOT_MISMATCH,
+writing nothing — both against the real testnet, and `act4-newcomer` is generated from them.
+**None of M4 is committed**, by instruction. Written 2026-10-20, revised 2026-10-21 and 2026-10-22,
+from the 2026-10-17 version. For the next session (agent or human).
 Read `briefing/CLAUDE.md` and `briefing/BUILD_CONTRACT.md` first; this file only says where the
 work stopped, what is next, and what the machine around the repo is holding.
 
@@ -169,18 +168,18 @@ and A44 are green in `evidence/2026-10-21-gate-m3-step2.md`. It is **committed a
 it has been reviewed in a browser since, and the fixes for that review are committed as `e02230d`
 (section 9).
 
-**That closes M3. M4, act 4, is under way — see §10 for all of it.** The newcomer's wallet exists:
-two Ironwood coins mined at 4,526,839 and 4,526,842, both after h0 4,505,790, and on 2026-10-21 the
-room's own rule refused that wallet `COINS_TOO_NEW` with no proof made
-(`evidence/2026-10-21-bob-knock.txt`). The gate's half of the act is built and gated in the
-uncommitted tree: `knock --force-unqualified-demo` makes a real proof against the latest
-note-commitment root those coins appear in and posts it, so the gate refuses it `ROOT_MISMATCH`;
-A03's verifier half now tests exactly that package shape and that nothing is written. **What is
-left is one run**, the forced knock against the real gate, with its commands and the files it
-produces written out in §10. Only then can `act4-newcomer.json` exist: the page would otherwise
-have to be given numbers no run produced. The session key stays a fresh random 32 bytes with no
-private half for v1. The judge path decision (hosted Holders' Room) is still open and was due by
-M3, 2026-10-21.
+**That closes M3, and M4 — act 4 — is done too: see §10 for all of it.** The newcomer's wallet
+holds two Ironwood coins mined at 4,526,839 and 4,526,842, both after h0 4,505,790. On 2026-10-22
+the room's own rule refused it `COINS_TOO_NEW` with no challenge requested and nothing sent
+(`evidence/2026-10-22-bob-knock.txt`), and `knock --force-unqualified-demo` built a real proof
+against the latest note-commitment root one of those coins appears in and posted it, which the gate
+refused `ROOT_MISMATCH` while writing nothing
+(`evidence/2026-10-22-bob-forced-knock.txt`). `act4-newcomer` is generated from those two runs and
+is the fifth act the gate serves. **Nothing of M4 is committed.** What is left of the demo script
+is act 7 (the chain itself), which has no run behind it. The session key stays a fresh random 32
+bytes with no private half for v1. The judge path decision (hosted Holders' Room) is still open and
+was due by M3, 2026-10-21, and the README rebuild into a claims table and a 60-second judge path is
+still owed.
 
 The standing rule holds: register any new acceptance IDs in `briefing/PRD.md` §10 **before**
 writing their tests, with a `DECISIONS.md` row.
@@ -357,10 +356,9 @@ proving or verifying paths. The ones most likely to bite the next step:
   any viewport but those two (the stage is fixed and scaled, so the layout is the same at every
   size, but an engine that lays text out differently could still differ), and whether the result
   reads well to anyone who has not been staring at it.
-- The demo script's act 4 and act 7 (the chain itself) have no replay file, because no run has
-  produced their numbers. Act 4's holder half is recorded (`evidence/2026-10-21-bob-knock.txt`) and
-  its gate half is built and gated (§10); the one run it waits on is the forced knock, after which
-  `scripts/replay-from-evidence.py` writes the act and lists it with no code change.
+- The demo script's act 7 (the chain itself) has no replay file, because no run has produced its
+  numbers. Act 4 now has one: both of its halves were recorded on 2026-10-22 (§10) and
+  `scripts/replay-from-evidence.py` wrote `act4-newcomer` from them.
 - h1 via nf-server `verify-root` is deferred (P1): it needs a full node serving raw blocks back to
   Ironwood activation plus an independently trusted block hash at h1. Until then h1 stays
   operator-pinned via `--h1-root` and labelled operator-pinned in output and docs.
@@ -631,17 +629,24 @@ is **not** a gate step — `scripts/gate.sh` needs neither a browser nor a node 
 hand and its run is recorded in `evidence/2026-10-21-page-layout-check.md`, which is the first
 `MEASURED` row in `CLAIMS.md`.
 
-## 10. M4 step 1: act 4's two sides, built 2026-10-22, **nothing committed**
+## 10. M4: act 4, built and recorded 2026-10-22, **nothing committed**
 
 Act 4 of the demo script (PRD §9) is the newcomer: a holder whose coins are newer than the gate's
-h0. Its **holder half is recorded**: on 2026-10-21 a second real testnet wallet, whose two Ironwood
-coins were mined at 4,526,839 and 4,526,842 — both after h0 4,505,790 — knocked `holders-room` and
-the room's own rule refused it `COINS_TOO_NEW` with no proof made
-(`evidence/2026-10-21-bob-knock.txt`). This step builds the **gate's half**, plus the two fixes
-that recorded run exposed. It is a working tree on top of `7c95671`; **nothing here is committed**,
-by instruction.
+h0. **Both of its halves are now recorded against the real testnet**, and the act is a page the
+gate serves. A second testnet wallet
+(`/home/kingghidorah/Documents/projects/bounties/zecathon/bob-wallet`), whose two Ironwood coins
+were mined at 4,526,839 and 4,526,842 — both after h0 4,505,790 — knocked `holders-room`: the
+room's own rule refused it `COINS_TOO_NEW`, with no challenge requested and nothing sent
+(`evidence/2026-10-22-bob-knock.txt`), and the forced submission was refused by the gate itself,
+REFUSED / ROOT_MISMATCH, writing nothing (`evidence/2026-10-22-bob-forced-knock.txt`, header
+`evidence/2026-10-22-bob-forced-knock.meta.md`). `act4-newcomer` is generated from those runs. Step 1
+is committed as `2e24559` (with the 2026-10-21 evidence as `62a0b8d`); **step 2 — the recorded act,
+the axis rule it needed, and the 413 fix — is an uncommitted working tree on top of it**, by
+instruction.
 
-What was built:
+What was built, in two steps on the same day — step 1 the code, committed as `2e24559` (gate run
+`evidence/2026-10-22-gate-m4-step1.md`), step 2 the recorded act, the window axis it needed and the
+413 fix, uncommitted (gate run `evidence/2026-10-22-gate-m4-step2.md`):
 
 - **`knock` applies the room's rule before it asks for a challenge.** `crates/unstirred-cli/src/proving/`
   is two steps now: `prepare` reads the wallet and applies the room's published rule, touching no
@@ -689,28 +694,33 @@ What was built:
   demo script's five instead of counting four, and `scripts/page-layout-check.mjs` reads the acts
   from disk too.
 
-This step's gate run is `evidence/2026-10-22-gate-m4-step1.md`: **GATE: PASS**, exit 0, 102 tests
-(97 before it), the leak scan and the claims check, at `rustc 1.91.1`. The page fixes were measured
-again in a real browser and three frames were looked at:
-`evidence/2026-10-22-page-layout-check.md`. Two attempts preceded that run — one `cargo fmt`
-failure, and one A37 failure that reproduces only under load and is recorded as a finding in
-`briefing/BUILD_NOTES.md`, not a change.
+Step 1's gate run is `evidence/2026-10-22-gate-m4-step1.md`: **GATE: PASS**, exit 0, 102 tests
+(97 before it), at `rustc 1.91.1`, with its page fixes measured in a real browser
+(`evidence/2026-10-22-page-layout-check.md`). Two attempts preceded it — one `cargo fmt` failure,
+and one A37 failure that only reproduces under load. Step 2's gate run is
+`evidence/2026-10-22-gate-m4-step2.md`, and act 4's own layout check, twenty-eight page variants
+now, is `evidence/2026-10-22-page-layout-check-act4.md`.
 
-### What is open, and why
+Step 2 also closed A37's flakiness, at the server rather than in the test: an admit body refused
+on its declared `Content-Length` is now read and thrown away up to `DRAIN_LIMIT_BYTES` (four times
+the limit the gate accepts) before the 413 is written, so the client is not reset mid-send and the
+answer the gate made can be read. Nothing drained is kept, parsed, verified or stored, and past
+that cap the client is still left to the close. The refusal's own text changed with it: "nothing
+was read" is now "nothing was parsed, verified or stored", because the gate does now read it.
+A37 itself is unchanged and still strict — it retries nothing (`DECISIONS.md`, 2026-10-22).
 
-`act4-newcomer.json` **does not exist yet**, because no run has produced its numbers: the gate's
-verdict for the forced submission, and the two heights the holder's own wallet reports. Writing it
-from anything else would be exactly the placeholder the build contract forbids. The generator is
-ready for it: it looks for `evidence/*bob-forced-knock.txt`, and when it finds one it writes the act
-and lists it. Everything else in this step is built and gated.
+### The newcomer's two knocks, as they were run, 2026-10-22
 
-### Bob's forced knock, as it should be run
-
-Two paths are not known to this session and are written as variables: **`$B`, Bob's wallet
-directory** (the second testnet wallet, read-only, scanned past its own coins) and **`$ID`, the age
-identity that decrypts that wallet's `keys.toml`**. Everything else is exact. The gate's **two root
-sources must both be live**, or the admit route answers INCONCLUSIVE / `ROOT_SOURCE_UNAVAILABLE`
-instead of refusing the holder, and act 4 shows the wrong thing.
+Recorded in `evidence/2026-10-22-bob-knock.txt` and `evidence/2026-10-22-bob-forced-knock.txt`,
+with the header beside them. The ordinary knock asked for the room's manifest and stopped: no
+challenge line, no "proving now", `COINS_TOO_NEW`, "nothing was sent to the gate". The forced one
+announced itself, proved one note (mined 4,526,842, unspent through 4,528,029) against the
+note-commitment root at 4,528,029, posted it, and the gate answered REFUSED / ROOT_MISMATCH; the
+room's log afterwards still shows the same five markers and the same one `ADMITTED` as the
+two-room run of 2026-10-20 left it. Both root sources were live, so no answer carried the
+single-source label. `$ID` is the age identity for that wallet. The gate's **two root sources must
+both be live**, or the admit route answers INCONCLUSIVE / `ROOT_SOURCE_UNAVAILABLE` instead of
+refusing the holder, and act 4 would show the wrong thing.
 
 ```bash
 # 1. build the binary this run uses; scripts/gate.sh does not refresh it
@@ -729,7 +739,7 @@ cd /home/kingghidorah/Documents/projects/bounties/zecathon/gate
 cd /home/kingghidorah/Documents/projects/bounties/zecathon
 U=/home/kingghidorah/Documents/projects/bounties/zecathon/unstirred/target/release/unstirred
 E=/home/kingghidorah/Documents/projects/bounties/zecathon/unstirred/evidence
-B=<Bob's wallet directory>
+B=/home/kingghidorah/Documents/projects/bounties/zecathon/bob-wallet
 ID=<the age identity for that wallet>
 H1=8af0c16b82ff1c9170de5dc87b3c06ef3a7144befdba71fc40959effe9f5be26
 
@@ -754,51 +764,50 @@ package: those coins total under 0.125 ZEC at the latest root (`INSUFFICIENT_HEL
 wallet is not scanned past them (`COINS_TOO_NEW` again, now at the demo height — re-sync and
 retry), or the witness rebuild at that height fails because the wallet's shards do not reach it,
 which is also a re-sync. The demo height *is* the height that wallet is fully scanned through, so
-all three move with its sync. If the gate answers INCONCLUSIVE instead of REFUSED, a root source
-was unreachable, not the holder's fault — fix the source and run 4b again (nothing was consumed).
+all three move with its sync. None of them happened on 2026-10-22. If the gate answers INCONCLUSIVE
+instead of REFUSED, a root source was unreachable, not the holder's fault — fix the source and run
+4b again (nothing was consumed).
 
 A knock prints no address, no note value and no tree position, so those two files are publishable
 as they stand. The forced knock's own lines are what act 4 is built from: the challenge expiry, the
 block its coins were first mined in, the block they are still unspent through, and the block whose
 root the proof was built against.
 
-### Where the evidence goes, and what has to follow it
+### What followed the run
 
-1. `evidence/2026-10-22-bob-knock.txt` and `evidence/2026-10-22-bob-forced-knock.txt`, as the
-   commands above write them. Add a header beside the forced one —
-   `evidence/2026-10-22-bob-forced-knock.meta.md`, the same shape as
-   `evidence/2026-10-20-two-room-knock.meta.md` — naming the date, the network, the window, the
-   binary, the rooms, the root sources, the h1 root, Bob's wallet and the nf-server dataset.
-   The 2026-10-21 run stays exactly as recorded: it is the run that showed the old order.
-2. `python3 -I scripts/replay-from-evidence.py`. It will print `act4-newcomer.json` and `acts.rs: 5
-   acts`. If it exits instead, it says which line it could not find in the recorded run.
-3. Add a `CLAIMS.md` row per new evidence file — the claims check fails on a recorded run nothing
-   cites, which is how this session found the 2026-10-21 file. The forced one is PROVEN:
+All of it is done:
 
-   > \| A gate serving the real Zcash testnet refuses a newcomer's forced submission REFUSED /
-   > ROOT_MISMATCH and writes nothing for it: the package is a real proof against the latest
-   > note-commitment root those coins appear in, and the room's log still shows the same five
-   > markers and one admission afterwards \| PROVEN \|
-   > [evidence/2026-10-22-bob-forced-knock.txt](evidence/2026-10-22-bob-forced-knock.txt), header
-   > [evidence/2026-10-22-bob-forced-knock.meta.md](evidence/2026-10-22-bob-forced-knock.meta.md)
-   > \| README status table, HANDOFF.md section 10 \|
+1. The header beside the two recorded files is `evidence/2026-10-22-bob-forced-knock.meta.md`,
+   covering both and naming the date, the network, the window, the binary, the gate and its
+   database, the rooms, the root sources, the h1 root, the newcomer's wallet and the nf-server
+   dataset. The two `.txt` files are exactly what the terminal held. The run of 2026-10-21 stays as
+   recorded too: it is the one that showed the old order, and its `CLAIMS.md` row says so.
+2. `python3 -I scripts/replay-from-evidence.py` wrote `act4-newcomer.json` and `acts.rs: 5 acts`.
+   Nothing else about the other four acts changed.
+3. `CLAIMS.md` has a row for each new evidence file — both knocks and the header — and the A44 row
+   now says the acts are built "from a recorded run", naming which run each comes from, since act 4
+   comes from the other one.
+4. `./scripts/gate.sh` is recorded as `evidence/2026-10-22-gate-m4-step2.md` — **GATE: PASS**,
+   exit 0, 102 tests — and the layout check was run again with the fifth act on it, twenty-eight
+   page variants: `evidence/2026-10-22-page-layout-check-act4.md`. Act 4 failed that check three
+   times first; what it cost to fit is in that file and in `briefing/BUILD_NOTES.md`.
+5. A37's flakiness is closed at the server, not in the test: a body refused on its declared length
+   is drained up to `DRAIN_LIMIT_BYTES` before the 413 is written. The test retries nothing.
 
-   The A44 row's wording should become "built from the recorded runs" rather than "from the recorded
-   two-room knock", since one act now comes from the other run.
-4. `./scripts/gate.sh`, recorded as `evidence/2026-10-22-gate-m4-step2.md`, and the layout check
-   again now that there is a fifth act (`node scripts/page-layout-check.mjs <gate url> holders-room
-   second-room` against a gate serving those two rooms; the script's own header has the usage, and
-   it reads the acts from `ui/replay/` so act 4 is picked up without an edit).
+### What act 4's page shows
 
-### What act 4's page will show
+`/room/holders-room?replay=act4-newcomer`: the room as the two-room run left it — five markers, one
+ADMITTED — with the newcomer's REFUSED / ROOT_MISMATCH as the newest verdict, the closed code set's
+own words for it, and one `holder` line on the timeline labelled "the newcomer's coins, from the
+holder's own wallet (the gate never sees this)", running from block 4,526,842 to block 4,528,029.
+Both heights come from the holder's wallet, are printed on the holder's own terminal by the knock,
+and are never sent to the gate; the line is drawn in the refusal colour and says it does not cover
+the window. Note what it does **not** show: a line "from the coins' mined height through h1", which
+is impossible — they are 21,519 blocks *newer* than h1. The axis stays on the window, and the line
+is drawn as a stub off the right-hand end with "20,332 blocks after h1, never inside this window"
+under it: stretching the axis to reach it (which is what the page did at first) left the window
+three per cent of the rail with its caption wrapped into a column, 128px past the stage's 1080.
 
-The room as the two-room run left it — five markers, one ADMITTED — with the newcomer's REFUSED /
-ROOT_MISMATCH as the newest verdict in the feed, the closed code set's own words for it, and one
-`holder` line on the timeline labelled "the newcomer's coins, from the holder's own wallet (the gate
-never sees this)", running from the block their coins were mined in to the block they are still
-unspent through. Both of those heights come from the holder's wallet and are never sent to the
-gate; the page draws the line in the refusal colour, short of the band, and says it does not cover
-the window. Note what it will **not** show: a line "from the coins' mined height through h1",
-which is impossible — they are about 20,300 blocks *newer* than h1, so the line sits to the right of
-the whole window, and the axis widens to take it in. That is the true picture, and a stronger one
-than a line that stops at h1.
+What is still open after this: PRD §9's act 7 (the chain itself) has no run behind it, the judge
+path (a hosted Holders' Room) is still undecided, and the README rebuild into a claims table and a
+60-second judge path is still owed.

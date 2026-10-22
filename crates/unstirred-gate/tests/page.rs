@@ -350,8 +350,11 @@ fn present_mode_is_a_way_of_reading_a_page_and_not_part_of_it() -> TestResult {
     Ok(())
 }
 
-/// A holder line is an act's own illustration of somebody against the rule. A live gate never
-/// draws one, and a line the page could not place is refused rather than drawn wrong.
+/// A holder line is an act's own illustration of somebody against the rule, read from that
+/// holder's own wallet by the knock that was recorded. A live gate never draws one, because it
+/// knows no holder's block range; an act that does draw one draws it on the room it is about and
+/// says on the page where it came from; and a line the page could not place is refused rather
+/// than drawn wrong.
 #[test]
 fn a_holder_line_is_an_acts_own_and_is_refused_when_it_is_not_a_range() -> TestResult {
     let directory = tempfile::tempdir()?;
@@ -366,8 +369,22 @@ fn a_holder_line_is_an_acts_own_and_is_refused_when_it_is_not_a_range() -> TestR
         );
     }
     for (act, _) in REPLAY_ACTS {
-        for room in act_state(act)?.rooms {
-            assert!(room.holder.is_none(), "{act} draws a holder no recorded run produced");
+        let state = act_state(act)?;
+        let about = state.room.clone().ok_or("an act names no room")?;
+        for room in &state.rooms {
+            let Some(holder) = &room.holder else { continue };
+            assert_eq!(
+                room.context, about,
+                "{act} draws a holder on a room the act is not about"
+            );
+            assert!(
+                holder.from <= holder.to && !holder.label.is_empty(),
+                "{act} draws a holder the page cannot place: {holder:?}"
+            );
+            assert!(
+                state.provenance.iter().any(|line| line.contains("wallet")),
+                "{act} draws a holder, so it must say on the page whose wallet that line was read from"
+            );
         }
     }
 

@@ -1,0 +1,11 @@
+gate          http://127.0.0.1:8080
+room          holders-room
+network       test
+window        h0 4505790 through h1 4506510
+threshold     12500000 zatoshis
+REFUSED  COINS_TOO_NEW
+  the account held no unspent Ironwood note at h0
+  why:  None of the wallet's eligible coins existed at h0. No proof was made.
+  next: Only coins held since h0 qualify for this gate.
+nothing was sent to the gate
+no challenge was asked for, so this gate has no record of this attempt
