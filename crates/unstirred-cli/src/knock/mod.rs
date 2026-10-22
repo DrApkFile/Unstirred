@@ -5,27 +5,29 @@ use unstirred_gate::{GateClient, GateClientError};
 use unstirred_prover::ProverError;
 
 use crate::args::{parse_flags, required, strip_bool_flags, Flags};
-use crate::proving::{make_proof, ProofInputs, PROOF_FLAGS};
+use crate::proving::{prepare, prepare_forced_demo, NotForcible, Prepared, ProofInputs, DEMO_FLAG, PROOF_FLAGS};
 use crate::refusal::print_refusal;
 use crate::{EXIT_ERROR, EXIT_REFUSED, EXIT_USAGE};
 
 mod report;
 
-use report::{print_answer, print_header};
+use report::{print_answer, print_challenge, print_demo, print_header, print_nothing_sent, print_proving_now};
 
 pub const USAGE: &str = "unstirred knock --gate <url> --room <context> --wallet <dir> \\
     --pir <url> --lightwalletd <url> --identity <age file> [--expected-h1-root <hex>] \\
     [--account <uuid>] [--json]
 
-Knocks on one room of a running gate: fetches the room's manifest and a fresh challenge, proves
-that this wallet held at least the gate's threshold in Ironwood unmoved across the window, posts
-the package, and prints the gate's verdict. The wallet is opened read-only, no transaction is
-created, and the package carries no address, note value, tree position or nullifier.
+Knocks on one room of a running gate: checks this wallet against the room's published rule, and
+only if it has something to prove fetches a fresh challenge, proves that it held at least the
+gate's threshold in Ironwood unmoved across the window, posts the package and prints the gate's
+verdict. A wallet the rule refuses never asks for a challenge, so the gate keeps no record of it.
+The wallet is opened read-only, no transaction is created, and the package carries no address,
+note value, tree position or nullifier.
 
 Exit codes: 0 admitted, 1 refused, 2 usage, 3 local error, 4 inconclusive.";
 
 pub fn run(args: &[String]) -> ExitCode {
-    let (args, bools) = match strip_bool_flags(args, &["--json"]) {
+    let (args, bools) = match strip_bool_flags(args, &["--json", DEMO_FLAG]) {
         Ok(stripped) => stripped,
         Err(problem) => return usage(&problem),
     };
@@ -39,34 +41,56 @@ pub fn run(args: &[String]) -> ExitCode {
         Err(problem) => return usage(&problem),
     };
     let json = bools.iter().any(|flag| flag == "--json");
-    match knock(&request, json) {
+    let forced = bools.iter().any(|flag| flag == DEMO_FLAG);
+    match knock(&request, json, forced) {
         Ok(exit) => exit,
         Err(exit) => exit,
     }
 }
 
-fn knock(request: &Request, json: bool) -> Result<ExitCode, ExitCode> {
+fn knock(request: &Request, json: bool, forced: bool) -> Result<ExitCode, ExitCode> {
     let client = GateClient::new(&request.gate).map_err(local)?;
     let manifest = client.manifest(&request.room).map_err(local)?;
     require_room_is_its_own_context(&manifest, &request.room)?;
+    print_header(request, &manifest, json);
+    let prepared = if forced {
+        forced_demo(request, &manifest, json)?
+    } else {
+        prepare(&request.inputs, &manifest).map_err(|error| refusal_or_error(error, json, false))?
+    };
     let challenge = client.challenge(&request.room).map_err(local)?;
-    print_header(request, &manifest, &challenge, json);
-    let made = make_proof(&request.inputs, &manifest, challenge.raw).map_err(|error| match error {
-        ProverError::Refused(refusal) => {
-            print_refusal(&refusal);
-            ExitCode::from(EXIT_REFUSED)
-        }
-        other => {
-            eprintln!("error: {other}");
-            ExitCode::from(EXIT_ERROR)
-        }
-    })?;
+    print_challenge(&challenge, json);
+    print_proving_now(&prepared, json);
+    let made = prepared
+        .prove(&request.inputs, &manifest, challenge.raw)
+        .map_err(|error| refusal_or_error(error, json, true))?;
     let package_json = made.proven.package.to_json().map_err(|refusal| {
         print_refusal(&refusal);
+        print_nothing_sent(json, true);
         ExitCode::from(EXIT_ERROR)
     })?;
     let answer = client.admit(&request.room, &package_json).map_err(local)?;
     Ok(print_answer(&answer, &made, json))
+}
+
+/// The demo's forced submission (PRD section 9, act 4). It says what it is doing, and it only
+/// works for a wallet this room refuses.
+fn forced_demo(request: &Request, manifest: &Manifest, json: bool) -> Result<Prepared, ExitCode> {
+    match prepare_forced_demo(&request.inputs, manifest) {
+        Ok(demo) => {
+            print_demo(&demo, json);
+            Ok(demo.prepared)
+        }
+        Err(NotForcible::TheRoomWouldAdmitThis) => {
+            eprintln!(
+                "error: this wallet meets this room's rule, so there is nothing to force; \
+                 knock without {DEMO_FLAG} and the proof is an honest one"
+            );
+            print_nothing_sent(json, false);
+            Err(ExitCode::from(EXIT_USAGE))
+        }
+        Err(NotForcible::Local(error)) => Err(refusal_or_error(error, json, false)),
+    }
 }
 
 /// A gate serves one manifest per room, so the manifest it hands out under a room's path must be
@@ -82,6 +106,23 @@ fn require_room_is_its_own_context(manifest: &Manifest, room: &str) -> Result<()
         manifest.context
     );
     Err(ExitCode::from(EXIT_ERROR))
+}
+
+/// A refusal or a fault on the holder's own side. Either way the gate was given nothing, which
+/// the holder is told in those words rather than left to infer from a missing verdict.
+fn refusal_or_error(error: ProverError, json: bool, challenge_was_issued: bool) -> ExitCode {
+    let exit = match error {
+        ProverError::Refused(refusal) => {
+            print_refusal(&refusal);
+            EXIT_REFUSED
+        }
+        other => {
+            eprintln!("error: {other}");
+            EXIT_ERROR
+        }
+    };
+    print_nothing_sent(json, challenge_was_issued);
+    ExitCode::from(exit)
 }
 
 fn usage(problem: &str) -> ExitCode {

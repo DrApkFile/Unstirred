@@ -42,19 +42,20 @@ impl fmt::Debug for NoteInputs {
     }
 }
 
-/// Assembles the circuit inputs for the witnessed notes. `h1` is where the nullifiers are read
-/// and looked up; the witnesses are at h0, which is what makes the pair a holding statement.
+/// Assembles the circuit inputs for the witnessed notes. `notes_unspent_at` is the height whose
+/// unspent notes the nullifiers are read from — the gate's h1 for a holding proof, which is what
+/// makes the pair "witnessed at h0, unspent at h1" a statement about a window.
 pub fn note_inputs<P: consensus::Parameters>(
     wallet: &ReadOnlyWallet<P>,
     account: AccountUuid,
     viewing_key: &FullViewingKey,
     witnesses: &Witnesses,
-    h1: u32,
+    notes_unspent_at: u32,
     nullifier_set: &impl NullifierSetAtH1,
     expected_nf_imt_root: [u8; 32],
 ) -> Result<NoteInputs, ProverError> {
     let positions: Vec<u64> = witnesses.notes.iter().map(|witness| witness.note.position).collect();
-    let nullifiers = wallet.ironwood_nullifiers(account, h1, &positions)?;
+    let nullifiers = wallet.ironwood_nullifiers(account, notes_unspent_at, &positions)?;
     let notes = wallet.ironwood_notes_at(account, witnesses.height, &positions)?;
     let mut inputs = Vec::with_capacity(positions.len());
     for (witness, nullifier) in witnesses.notes.iter().zip(nullifiers.iter()) {

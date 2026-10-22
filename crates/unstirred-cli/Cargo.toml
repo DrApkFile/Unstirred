@@ -16,5 +16,9 @@ unstirred-verifier = { path = "../unstirred-verifier" }
 unstirred-gate = { path = "../unstirred-gate" }
 hex.workspace = true
 
+[dev-dependencies]
+unstirred-prover = { path = "../unstirred-prover", features = ["test-harness"] }
+tempfile.workspace = true
+
 [lints]
 workspace = true

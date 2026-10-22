@@ -41,6 +41,12 @@ const SESSION_KEY_BYTES: usize = 32;
 pub struct ProofRequest<'a> {
     pub manifest: &'a Manifest,
     pub witnesses: &'a Witnesses,
+    /// The height at which the wallet must still report every witnessed note unspent, which is
+    /// where its nullifier is read. A holding proof passes the gate's h1: witnessed at h0 and
+    /// unspent at h1 is what makes the pair a statement about a window. The one caller that
+    /// passes anything else is `knock --force-unqualified-demo`, whose coins did not exist at
+    /// the gate's h1 and whose package the gate refuses on the roots.
+    pub notes_unspent_at: u32,
     pub expected_nf_imt_root: [u8; 32],
     pub challenge: [u8; 32],
 }
@@ -74,7 +80,7 @@ pub fn prove<P: consensus::Parameters>(
         account,
         authority.viewing_key(),
         request.witnesses,
-        manifest.window.h1,
+        request.notes_unspent_at,
         nullifier_set,
         request.expected_nf_imt_root,
     )?;

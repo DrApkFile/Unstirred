@@ -1,10 +1,11 @@
 use std::path::PathBuf;
 use std::process::ExitCode;
 
+use unstirred_core::Manifest;
 use unstirred_prover::ProverError;
 
 use crate::args::{parse_flags, required, Flags};
-use crate::proving::{make_proof, ProofInputs, PROOF_FLAGS};
+use crate::proving::{prepare, Made, ProofInputs, PROOF_FLAGS};
 use crate::refusal::{load_manifest, print_refusal};
 use crate::{EXIT_ERROR, EXIT_REFUSED, EXIT_USAGE};
 
@@ -44,7 +45,7 @@ pub fn run(args: &[String]) -> ExitCode {
         Ok(manifest) => manifest,
         Err(exit) => return exit,
     };
-    match make_proof(&request.inputs, &manifest, request.challenge) {
+    match proof_for(&request, &manifest) {
         Ok(made) => write_and_report(&request, &manifest, &made),
         Err(ProverError::Refused(refusal)) => {
             print_refusal(&refusal);
@@ -55,6 +56,12 @@ pub fn run(args: &[String]) -> ExitCode {
             ExitCode::from(EXIT_ERROR)
         }
     }
+}
+
+/// The wallet is read and the room's rule applied first, then the proof is made against the
+/// challenge given on the command line. `knock` splits the same two steps around the gate.
+fn proof_for(request: &Request, manifest: &Manifest) -> Result<Made, ProverError> {
+    prepare(&request.inputs, manifest)?.prove(&request.inputs, manifest, request.challenge)
 }
 
 fn usage(problem: &str) -> ExitCode {

@@ -26,7 +26,7 @@ pub use bundle::{note_inputs, NoteInputs};
 pub use error::ProverError;
 pub use identity::{ironwood_spending_key, wallet_seed, WalletSeed, WALLET_KEYS_FILE};
 pub use imt::{circuit_proof, proves_absence};
-pub use notes::{eligible_notes, EligibleNotes};
+pub use notes::{eligible_notes, required_zatoshis, EligibleNotes};
 pub use nullifier::NoteNullifier;
 pub use open::WALLET_DATABASE_FILE;
 pub use pir::{look_up_nullifiers, NoteNonMembership, NullifierLookup, PirNullifierOracle};
@@ -38,3 +38,6 @@ pub use transport::HttpTransport;
 pub use treestate::{fetch_ironwood_tree_state, IronwoodFrontier, IronwoodTreeState, IRONWOOD_TREE_DEPTH};
 pub use wallet::ReadOnlyWallet;
 pub use witness::{witnesses_at, IronwoodMerklePath, NoteWitness, Witnesses};
+/// Which account of a wallet a proof is about. Re-exported so a caller that holds a prepared
+/// proof can name the type without depending on `zcash_client_sqlite` itself.
+pub use zcash_client_sqlite::AccountUuid;

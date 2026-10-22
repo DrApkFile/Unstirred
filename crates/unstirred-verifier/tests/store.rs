@@ -6,6 +6,7 @@
 #[path = "adversarial"]
 mod adversarial {
     mod challenge_misuse;
+    mod forced_newcomer;
     mod replayed_coins;
 }
 

@@ -67,7 +67,7 @@
           "verdict": "REFUSED",
           "code": "ALREADY_USED_IN_CONTEXT",
           "at": 1792507727,
-          "at_note": "time derived: the second this knock's challenge was issued. A refusal is never written down, so the run holds no time of its own for it."
+          "at_note": "Time derived: the second this knock's challenge was issued (2026-10-20T14:58:47Z less the store's 600-second TTL). A refusal is never written down, so the run holds no timestamp of its own for it."
         },
         {
           "verdict": "ADMITTED",
@@ -96,7 +96,6 @@
   ],
   "provenance": [
     "Replay of the two-room knock recorded on the real Zcash testnet on 2026-10-20: evidence/2026-10-20-two-room-knock.txt (header: evidence/2026-10-20-two-room-knock.meta.md).",
-    "The same coins were knocked at this room a second time and were refused. The store wrote nothing for it: the five markers and the one admission above are unchanged.",
-    "The refusal is shown at the second its challenge was issued (2026-10-20T14:58:47Z less the store's 600-second TTL). A refusal is never written down, so the run holds no timestamp of its own for it."
+    "The same coins were knocked at this room a second time and were refused. The store wrote nothing for it: the five markers and the one admission above are unchanged."
   ]
 }

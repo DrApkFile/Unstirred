@@ -65,6 +65,7 @@ fn make_one_proof() -> Result<Proved, Box<dyn Error>> {
         &ProofRequest {
             manifest: &manifest,
             witnesses: &witnesses,
+            notes_unspent_at: H1,
             expected_nf_imt_root: nullifier_set.root_bytes(),
             challenge: CHALLENGE,
         },

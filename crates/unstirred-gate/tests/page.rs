@@ -22,6 +22,17 @@ use unstirred_gate::{replay_state, Mode, PageState, RECENT_PER_ROOM, REPLAY_ACTS
 
 type TestResult = Result<(), Box<dyn Error>>;
 
+/// Every act PRD section 9 has, whether or not a run has produced it yet. The gate may serve no
+/// page that is not one of them, and `scripts/replay-from-evidence.py` writes the list of the ones
+/// it could build from `evidence/`, so this is the only place an act's existence is a decision.
+const DEMO_ACTS: [&str; 5] = [
+    "act1-rule",
+    "act2-admitted",
+    "act3-refused",
+    "act4-newcomer",
+    "act5-second-room",
+];
+
 /// A42: the gate serves two kinds of page and nothing else. The picker names every room it hosts;
 /// each hosted room has a page of its own carrying that room's live state; a room it does not host
 /// is 404 and the answer names nothing the gate holds.
@@ -193,7 +204,16 @@ fn a43_the_recent_feed_shows_refusals_keeps_three_fields_and_forgets_on_restart(
 fn a44_every_replay_act_renders_in_a_document_with_no_network_call_site() -> TestResult {
     let directory = tempfile::tempdir()?;
     let gate = start_in(directory.path())?;
-    assert_eq!(REPLAY_ACTS.len(), 4, "one act per act of the demo script");
+    let names: Vec<&str> = REPLAY_ACTS.iter().map(|(name, _)| *name).collect();
+    for recorded in ["act1-rule", "act2-admitted", "act3-refused", "act5-second-room"] {
+        assert!(names.contains(&recorded), "{recorded} must be served: {names:?}");
+    }
+    for name in &names {
+        assert!(
+            DEMO_ACTS.contains(name),
+            "{name:?} is served but is no act of the demo script (PRD section 9): {DEMO_ACTS:?}"
+        );
+    }
 
     for (act, _) in REPLAY_ACTS {
         let state = act_state(act)?;

@@ -52,7 +52,9 @@ pub fn eligible_notes<P: consensus::Parameters>(
     })
 }
 
-fn required_zatoshis(manifest: &Manifest) -> Result<u64, Refusal> {
+/// The gate's threshold as a number. `parse_manifest` has already accepted the text, so this is
+/// a refusal only for a `Manifest` that was built without it.
+pub fn required_zatoshis(manifest: &Manifest) -> Result<u64, Refusal> {
     manifest.min_zatoshis.parse().map_err(|_| {
         Refusal::new(
             Code::ManifestInvalid,

@@ -142,7 +142,7 @@ body {
 .picker-body {
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  justify-content: flex-start;
   gap: var(--gap-3);
   min-height: 0;
 }

@@ -15,6 +15,7 @@
 // Exit 0 if nothing clips anywhere, 1 otherwise.
 
 import { spawn } from "node:child_process";
+import { readdirSync, readFileSync } from "node:fs";
 
 const [, , base, firstRoom, secondRoom] = process.argv;
 if (!base || !firstRoom) {
@@ -27,13 +28,22 @@ const SIZES = [
   [1326, 683],
 ];
 
+// Every act the gate ships, read from the files the generator wrote, so an act recorded later is
+// checked without this script being edited. Each act names the room it belongs to.
+function recordedActs() {
+  const directory = "crates/unstirred-gate/ui/replay";
+  return readdirSync(directory)
+    .filter((name) => name.endsWith(".json"))
+    .sort()
+    .map((name) => {
+      const act = name.slice(0, -".json".length);
+      const room = JSON.parse(readFileSync(`${directory}/${name}`, "utf8")).room;
+      return [act, room === secondRoom || room === firstRoom ? room : firstRoom];
+    });
+}
+
 function pages() {
-  const acts = [
-    ["act1-rule", firstRoom],
-    ["act2-admitted", firstRoom],
-    ["act3-refused", firstRoom],
-    ["act5-second-room", secondRoom || firstRoom],
-  ];
+  const acts = recordedActs();
   const out = [
     ["picker", "/"],
     [`live ${firstRoom}`, `/room/${firstRoom}`],

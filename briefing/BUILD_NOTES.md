@@ -3,6 +3,55 @@
 Things learned while building that the code and the other briefing files do not say. Decisions go
 to `DECISIONS.md`; recorded runs go to `evidence/`. This file is for the facts that cost time.
 
+## M4 step 1 (act 4: the knock's local check, and the forced demo), 2026-10-22
+
+- **The nullifier read height is not the witness height, and the PIR server pins the other one.**
+  `note_inputs` read every nullifier from the notes the wallet shows unspent at `manifest.window.h1`,
+  which a newcomer has none of: those coins did not exist then, so `NoteNotHeldAtThatHeight` stopped
+  the forced proof before the circuit. Moving that height into `ProofRequest::notes_unspent_at` was
+  the whole of it — and the h1 it reads *cannot* simply be moved forward, because the PIR snapshot
+  is pinned: `snapshot::describe` refuses a server whose `/root` height is not the h1 it was asked
+  for. That turns out to be exactly right for the demo: the nullifier-set root in the forced package
+  stays the one the room pinned at h1, so the only root that differs is the note-commitment root,
+  and the gate's refusal is `ROOT_MISMATCH` about that one thing.
+- **No wallet a test can build is one the CLI will open.** `SyntheticWallet` is a `LocalNetwork`
+  (regtest) wallet, and `zcash_client_sqlite` refuses it under testnet parameters: "Data DB is
+  corrupted: UFVK is for network Regtest but we expected Test". A gate manifest can only say `test`
+  or `main` (PRD §3.1), and the harness cannot be moved onto testnet's own activations either —
+  Ironwood begins at testnet height 4,134,000, and `TestBuilder` generates blocks from activation
+  upwards. So the CLI's own tests check the *order* of the steps (the wallet is read, and the rule
+  applied, before a challenge is requested) and leave the rule's refusals to the prover's tests,
+  which open the same wallet with the parameters it was built with.
+- **A test that proves a request was not made needs a canary for the recorder.** "The gate was
+  asked for the manifest and nothing else" passes just as well when the listener records nothing at
+  all, so A45 makes one challenge request of its own afterwards and asserts it shows up.
+- **`include!` resolves a nested `include_str!` relative to the included file.** A registry
+  generated beside the act files can therefore name them by bare filename
+  (`include_str!("act1-rule.json")`), which is what lets `scripts/replay-from-evidence.py` write
+  both the acts and the list of them. rustfmt does not follow `include!`, only `mod`, so a
+  generated `.rs` under `ui/` is never reformatted and never fails `cargo fmt --check`.
+- **Clippy's `panic = "deny"` covers unit tests.** A `#[test]` that ends a match arm with `panic!`
+  fails the gate; `assert!(matches!(…), "…")` says the same thing and passes.
+- **The recorded Bob run shows the bug it motivated, and stays as it was.** Its output has the gate
+  issuing a challenge and the knock printing "proving now" before the local refusal — the order A45
+  now forbids. An evidence file is never edited, so the `CLAIMS.md` row says the run predates the
+  fix. (The same session found the claims check already failing, because that run had been added to
+  `evidence/` without a row: a recorded run nothing cites is a gate failure by design.)
+- **A37 is load-dependent, and the race is the gate's own 413.** The first full gate run of this
+  step failed on A37 with `Unreachable { … /admit, "client error (SendRequest)" }`: the gate refuses
+  an over-long `Content-Length` *without reading the body* (which is what A37 is about), hyper then
+  answers and closes, and the client — still writing its 256 KiB — can be reset before it reads the
+  answer. Whether it wins that race is a matter of socket buffers and scheduling, so it passes alone
+  (`cargo test -p unstirred-gate --test http`, 7 passed, 97 s) and fails under a loaded machine
+  (139 s for the same target in the failing run). Nothing in this step touches that path. It is the
+  gate's design that is right and the observation that is racy, so the options are a client that
+  sends `Expect: 100-continue` on admit, or a test that retries once on a send error; the behaviour
+  a holder would see is "the gate could not be reached" instead of the 413 it did answer. Left as a
+  finding, not changed, and the run was repeated.
+- **"proving now" was printed before any proof was built.** The line came from the header, which
+  was written when the header was the last thing printed before the proof. Anything that announces
+  work belongs where the work starts, not where the output happens to be grouped.
+
 ## M3 step 2 (the Holders' Room page), 2026-10-21
 
 - **`GET /` was already a route.** The router trimmed trailing slashes and treated an empty path as

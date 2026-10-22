@@ -260,14 +260,16 @@
     }
     if (newest) {
       var when = "answered " + utcStamp(newest.at);
+      /* A time the run did not record is never shown as if it had been: the card says it was
+         derived, and the provenance foot says how. */
+      if (newest.at_note) {
+        when += " (time derived)";
+      }
       var words = newest.code ? state.codes[newest.code] : null;
       if (words) {
         when += words.retryable ? " · retryable: yes" : " · retryable: no";
       }
       children.push(node("p", "rule-aside", when));
-      if (newest.at_note) {
-        children.push(node("p", "rule-aside", newest.at_note));
-      }
     }
     var section = panel(
       "verdict-panel " + verdictClass(newest) + (asHero ? " verdict-hero" : ""),
@@ -487,13 +489,18 @@
     ]);
   }
 
-  /* Where these numbers came from. In presentation mode the technical notes come off — nobody
-     checks a root hex off a projector — and what is left is the one line saying where the numbers
-     came from. Nothing load-bearing is lost: a derived time is explained beside the time itself,
-     in the verdict card, and a refusal that wrote nothing says so where it was written down. */
+  /* Where these numbers came from, including how a derived time was derived. In presentation mode
+     the technical notes come off — nobody checks a root hex off a projector — and what is left is
+     the one line saying where the numbers came from. Nothing load-bearing is lost: the verdict card
+     still marks a derived time as derived, and a refusal that wrote nothing says so where it was
+     written down. */
   function footPanel(state, room) {
     var lines = state.present ? state.provenance.slice(0, 1) : state.provenance.slice(0);
     if (room && !state.present) {
+      var newest = latest(room);
+      if (newest && newest.at_note) {
+        lines.push(newest.at_note);
+      }
       lines.push("h1 nullifier-set root " + room.h1_root + " (" + room.h1_root_provenance + ").");
       lines.push("Room log shows at most " + digits(room.limit) + " rows, newest first.");
     }
@@ -529,8 +536,8 @@
   function pickerStage(state) {
     var stage = node("div", stageClasses(state, "stage-picker"));
     stage.appendChild(headPanel(state, null));
-    /* The rule and the rooms are one block, centred in what is left, so the room cards stay the
-       height of their own content without leaving a hole under them. */
+    /* The rule and the rooms are one block at the top of what is left, so the room cards stay the
+       height of their own content and there is no gap above them. */
     var body = node("div", "picker-body");
     body.appendChild(
       panel("rule-panel rule-hero", [

@@ -3606,6 +3606,7 @@ name = "unstirred-cli"
 version = "0.1.0"
 dependencies = [
  "hex",
+ "tempfile",
  "unstirred-core",
  "unstirred-gate",
  "unstirred-prover",

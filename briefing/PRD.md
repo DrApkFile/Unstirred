@@ -191,6 +191,8 @@ Prover (decides before proving): `WALLET_NOT_SYNCED_PAST_H1`, `COINS_TOO_NEW`, `
 - A42 the gate serves the room picker at `GET /` and one Holders' Room page per hosted room at `GET /room/<context>`, 404 for any other room, naming no room, marker, challenge or verdict it holds
 - A43 `GET /rooms/<context>/recent` answers a bounded feed of verdicts this process has answered, each one a verdict, a code and a time and nothing else; it shows refusals the store never wrote, writes nothing itself, and a gate restarted on the same database answers with none (LEAKS L16)
 - A44 every replay act the gate ships is a valid page state whose code words are `unstirred-core`'s own, each act renders in a document that carries no network call site at all, and a replay page names an act only for the room that act belongs to
+- A45 a knock the room's own rule refuses asks that gate for nothing but its published manifest: no challenge is requested, nothing is posted, and the command says both that nothing was sent and that no challenge was asked for, so the gate holds no record of the attempt
+- A46 the demo's forced submission (`knock --force-unqualified-demo`) is in no usage text the CLI prints, and refuses to run at all for a wallet the room would admit, without asking that gate for a challenge
 
 ## 11. Priorities
 - **P0:** core, prover, verifier, CLI (incl. `gate markers`), gate service, Holders' Room page, GitHub Release binaries, A01–A14, `LEAKS.md`, `SPEC.md`, real testnet evidence, README, demo video.
