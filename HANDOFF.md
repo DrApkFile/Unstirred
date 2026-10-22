@@ -1,13 +1,13 @@
 # HANDOFF
 
-State of Unstirred at commit `7c95671` **plus an uncommitted working tree holding M4 step 1**
-(§10) — **M1, M2 and M3 are closed** (M2's last open item, a real two-source root run, was recorded
+State of Unstirred at commit `527f871`, with a clean tree — **M1, M2, M3 and M4 are closed** (M2's last open item, a real two-source root run, was recorded
 on 2026-10-20, §1; M3 step 1 is `6c2a288` and `34c3146`, §8; M3 step 2, the Holders' Room page, is
 `bf3fe87` with the browser review's fixes in `e02230d`, §9). **M4, the demo's act 4, is built and
 recorded** (§10): the newcomer's wallet was refused by the room's own rule on 2026-10-22 with
 nothing sent, and its forced submission was refused by the gate itself, REFUSED / ROOT_MISMATCH,
-writing nothing — both against the real testnet, and `act4-newcomer` is generated from them.
-**None of M4 is committed**, by instruction. Written 2026-10-20, revised 2026-10-21 and 2026-10-22,
+writing nothing — both against the real testnet, and `act4-newcomer` is generated from them. M4 is
+committed, `2e24559` and `527f871`. **What is next, in order: act 4's visual fix, the docs, the
+release.** Written 2026-10-20, revised 2026-10-21 and 2026-10-22,
 from the 2026-10-17 version. For the next session (agent or human).
 Read `briefing/CLAUDE.md` and `briefing/BUILD_CONTRACT.md` first; this file only says where the
 work stopped, what is next, and what the machine around the repo is holding.
@@ -175,11 +175,20 @@ the room's own rule refused it `COINS_TOO_NEW` with no challenge requested and n
 against the latest note-commitment root one of those coins appears in and posted it, which the gate
 refused `ROOT_MISMATCH` while writing nothing
 (`evidence/2026-10-22-bob-forced-knock.txt`). `act4-newcomer` is generated from those two runs and
-is the fifth act the gate serves. **Nothing of M4 is committed.** What is left of the demo script
-is act 7 (the chain itself), which has no run behind it. The session key stays a fresh random 32
-bytes with no private half for v1. The judge path decision (hosted Holders' Room) is still open and
-was due by M3, 2026-10-21, and the README rebuild into a claims table and a 60-second judge path is
-still owed.
+is the fifth act the gate serves. **Nothing of M4 is committed.** **Next, in order:**
+
+1. **Act 4's visual fix.** It fits the stage and hides nothing
+   (`evidence/2026-10-22-page-layout-check-act4.md`), but it has not had the owner's eye. The line
+   off the end of the axis, its label, and the five-line foot are where to look.
+2. **Docs.** The README rebuild into a claims table and a 60-second judge path, from `CLAIMS.md`,
+   which has been owed since M3; and the judge-path decision (a hosted Holders' Room), open since
+   2026-10-21.
+3. **Release.** GitHub Release binaries and the single 0.1.0 publish (`DECISIONS.md` has the one
+   open row: whether to reserve the crates.io names first). Deadline: last commit before
+   **2026-10-27 08:00 UTC**.
+
+What is left of the demo script is act 7 (the chain itself), which has no run behind it. The
+session key stays a fresh random 32 bytes with no private half for v1.
 
 The standing rule holds: register any new acceptance IDs in `briefing/PRD.md` §10 **before**
 writing their tests, with a `DECISIONS.md` row.
@@ -639,14 +648,14 @@ were mined at 4,526,839 and 4,526,842 — both after h0 4,505,790 — knocked `h
 room's own rule refused it `COINS_TOO_NEW`, with no challenge requested and nothing sent
 (`evidence/2026-10-22-bob-knock.txt`), and the forced submission was refused by the gate itself,
 REFUSED / ROOT_MISMATCH, writing nothing (`evidence/2026-10-22-bob-forced-knock.txt`, header
-`evidence/2026-10-22-bob-forced-knock.meta.md`). `act4-newcomer` is generated from those runs. Step 1
-is committed as `2e24559` (with the 2026-10-21 evidence as `62a0b8d`); **step 2 — the recorded act,
-the axis rule it needed, and the 413 fix — is an uncommitted working tree on top of it**, by
-instruction.
+`evidence/2026-10-22-bob-forced-knock.meta.md`). `act4-newcomer` is generated from those runs and is the
+fifth act the gate serves. **Both steps are committed**: step 1 as `2e24559` (with the
+2026-10-21 evidence as `62a0b8d`), step 2 — the act file, the axis rule it needed, the 413 drain
+and the docs — as `527f871`.
 
-What was built, in two steps on the same day — step 1 the code, committed as `2e24559` (gate run
-`evidence/2026-10-22-gate-m4-step1.md`), step 2 the recorded act, the window axis it needed and the
-413 fix, uncommitted (gate run `evidence/2026-10-22-gate-m4-step2.md`):
+What was built, in two steps on the same day — step 1 the code, `2e24559` (gate run
+`evidence/2026-10-22-gate-m4-step1.md`); step 2 the recorded act, the window axis it needed and the
+413 fix, `527f871` (gate run `evidence/2026-10-22-gate-m4-step2.md`):
 
 - **`knock` applies the room's rule before it asks for a challenge.** `crates/unstirred-cli/src/proving/`
   is two steps now: `prepare` reads the wallet and applies the room's published rule, touching no
@@ -808,6 +817,6 @@ is drawn as a stub off the right-hand end with "20,332 blocks after h1, never in
 under it: stretching the axis to reach it (which is what the page did at first) left the window
 three per cent of the rail with its caption wrapped into a column, 128px past the stage's 1080.
 
-What is still open after this: PRD §9's act 7 (the chain itself) has no run behind it, the judge
-path (a hosted Holders' Room) is still undecided, and the README rebuild into a claims table and a
-60-second judge path is still owed.
+Open after this, in the order §2 gives: act 4's visual fix (it fits and hides nothing, but no one
+has reviewed how it reads), the docs (README rebuild, judge path), and the release. PRD §9's act 7,
+the chain itself, still has no run behind it.

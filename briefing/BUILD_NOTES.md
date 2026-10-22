@@ -31,6 +31,18 @@ to `DECISIONS.md`; recorded runs go to `evidence/`. This file is for the facts t
   1080 only after three trims measured one at a time: a shorter label, a provenance foot the length
   of the other acts', and the log route's row cap dropped from a replayed page, where it describes
   a route that page never calls. The browser is the only thing that can say which trim was enough.
+- **Never kill a process by a pattern that can match the owner's.** Cleaning up one scratch gate,
+  `pkill -f "gate serve --config gate.toml"` matched all three gates on this machine and stopped
+  the owner's two as well — the real two-room gate on `:8080` and the page gate on `:8099`. Nothing
+  durable was lost (the SQLite file keeps the markers and admissions; only the deliberately
+  ephemeral recent feeds went), but a pattern kill does not know whose process it found. Kill by
+  the PID you started, and confirm a process is yours by `readlink /proc/<pid>/cwd` before touching
+  it. The older note above about `pkill -f` matching the shell's own command line is the same
+  mistake from the other end.
+- **A backgrounded compound command gives you the subshell's PID, not the server's.**
+  `cd dir && nohup gate serve … &` then `$!` recorded a PID that was gone a moment later while the
+  gate kept the port, so the restart failed to bind and the next measurement silently re-measured
+  the old binary. Background the bare command, or read the PID back from the listener.
 - **An evidence file is cited before the gate can pass.** Both Bob runs and their header had to
   have `CLAIMS.md` rows written *before* the gate run that covers them, because the claims check
   fails on a recorded run nothing cites. Only the gate log's own row can be added afterwards.
