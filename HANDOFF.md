@@ -1,13 +1,16 @@
 # HANDOFF
 
-State of Unstirred at commit `527f871`, with a clean tree — **M1, M2, M3 and M4 are closed** (M2's last open item, a real two-source root run, was recorded
+State of Unstirred at commit `3f79c4e` **plus an uncommitted release-prep pass** (§11: act 4's
+broken axis, `SPEC.md`, the rebuilt README, LEAKS finalised, the release workflow and crates.io
+readiness) — **M1, M2, M3 and M4 are closed** (M2's last open item, a real two-source root run, was recorded
 on 2026-10-20, §1; M3 step 1 is `6c2a288` and `34c3146`, §8; M3 step 2, the Holders' Room page, is
 `bf3fe87` with the browser review's fixes in `e02230d`, §9). **M4, the demo's act 4, is built and
 recorded** (§10): the newcomer's wallet was refused by the room's own rule on 2026-10-22 with
 nothing sent, and its forced submission was refused by the gate itself, REFUSED / ROOT_MISMATCH,
 writing nothing — both against the real testnet, and `act4-newcomer` is generated from them. M4 is
-committed, `2e24559` and `527f871`. **What is next, in order: act 4's visual fix, the docs, the
-release.** Written 2026-10-20, revised 2026-10-21 and 2026-10-22,
+committed, `2e24559` and `527f871`. **Act 4's visual fix and the docs are done and the release is
+prepared; what is left is the owner's three acts: commit, tag, publish** (§11).
+Written 2026-10-20, revised 2026-10-21, 2026-10-22 and 2026-10-23,
 from the 2026-10-17 version. For the next session (agent or human).
 Read `briefing/CLAUDE.md` and `briefing/BUILD_CONTRACT.md` first; this file only says where the
 work stopped, what is next, and what the machine around the repo is holding.
@@ -175,17 +178,20 @@ the room's own rule refused it `COINS_TOO_NEW` with no challenge requested and n
 against the latest note-commitment root one of those coins appears in and posted it, which the gate
 refused `ROOT_MISMATCH` while writing nothing
 (`evidence/2026-10-22-bob-forced-knock.txt`). `act4-newcomer` is generated from those two runs and
-is the fifth act the gate serves. **Nothing of M4 is committed.** **Next, in order:**
+is the fifth act the gate serves. **M4 is committed, `2e24559` and `527f871`, with this file and
+`briefing/BUILD_NOTES.md` brought up to date in `3f79c4e`.** **Next, in order:**
 
-1. **Act 4's visual fix.** It fits the stage and hides nothing
-   (`evidence/2026-10-22-page-layout-check-act4.md`), but it has not had the owner's eye. The line
-   off the end of the axis, its label, and the five-line foot are where to look.
-2. **Docs.** The README rebuild into a claims table and a 60-second judge path, from `CLAIMS.md`,
-   which has been owed since M3; and the judge-path decision (a hosted Holders' Room), open since
-   2026-10-21.
-3. **Release.** GitHub Release binaries and the single 0.1.0 publish (`DECISIONS.md` has the one
-   open row: whether to reserve the crates.io names first). Deadline: last commit before
-   **2026-10-27 08:00 UTC**.
+All three are **done but uncommitted** — §11 has the detail, and the work is in the tree:
+
+1. **Act 4's visual fix** — done. The newcomer is no longer a faded stub at the end of the axis:
+   the rail is broken after h1 and the coins are marked past the break with the distance on the
+   mark. Twenty-eight page variants measured again, nothing hidden.
+2. **Docs** — done. `SPEC.md` is new; the README is rebuilt around the 60-second judge path with a
+   status table generated from `CLAIMS.md`; `briefing/LEAKS.md` has no "planned" row left.
+3. **Release** — prepared, not performed. The tag-triggered workflow is written, the crates carry
+   their crates.io metadata, and the publish dry run passes for the whole workspace. **Nothing is
+   committed, tagged or published**, which is §11's last part and the owner's to do. Deadline:
+   last commit before **2026-10-27 08:00 UTC**.
 
 What is left of the demo script is act 7 (the chain itself), which has no run behind it. The
 session key stays a fresh random 32 bytes with no private half for v1.
@@ -372,7 +378,8 @@ proving or verifying paths. The ones most likely to bite the next step:
   Ironwood activation plus an independently trusted block hash at h1. Until then h1 stays
   operator-pinned via `--h1-root` and labelled operator-pinned in output and docs.
 - `DECISIONS.md` has one `open` row: whether to reserve the crates.io names now with a 0.0.1
-  placeholder. Owner's call. The planned publish is a single 0.1.0 around 2026-10-26.
+  placeholder. Owner's call. The planned publish is a single 0.1.0 around 2026-10-26, and §11 has
+  the order and the commands; the dry run for it passes on the whole workspace.
 - `crates/unstirred-prover/src/error.rs` is 194 lines, over the ~180-line rule, because it is one
   enum (see the cleanup note in §1). `DECISIONS.md` rows written before 2026-10-20 still cite the
   pre-split file paths; they are a record of decisions, so they were left as written.
@@ -383,9 +390,13 @@ proving or verifying paths. The ones most likely to bite the next step:
   system mirrors, plus the styles that use it, and the only way CSS has to split a file is
   `@import`, which is a third-party request waiting to happen and is what LEAKS L10 forbids. Every
   Rust file in the step is under the limit.
-- The README is still dense prose rather than a claims table and a 60-second judge path. `CLAIMS.md`
-  now holds the ledger it should be built from. Owner's instruction: rebuild it after M3.
-- Judge path 1 (hosted Holders' Room) has to be decided by M3, 2026-10-21.
+- The README is rebuilt (§11): a 60-second judge path, and a status table generated from
+  `CLAIMS.md` by `scripts/status-table.py`, which the gate re-runs with `--check`. `SPEC.md` is
+  the protocol document beside it, and `briefing/LEAKS.md` has no "planned" row left.
+- Judge path 1 is decided: **no hosted Holders' Room.** The paths are the video, the replay acts a
+  gate the judge runs serves (no chain, no wallet, no nf-server), and `unstirred verify` against the
+  recorded evidence (owner's decision, `DECISIONS.md` 2026-10-22, PRD §16 rewritten to match). Nothing
+  has to be deployed or kept running after the deadline.
 - Stated limit worth re-reading before any claim about key hygiene: `orchard 0.15.5` does not
   zeroize its key types on drop (`briefing/BUILD_NOTES.md`, `LEAKS.md` L15b).
 
@@ -395,7 +406,12 @@ proving or verifying paths. The ones most likely to bite the next step:
   file in `evidence/` naming network, h0, h1, commit, command and date.
 - Unknown is never success. Root trouble is INCONCLUSIVE, never ADMITTED.
 - A frozen decision in `briefing/BUILD_CONTRACT.md` changes only after a `DECISIONS.md` row.
-- Run `./scripts/gate.sh` before claiming anything works, and record the run.
+- Run `./scripts/gate.sh` before claiming anything works, and record the run. **It wants about
+  7 GB free**: the proof targets build and run in parallel, and on 2026-10-23 a run on this
+  machine was killed for memory part-way through `tests/http.rs`. Stop zebrad, the nf-server and
+  any running gate first, and if memory is still short use
+  `CARGO_BUILD_JOBS=2 RUST_TEST_THREADS=1 ./scripts/gate.sh`, which asserts exactly the same
+  things and takes longer (`tests/http.rs` 140.89s serialised against 111.43s parallel).
 - Deadline: last commit before **2026-10-27 08:00 UTC**, nothing after — not even docs.
 
 ## 8. M3 step 1, built and gated 2026-10-20, committed as `6c2a288` and `34c3146`
@@ -638,7 +654,7 @@ is **not** a gate step — `scripts/gate.sh` needs neither a browser nor a node 
 hand and its run is recorded in `evidence/2026-10-21-page-layout-check.md`, which is the first
 `MEASURED` row in `CLAIMS.md`.
 
-## 10. M4: act 4, built and recorded 2026-10-22, **nothing committed**
+## 10. M4: act 4, built and recorded 2026-10-22, committed as `2e24559` and `527f871`
 
 Act 4 of the demo script (PRD §9) is the newcomer: a holder whose coins are newer than the gate's
 h0. **Both of its halves are now recorded against the real testnet**, and the act is a page the
@@ -817,6 +833,148 @@ is drawn as a stub off the right-hand end with "20,332 blocks after h1, never in
 under it: stretching the axis to reach it (which is what the page did at first) left the window
 three per cent of the rail with its caption wrapped into a column, 128px past the stage's 1080.
 
-Open after this, in the order §2 gives: act 4's visual fix (it fits and hides nothing, but no one
-has reviewed how it reads), the docs (README rebuild, judge path), and the release. PRD §9's act 7,
-the chain itself, still has no run behind it.
+All three of those are done in §11, uncommitted: act 4's visual fix is the broken axis, the docs
+are `SPEC.md`, the rebuilt README and the finalised LEAKS, and the release is prepared as far as
+it can be without committing, tagging or publishing. PRD §9's act 7, the chain itself, still has
+no run behind it.
+
+## 11. Release prep, 2026-10-22 and 2026-10-23, **nothing committed**
+
+Three pieces, all in the working tree and none of them committed: act 4's visual fix, the docs,
+and everything the release needs short of doing it. The gate run that covers all of it is
+`evidence/2026-10-23-gate-release-prep.md`.
+
+### Act 4's broken axis
+
+The newcomer used to be a short faded stub drawn at the right-hand end of the window's axis, with
+the distance only in the red sentence underneath. It fitted and hid nothing, and on a screenshot
+it read as an edge effect. Now the rail is **broken**: the window keeps its own scale over the
+first 66% of the rail, a `//` mark sits at 75%, and the holder is a dot in the refusal colour at
+89% carrying `+20,332 blocks`, with the sentence under the rail reading "the newcomer's coins
+arrive here: 20,332 blocks after h1, never inside the window" and a dimmer line under that saying
+both blocks were read from the holder's own wallet. Every number comes from the act's state.
+
+- `ui/render.js`: `axisOf` became `viewOf`, which carries the axis plus where it sits on the rail
+  and where the break goes; `holderOnAxis` now returns either a line or a mark past the break; the
+  rail is drawn in two segments when it is broken. The mark is two `/` spans, not the string
+  `"//"`, because that string is a protocol-relative URL as far as A02c's scan is concerned.
+- `ui/tokens.css`: `.axis-break`, `.axis-beyond`, `.axis-beyond-dot`, `.axis-beyond-badge`,
+  `.holder-aside`, and `.thirds-holder`, which widens the window panel to `1.35fr 1.05fr 0.6fr`
+  whenever a holder is drawn, because the window is then what the act is explaining. The old
+  `.holder-beyond-*` gradients are gone.
+- The page state's `holder` gained an optional `aside` (`src/page/contract.rs`), the generator
+  writes it (`scripts/replay-from-evidence.py`), act 4 was regenerated, and the holder test checks
+  it. `DECISIONS.md` has rows for both the break and the field.
+- Measured again, twenty-eight page variants at 1920x1080 and 1326x683, nothing hidden and
+  nothing clipped: `evidence/2026-10-23-page-layout-check-act4-broken-axis.md`. Presentation mode
+  at 1920x1080 is the frame the fix was made for — it went 22px past the stage with its last
+  provenance line cut before the panel was widened.
+
+### The docs
+
+- **`SPEC.md`** (new, repository root): the statement; what is reused unchanged and credited and
+  what is added here; the split-height soundness argument, tightened from
+  `briefing/knowledge/HOLDING_DURATION_PAPER_CHECK.md` and stated as **ours**, deviating from
+  Valar's same-height rule, tested but not externally reviewed; markers per context and why
+  `round_id` excludes heights; the spend-key binding and the viewing-key attack it closes; the
+  root authority; the wire formats; the admission order; the closed code set; the limits. Every
+  claim cites an acceptance ID or a file in `evidence/`.
+- **`README.md`** rebuilt top to bottom: two sentences, a clearly-marked placeholder for the demo
+  video, the 60-second judge path (release binary → `gate init` → `unstirred verify` on
+  `evidence/2026-10-17-first-proof.json` against one public lightwalletd, with the two-source form
+  beside it), the five replay pages, the status table, what is reused and credited, the limits and
+  the build. The verify command was run while writing it and took 35 seconds to print ADMITTED.
+- **The status table is generated.** `scripts/status-table.py` renders every row of `CLAIMS.md`
+  between markers in the README, and `scripts/gate.sh` runs it with `--check`, so the table cannot
+  drift from the ledger the way `ui/frame.md` once drifted from the tokens.
+- **`briefing/LEAKS.md` is finalised**: every row either names an acceptance ID or is written as a
+  stated non-defence. No row says "planned". Two IDs were registered in PRD §10 with
+  `DECISIONS.md` rows and then written, because two rows had a real defence and no test: **A47**
+  (L7) and **A48** (L5b).
+- **A47 found a documentation bug.** It was written to assert that two proofs of the same coins
+  carry identical markers; only one of the five matched. The circuit pads the bundle to five notes
+  with padding nullifiers, so a proof of one real note publishes one real marker and four fresh
+  ones. Single use is unaffected — one collision is enough — but `SPEC.md` §4 and LEAKS L4 had to
+  be corrected, and the test now asserts the shared count equals the number of real notes.
+
+### The release, prepared
+
+- **`.github/workflows/release.yml`** (new): triggered by a `v*` tag (or `workflow_dispatch` with
+  an existing tag), builds `unstirred` for `x86_64-unknown-linux-gnu`, `aarch64-apple-darwin` and
+  `x86_64-apple-darwin`, packages each as `unstirred-<tag>-<target>.tar.gz` with the binary, the
+  README, SPEC, CLAIMS and both licences, writes a `.sha256` beside it and attaches both to the
+  release. Actions are pinned by commit SHA — `actions/checkout@11bd719` (v4.2.2) and
+  `softprops/action-gh-release@efb3536` (v3.0.3), each resolved from the GitHub API rather than
+  from memory, the second dereferenced from its annotated tag to the commit a `uses:` can take.
+  **It creates no tag and publishes nothing to crates.io.**
+  **It has never run**, because running it means tagging. Two things in it are therefore
+  unproven: the macOS x86_64 build is a cross-compile from the arm64 runner, which has to build
+  `rusqlite`'s bundled SQLite for the other architecture, and the `--version` step runs an
+  x86_64 binary on that runner, which is why it ends in `|| true`. If the cross-build fails on
+  the tag, drop that one matrix entry and release the other two rather than holding the release.
+- **`LICENSE-MIT` and `LICENSE-APACHE`** added at the root; the repository claimed
+  `MIT OR Apache-2.0` and carried neither text. The MIT copyright line reads
+  "Copyright (c) 2026 Aghaduno Kenelumchukwu"; `LICENSE-APACHE` is the canonical Apache-2.0 text
+  with its appendix left as the licence prints it, which is what every Rust crate ships.
+- **crates.io metadata**, on the workspace and inherited by every crate: `repository`, `homepage`,
+  `documentation`, `keywords`, `categories`, plus a per-crate `description`, `readme` and
+  `include`. Each crate has its own short `README.md`. `include` lists only `src/**/*`, the
+  README, and `ui/**/*` for the gate, so `evidence/` and `briefing/` cannot be shipped — confirmed
+  with `cargo package --list` on all five (14, 27, 24, 42 and 28 files, none of them from either
+  directory).
+- **No path-only dependencies are left**: every internal dependency is
+  `{ path = "…", version = "=0.1.0" }`. There are no git dependencies.
+- **The CLI package is renamed** `unstirred-cli` → `unstirred`, so `cargo install unstirred`
+  works. The binary's name is unchanged, and the directory is still `crates/unstirred-cli`. The
+  rename rewrote `Cargo.lock`, which is committed with it — CI's `cargo metadata --locked` fails
+  otherwise.
+- **The publish dry run passes for the whole workspace**, in dependency order, each crate packed
+  and then compiled from its own tarball: `evidence/2026-10-23-publish-dry-run.md`.
+
+### What is left: the owner's three acts
+
+**Nothing below has been done, and nothing in this section is committed.**
+
+1. **Commit.** `./scripts/gate.sh` is green on this tree — **GATE: PASS**, exit 0, 104 tests,
+   `evidence/2026-10-23-gate-release-prep.md`. That run was made with
+   `CARGO_BUILD_JOBS=2 RUST_TEST_THREADS=1` and with zebrad, the nf-server and every gate stopped,
+   because the parallel run was killed for memory on this 7 GB machine first; the settings change
+   what runs at once and nothing about what is asserted. Everything is in the working tree;
+   review it and commit it.
+
+2. **Publish to crates.io**, from the tagged commit, with a clean tree. One version, 0.1.0, five
+   crates, in dependency order. Cargo does the ordering and the index waits itself:
+
+   ```
+   cargo login                  # once, with a crates.io token
+   cargo publish --workspace --dry-run    # the recorded run, repeated on the final tree
+   cargo publish --workspace
+   ```
+
+   If anything makes `--workspace` unhappy, the same thing one crate at a time, in this order,
+   waiting for each to appear in the index before the next:
+
+   ```
+   cargo publish -p unstirred-core
+   cargo publish -p unstirred-prover
+   cargo publish -p unstirred-verifier
+   cargo publish -p unstirred-gate
+   cargo publish -p unstirred
+   ```
+
+   Publishing is permanent, and `=0.1.0` in every internal dependency means a later 0.1.1 of one
+   crate will not be picked up by the others without their own release. That is deliberate for a
+   single coordinated publish. `DECISIONS.md` still has the one open row — whether to reserve the
+   names first with a 0.0.1 placeholder — and a straight 0.1.0 publish closes it either way.
+
+3. **Tag and release.** The workflow runs on the tag, not on the commit:
+
+   ```
+   git tag -a v0.1.0 -m "Unstirred 0.1.0"
+   git push origin v0.1.0
+   ```
+
+   That builds the three binaries and attaches them with their checksums. Check the run, then
+   check one tarball's `.sha256` before telling anyone the link. The README's "Watch the demo"
+   block is a marked placeholder until the video exists; it is the only placeholder in the README
+   and it says so in words.

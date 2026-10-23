@@ -1,23 +1,31 @@
 [package]
-name = "unstirred-cli"
+name = "unstirred"
 version.workspace = true
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
+repository.workspace = true
+homepage.workspace = true
+documentation.workspace = true
+keywords.workspace = true
+categories.workspace = true
+description = "Prove you held Zcash, unmoved, between two blocks - without revealing your address, balance or coins. The Unstirred command line: prove, verify, knock, and run a gate."
+readme = "README.md"
+include = ["src/**/*", "README.md"]
 
 [[bin]]
 name = "unstirred"
 path = "src/main.rs"
 
 [dependencies]
-unstirred-core = { path = "../unstirred-core" }
-unstirred-prover = { path = "../unstirred-prover" }
-unstirred-verifier = { path = "../unstirred-verifier" }
-unstirred-gate = { path = "../unstirred-gate" }
+unstirred-core = { path = "../unstirred-core", version = "=0.1.0" }
+unstirred-prover = { path = "../unstirred-prover", version = "=0.1.0" }
+unstirred-verifier = { path = "../unstirred-verifier", version = "=0.1.0" }
+unstirred-gate = { path = "../unstirred-gate", version = "=0.1.0" }
 hex.workspace = true
 
 [dev-dependencies]
-unstirred-prover = { path = "../unstirred-prover", features = ["test-harness"] }
+unstirred-prover = { path = "../unstirred-prover", version = "=0.1.0", features = ["test-harness"] }
 tempfile.workspace = true
 
 [lints]

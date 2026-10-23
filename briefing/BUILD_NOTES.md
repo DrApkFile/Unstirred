@@ -3,6 +3,59 @@
 Things learned while building that the code and the other briefing files do not say. Decisions go
 to `DECISIONS.md`; recorded runs go to `evidence/`. This file is for the facts that cost time.
 
+## Release prep: the broken axis, the docs, crates.io, 2026-10-22 and 2026-10-23
+
+- **Four of a proof's five markers are the circuit's padding, and nothing said so.** A47 was
+  written to assert that two proofs of the same coins carry identical markers, and it failed on
+  the first run: only `gov_null[0]` matched. The delegation builder pads the bundle to five notes
+  with padding nullifiers of its own (the same padding the PIR oracle has to stay live for), so a
+  proof of one real note publishes one real marker and four fresh ones. Single use still works —
+  `UNIQUE(context, marker)` needs one collision, not five — but `SPEC.md` §4 and LEAKS L4 had both
+  been written as "the same coins produce the same markers", which is wrong in a way no previous
+  test could catch, because A05 only ever needed the admission to be refused. The test now asserts
+  the shared count equals the number of real notes, which is a statement about padding as well as
+  about markers. A test written to confirm the documentation is how the documentation got fixed.
+- **The leak scan refuses `"//"` in the page's own code, and it is right to.** The broken axis's
+  mark is two slashes; written as one string it reads as a protocol-relative URL, which is exactly
+  what A02c's absolute-URL scan is for. Building it from two `/` spans keeps both the mark and the
+  scan. Do not widen a leak check to fit a glyph.
+- **A stub at the end of an axis reads as an edge effect, not as information.** The measured
+  layout said act 4 fitted and hid nothing, and it did; a screenshot said a non-engineer sees a
+  faded smudge and reads the red sentence or nothing. Breaking the rail with a `//` and marking
+  the holder past it with `+20,332 blocks` puts the fact on the drawing. Measuring answers "is it
+  all there"; only looking answers "is it read".
+- **Widening one column of a three-column row can make the row taller.** Giving the window panel
+  more space (`.thirds-holder`) squeezed the rooms panel until its explanation wrapped to three
+  lines, and act 4 in presentation mode went 22px past the stage with its last provenance line
+  cut. Sweeping `grid-template-columns` live over the DevTools protocol — set the value, read
+  `scrollHeight - clientHeight`, try the next — found `1.35fr 1.05fr 0.6fr` in one browser session
+  instead of one rebuild per guess. A layout question can be asked of the running page.
+- **`cargo publish --dry-run --workspace` is the only thing that finds the packaging errors.**
+  `cargo build`, `cargo test` and the gate all pass on a workspace that cannot be published:
+  path dependencies with no `version` are the obvious one, and `readme = "README.md"` pointing at
+  a file that is not in the crate directory is the one that actually stopped the run. Each crate
+  got its own README. The verify step compiles every crate from the packed tarball, so the whole
+  run is about fifteen minutes.
+- **Renaming a workspace member rewrites `Cargo.lock`.** `unstirred-cli` became `unstirred` (the
+  binary's name was already `unstirred`), and the next `cargo metadata --locked` failed until the
+  lock was regenerated. CI runs that check first, so the lock has to be committed with the rename.
+- **Quoting apostrophes through a patch script.** A `.replace("'", '"')` meant to turn Python
+  quotes into TOML quotes also turned "the holder's half" into `the holder"s half`, and every
+  manifest in the workspace failed to parse. Build the string with the quotes it needs rather than
+  translating quotes afterwards.
+- **The gate suite needs about 7 GB free, and the machine it is run on is part of the run.** A
+  full `./scripts/gate.sh` was killed for memory part-way through `tests/http.rs`, where several
+  K=12 proofs build and run at once. It passes serialised —
+  `CARGO_BUILD_JOBS=2 RUST_TEST_THREADS=1`, with zebrad, the nf-server and any running gate
+  stopped — and the recorded run says so, because "GATE: PASS" means less without the conditions
+  it passed under: `tests/http.rs` took 140.89s serialised against 111.43s in parallel, and that
+  difference is the only thing the settings change.
+- **Chromium needs more than fifteen seconds to open its debugging port on a loaded machine.**
+  `scripts/page-layout-check.mjs` polls for 15 s; with a release build running alongside it, the
+  browser was not up in time and the script reported "chromium never opened a debugging port"
+  while the browser it started kept the port. Run the layout check on a quiet machine, and kill
+  the chromium it left behind before retrying, by PID.
+
 ## M4 step 2 (act 4 recorded, and the 413 race closed), 2026-10-22
 
 - **The forced proof used one note, not two.** The newcomer's wallet holds two coins, and the

@@ -385,6 +385,15 @@ fn a_holder_line_is_an_acts_own_and_is_refused_when_it_is_not_a_range() -> TestR
                 state.provenance.iter().any(|line| line.contains("wallet")),
                 "{act} draws a holder, so it must say on the page whose wallet that line was read from"
             );
+            let aside = holder
+                .aside
+                .as_deref()
+                .ok_or("an act draws a holder with no line saying where it came from")?;
+            assert!(
+                aside.contains("wallet"),
+                "{act} draws a holder, so the line beside it names the wallet it was read from, \
+                 which is what presentation mode keeps when the provenance foot comes off: {aside}"
+            );
         }
     }
 
@@ -394,6 +403,18 @@ fn a_holder_line_is_an_acts_own_and_is_refused_when_it_is_not_a_range() -> TestR
     let problem = refused.check().err().ok_or("a backwards holder line was accepted")?;
     assert!(
         problem.contains("backwards"),
+        "the refusal says what is wrong: {problem}"
+    );
+
+    let mut silent: serde_json::Value = serde_json::from_str(REPLAY_ACTS[0].1)?;
+    silent["rooms"][0]["holder"] = serde_json::json!({ "label": "a holder", "from": 8, "to": 9, "aside": "" });
+    let refused: PageState = serde_json::from_value(silent)?;
+    let problem = refused
+        .check()
+        .err()
+        .ok_or("a holder line whose provenance is an empty string was accepted")?;
+    assert!(
+        problem.contains("where it came from"),
         "the refusal says what is wrong: {problem}"
     );
     Ok(())

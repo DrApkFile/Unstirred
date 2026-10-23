@@ -88,13 +88,21 @@ pub struct WindowState {
 }
 
 /// One holder's coins on the timeline: what to call them, and the blocks they existed unspent
-/// between. A line that does not cover the whole window is drawn as not covering it.
+/// between. A line that does not cover the whole window is drawn as not covering it; one the
+/// window's axis does not reach at all is marked past a break in the rail, with the distance.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct HolderLine {
+    /// What to call these coins. The page builds a sentence around it, so it is a noun phrase and
+    /// not a sentence of its own.
     pub label: String,
     pub from: u32,
     pub to: u32,
+    /// Where these two heights were read from, in one line under the rail. It stays on the page in
+    /// presentation mode, where the provenance foot comes off, because a holder's own blocks are
+    /// the one thing on the rail the gate was never told.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub aside: Option<String>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -179,6 +187,12 @@ impl RoomState {
             }
             if holder.label.is_empty() {
                 return Err(format!("room {:?} draws a holder with no name", self.context));
+            }
+            if holder.aside.as_deref() == Some("") {
+                return Err(format!(
+                    "room {:?} draws a holder whose line says nothing about where it came from",
+                    self.context
+                ));
             }
         }
         for marker in &self.markers {

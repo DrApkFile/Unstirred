@@ -14,6 +14,7 @@ mod store {
     pub mod assertions;
     mod dump;
     pub mod fixture;
+    mod fresh_randomizer;
     pub mod support;
     mod two_contexts;
 }

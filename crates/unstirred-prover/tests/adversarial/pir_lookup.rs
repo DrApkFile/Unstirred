@@ -7,7 +7,7 @@
 
 use unstirred_core::{Code, Network};
 use unstirred_prover::testing::{refusal_code, NoteA, TestResult, H1, NOTE_A_ZATOSHIS, NOTE_B_ZATOSHIS};
-use unstirred_prover::{look_up_nullifiers, proves_absence, ProverError};
+use unstirred_prover::{look_up_nullifiers, proves_absence, NoteNonMembership, NullifierLookup, ProverError};
 use voting_circuits::delegation::{ImtProvider, SpacedLeafImtProvider};
 use voting_crypto_deps::pasta_curves::group::ff::{Field, PrimeField};
 use voting_crypto_deps::pasta_curves::Fp;
@@ -128,6 +128,57 @@ fn a04_a_note_spent_inside_the_window_has_no_non_membership_proof_at_h1() -> Tes
         !proves_absence(&for_the_held_note, spent.value()),
         "another note's proof must not pass for the spent note"
     );
+    Ok(())
+}
+
+/// A48: the answer a lookup returns carries the IMT path and the two leaf bounds, because the
+/// circuit needs them as private witnesses — and shows neither of them when it is printed. The
+/// bounds bracket the holder's own nullifier, so a log line or a panic message that spelled them
+/// out would narrow it down to a range (LEAKS L5b). What `unstirred lookup` itself prints is the
+/// recorded run, evidence/2026-10-16-lookup-real-testnet.txt: a root, positions and yes or no.
+#[test]
+fn a48_a_non_membership_answer_prints_neither_its_path_nor_its_bounds() -> TestResult {
+    let held = HeldWallet::build(NoteA::StaysPut)?;
+    let nullifier = first(&held.nullifiers_of_selected_notes()?)?;
+    let nullifier_set = SpacedLeafImtProvider::new();
+    let proof = nullifier_set
+        .non_membership_proof(nullifier.value())
+        .map_err(|e| format!("the reference tree gave no proof: {e}"))?;
+
+    let secrets: Vec<String> = proof
+        .nf_bounds
+        .iter()
+        .chain(proof.path.iter())
+        .map(|field| hex::encode(field.to_repr()))
+        .collect();
+    assert!(
+        !secrets.is_empty(),
+        "a non-membership proof must carry bounds and a path, or this test is checking nothing"
+    );
+
+    let answer = NoteNonMembership {
+        position: 7,
+        proof,
+        proven_unspent: true,
+    };
+    let lookup = NullifierLookup {
+        height: H1,
+        root: [0x11; 32],
+        notes: vec![answer.clone()],
+    };
+
+    for shown in [format!("{answer:?}"), format!("{lookup:?}")] {
+        for secret in &secrets {
+            assert!(
+                !shown.contains(secret.as_str()),
+                "a printed lookup answer must not show a bound or a path element: {shown}"
+            );
+        }
+        assert!(
+            shown.contains("proven_unspent"),
+            "it still has to say whether the note was proven unspent: {shown}"
+        );
+    }
     Ok(())
 }
 

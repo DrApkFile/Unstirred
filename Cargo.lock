@@ -3602,7 +3602,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "unstirred-cli"
+name = "unstirred"
 version = "0.1.0"
 dependencies = [
  "hex",

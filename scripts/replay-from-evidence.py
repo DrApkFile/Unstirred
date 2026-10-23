@@ -256,10 +256,14 @@ def newcomer_act(newcomer, first, first_log, second, second_log, listing, admitt
         "at": newcomer["at"],
         "at_note": derived_time_note(newcomer["expiry"]),
     }
+    # The label is a noun phrase, because the page builds the sentence under the rail around it;
+    # the aside is the half the page must keep in presentation mode, where the provenance foot
+    # comes off, since these two blocks are the one thing on the rail the gate was never told.
     holder = {
-        "label": "the newcomer's coins — from their wallet, not the gate's",
+        "label": "the newcomer's coins",
         "from": newcomer["from"],
         "to": newcomer["to"],
+        "aside": "Both blocks were read from their own wallet by the knock. The gate is told neither.",
     }
     provenance = [
         "The two block heights under the window are read from that holder's own wallet by the knock itself, and "

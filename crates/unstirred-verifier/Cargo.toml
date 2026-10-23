@@ -4,9 +4,17 @@ version.workspace = true
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
+repository.workspace = true
+homepage.workspace = true
+documentation.workspace = true
+keywords.workspace = true
+categories.workspace = true
+description = "The gate's half of Unstirred: the verification engine over roots it authenticates itself from two independent sources, and the SQLite store that admits one set of coins per context exactly once."
+readme = "README.md"
+include = ["src/**/*", "README.md"]
 
 [dependencies]
-unstirred-core = { path = "../unstirred-core" }
+unstirred-core = { path = "../unstirred-core", version = "=0.1.0" }
 voting-circuits.workspace = true
 voting-crypto-deps.workspace = true
 blake2b_simd.workspace = true
@@ -24,7 +32,7 @@ http-body-util.workspace = true
 bytes.workspace = true
 
 [dev-dependencies]
-unstirred-prover = { path = "../unstirred-prover", features = ["test-harness"] }
+unstirred-prover = { path = "../unstirred-prover", version = "=0.1.0", features = ["test-harness"] }
 tempfile.workspace = true
 incrementalmerkletree = { workspace = true, features = ["legacy-api"] }
 zcash_primitives.workspace = true

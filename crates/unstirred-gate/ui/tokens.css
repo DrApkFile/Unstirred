@@ -161,6 +161,12 @@ body {
   align-items: stretch;
 }
 
+/* When a holder is drawn on the window, the window is what the act is explaining, so it takes the
+   width the other two panels can spare. */
+.thirds-holder {
+  grid-template-columns: 1.35fr 1.05fr 0.6fr;
+}
+
 h1,
 h2,
 h3 {
@@ -387,11 +393,25 @@ a {
 
 .axis-rule {
   position: absolute;
-  left: 0;
-  right: 0;
   top: 8px;
   height: var(--edge);
   background: var(--panel-edge);
+}
+
+/* The break in the rail. The window keeps its own scale on its side of it; what is past it is
+   marked rather than drawn to scale, and says in blocks how far past it really is. */
+.axis-break {
+  position: absolute;
+  display: flex;
+  gap: 2px;
+  top: -4px;
+  transform: translateX(-50%);
+  padding: 0 var(--gap-1);
+  background: var(--panel);
+  font-family: var(--mono);
+  font-size: var(--type-mono);
+  line-height: 1;
+  color: var(--ink-dim);
 }
 
 .axis-band {
@@ -439,19 +459,40 @@ a {
   background: var(--refuse);
 }
 
-/* A line the axis does not reach is drawn to the end it runs past and faded off it, so it reads as
-   carrying on. How far it carries on is in the note under the rail, in blocks. */
-.holder-beyond-end {
-  background: linear-gradient(to right, var(--refuse), transparent);
+/* A holder the axis does not reach at all is a mark past the break, not a line under the band: a
+   dot on the rail itself, in the refusal colour, with the real distance under it, so the distance
+   is on the drawing and not only in the sentence below it. */
+.axis-beyond {
+  position: absolute;
+  top: 0;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--gap-1);
 }
 
-.holder-beyond-start {
-  background: linear-gradient(to left, var(--refuse), transparent);
+.axis-beyond-dot {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--refuse);
 }
 
+.axis-beyond-badge {
+  font-family: var(--mono);
+  font-size: var(--type-mono-small);
+  font-weight: 650;
+  color: var(--refuse);
+  white-space: nowrap;
+}
+
+/* The rail, what it means and where it was read from are one group, not three rows of the panel:
+   they sit closer together than the panel's own gap. */
 .holder-note {
   font-size: var(--type-small);
   font-weight: 600;
+  margin-top: calc(-1 * var(--gap-2));
 }
 
 .holder-covers-note {
@@ -460,6 +501,14 @@ a {
 
 .holder-short-note {
   color: var(--refuse);
+}
+
+/* Where a holder's two block heights were read from. It is the holder's own wallet, never the
+   gate's, and that stays on the rail in presentation mode, where the provenance foot comes off. */
+.holder-aside {
+  font-size: var(--type-small);
+  color: var(--ink-faint);
+  margin-top: calc(-1 * var(--gap-2));
 }
 
 .rooms {

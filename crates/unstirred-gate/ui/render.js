@@ -23,8 +23,11 @@
   /* How much of the timeline sits outside the window, so h0 and h1 are points on an axis rather
      than its ends, and a holder line can run past either of them. */
   var AXIS_MARGIN = 0.14;
-  /* How much of the rail a holder line that runs off the end is drawn as, before it fades out. */
-  var HOLDER_STUB = 0.07;
+  /* A rail with a break in it, as percentages of the rail: how much of it the window's own axis
+     keeps, where the break mark sits, and where a holder past the break is marked. */
+  var AXIS_KEPT = 66;
+  var BREAK_AT = 75;
+  var BEYOND_AT = 89;
 
   function node(tag, className, content) {
     var element = document.createElement(tag);
@@ -327,25 +330,44 @@
     return panel(null, [node("h2", "panel-title", "What the door learned"), grid]);
   }
 
-  /* The axis a window is drawn on: the window itself plus a margin on each side, whatever a
-     holder's line does. Stretching it to reach a line that begins twenty thousand blocks after h1
-     would leave the window a sliver of the rail with its caption wrapped into a column of single
-     words; the window is what the room is about, so it keeps the axis. A line that runs past an
-     end is drawn to that end, faded off it, and the note underneath says in blocks how far it
-     really goes. */
-  function axisOf(room) {
-    var margin = Math.max(1, Math.round((room.window.h1 - room.window.h0) * AXIS_MARGIN));
-    return { low: room.window.h0 - margin, high: room.window.h1 + margin };
+  /* Where the window sits on the rail, and where the rail breaks. The window always keeps its own
+     scale: stretching the axis to reach a line that begins twenty thousand blocks after h1 left the
+     window three per cent of the rail with its marks overlapping, so a line that lies wholly past
+     an end is reached by breaking the rail instead. The window's axis then keeps AXIS_KEPT per cent
+     of the rail on its own side of the break, and what is past the break is marked, not drawn to
+     scale — with the real distance in blocks on the mark. */
+  function viewOf(room) {
+    var window_ = room.window;
+    var margin = Math.max(1, Math.round((window_.h1 - window_.h0) * AXIS_MARGIN));
+    var view = {
+      low: window_.h0 - margin,
+      high: window_.h1 + margin,
+      offset: 0,
+      span: 100,
+      breakAt: null,
+      beyondAt: null
+    };
+    if (room.holder && room.holder.from > window_.h1) {
+      view.span = AXIS_KEPT;
+      view.breakAt = BREAK_AT;
+      view.beyondAt = BEYOND_AT;
+    } else if (room.holder && room.holder.to < window_.h0) {
+      view.offset = 100 - AXIS_KEPT;
+      view.span = AXIS_KEPT;
+      view.breakAt = 100 - BREAK_AT;
+      view.beyondAt = 100 - BEYOND_AT;
+    }
+    return view;
   }
 
-  /* One holder's line against one window: where it can be drawn on an axis that may not reach it,
-     and what to say about it. Every number here is computed from the two block heights the state
-     carries, so a line that is off the end still names where it really is. */
-  function holderOnAxis(axis, window_, holder) {
-    var stub = Math.max(1, Math.round((axis.high - axis.low) * HOLDER_STUB));
+  /* One holder's line against one window: a line on the axis when the axis reaches it, and a mark
+     past the break when it does not. Every number here is computed from the two block heights the
+     state carries, so a holder off the end still says where it really is, in blocks. */
+  function holderOnAxis(view, window_, holder) {
     var label = holder.label + ": blocks " + digits(holder.from) + " to " + digits(holder.to);
     if (holder.from <= window_.h0 && holder.to >= window_.h1) {
       return {
+        kind: "line",
         from: holder.from,
         to: holder.to,
         rail: "holder-covers",
@@ -354,80 +376,122 @@
       };
     }
     if (holder.from > window_.h1) {
+      var after = holder.from - window_.h1;
       return {
-        from: axis.high - stub,
-        to: axis.high,
-        rail: "holder-short holder-beyond-end",
+        kind: "beyond",
+        at: view.beyondAt,
+        badge: "+" + digits(after) + " blocks",
         note: "holder-short-note",
         text:
-          label +
-          " — " +
-          digits(holder.from - window_.h1) +
-          " blocks after h1, never inside this window"
+          holder.label +
+          " arrive here: " +
+          digits(after) +
+          " blocks after h1, never inside the window"
       };
     }
     if (holder.to < window_.h0) {
+      var before = window_.h0 - holder.to;
       return {
-        from: axis.low,
-        to: axis.low + stub,
-        rail: "holder-short holder-beyond-start",
+        kind: "beyond",
+        at: view.beyondAt,
+        badge: "−" + digits(before) + " blocks",
         note: "holder-short-note",
         text:
-          label +
-          " — gone " +
-          digits(window_.h0 - holder.to) +
-          " blocks before h0, never inside this window"
+          holder.label +
+          " end here: " +
+          digits(before) +
+          " blocks before h0, never inside the window"
       };
     }
     return {
-      from: Math.max(axis.low, holder.from),
-      to: Math.min(axis.high, holder.to),
+      kind: "line",
+      from: Math.max(view.low, holder.from),
+      to: Math.min(view.high, holder.to),
       rail: "holder-short",
       note: "holder-short-note",
       text: label + " — does not cover the window, so there is nothing to prove"
     };
   }
 
-  function atPercent(axis, height) {
-    return ((height - axis.low) / (axis.high - axis.low)) * 100;
+  function atPercent(view, height) {
+    return view.offset + ((height - view.low) / (view.high - view.low)) * view.span;
   }
 
-  function placed(className, axis, from, to, text) {
+  function placed(className, view, from, to, text) {
     var element = node("div", className, text);
-    var left = atPercent(axis, from);
+    var left = atPercent(view, from);
     element.style.left = left + "%";
     if (to !== null) {
-      element.style.width = atPercent(axis, to) - left + "%";
+      element.style.width = atPercent(view, to) - left + "%";
     }
     return element;
+  }
+
+  /* The rail itself, in one piece or in two with the break mark between them. */
+  function railSegment(from, to) {
+    var element = node("div", "axis-rule");
+    element.style.left = from + "%";
+    element.style.width = to - from + "%";
+    return element;
+  }
+
+  /* A holder past the break: a mark of its own, in the refusal colour, carrying the distance. */
+  function beyondMark(line) {
+    var mark = node("div", "axis-beyond");
+    mark.style.left = line.at + "%";
+    mark.appendChild(node("div", "axis-beyond-dot"));
+    mark.appendChild(node("div", "axis-beyond-badge", line.badge));
+    return mark;
   }
 
   /* The window as a line with two named points and the band between them, with room for one
      holder's own line underneath. A holder whose line does not cover the whole band has nothing to
      prove here, and is drawn short of it rather than described. */
   function timelinePanel(room) {
-    var axis = axisOf(room);
+    var view = viewOf(room);
     var window_ = room.window;
     /* The caption sits in the flow above the rail, pinned to the band's own span: in flow it can
        wrap to a second line and push the rail down, rather than growing over it. */
     var caption = node("div", "axis-caption", "coins must exist here and stay unspent through here");
-    var captionLeft = atPercent(axis, window_.h0);
+    var captionLeft = atPercent(view, window_.h0);
     caption.style.marginLeft = captionLeft + "%";
-    caption.style.width = atPercent(axis, window_.h1) - captionLeft + "%";
+    caption.style.width = atPercent(view, window_.h1) - captionLeft + "%";
     var rail = node("div", "axis");
-    rail.appendChild(node("div", "axis-rule"));
-    rail.appendChild(placed("axis-band", axis, window_.h0, window_.h1, null));
-    rail.appendChild(placed("axis-point", axis, window_.h0, null, null));
-    rail.appendChild(placed("axis-point", axis, window_.h1, null, null));
-    rail.appendChild(placed("axis-mark axis-mark-start", axis, window_.h0, null, "h0 " + digits(window_.h0)));
-    rail.appendChild(placed("axis-mark axis-mark-end", axis, window_.h1, null, "h1 " + digits(window_.h1)));
+    if (view.breakAt === null) {
+      rail.appendChild(railSegment(0, 100));
+    } else {
+      rail.appendChild(railSegment(0, view.breakAt - 3));
+      rail.appendChild(railSegment(view.breakAt + 3, 100));
+      /* The break mark is two slashes built one at a time: a pair of them in one string is a
+         protocol-relative URL as far as the leak scan is concerned, and that scan is right to
+         refuse one in this file (A02c). */
+      var broken = node("div", "axis-break");
+      broken.appendChild(node("span", null, "/"));
+      broken.appendChild(node("span", null, "/"));
+      broken.style.left = view.breakAt + "%";
+      rail.appendChild(broken);
+    }
+    rail.appendChild(placed("axis-band", view, window_.h0, window_.h1, null));
+    rail.appendChild(placed("axis-point", view, window_.h0, null, null));
+    rail.appendChild(placed("axis-point", view, window_.h1, null, null));
+    rail.appendChild(placed("axis-mark axis-mark-start", view, window_.h0, null, "h0 " + digits(window_.h0)));
+    rail.appendChild(placed("axis-mark axis-mark-end", view, window_.h1, null, "h1 " + digits(window_.h1)));
     var children = [node("h2", "panel-title", "The window"), caption, rail];
     if (room.holder) {
-      var line = holderOnAxis(axis, window_, room.holder);
-      var holder = node("div", "axis holder-rail");
-      holder.appendChild(placed("axis-holder " + line.rail, axis, line.from, line.to, null));
-      children.push(holder);
+      var line = holderOnAxis(view, window_, room.holder);
+      /* A holder the axis reaches is a second line under the band; one past the break is a mark on
+         the rail itself, at the place on the rail the break stands for. */
+      if (line.kind === "beyond") {
+        rail.appendChild(beyondMark(line));
+      } else {
+        var holder = node("div", "axis holder-rail");
+        holder.appendChild(placed("axis-holder " + line.rail, view, line.from, line.to, null));
+        children.push(holder);
+      }
       children.push(node("p", "holder-note " + line.note, line.text));
+      if (room.holder.aside) {
+        children.push(node("p", "holder-aside", room.holder.aside));
+      }
     }
     children.push(
       node(
@@ -560,8 +624,14 @@
     stage.appendChild(
       filled(node("div", "hero-row"), [verdictPanel(state, room, verdictIsHero), learnedPanel(room)])
     );
+    /* The window is the act's explanation whenever a holder is drawn on it, so it takes the room
+       the other two panels can spare. */
     stage.appendChild(
-      filled(node("div", "thirds"), [timelinePanel(room), roomsPanel(state), botPanel(state, room, onMembers)])
+      filled(node("div", room.holder ? "thirds thirds-holder" : "thirds"), [
+        timelinePanel(room),
+        roomsPanel(state),
+        botPanel(state, room, onMembers)
+      ])
     );
     stage.appendChild(footPanel(state, room));
     return stage;

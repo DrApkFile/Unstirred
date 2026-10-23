@@ -14,6 +14,10 @@ edition = "2021"
 rust-version = "1.91"
 license = "MIT OR Apache-2.0"
 repository = "https://github.com/DrApkFile/Unstirred"
+homepage = "https://github.com/DrApkFile/Unstirred"
+documentation = "https://github.com/DrApkFile/Unstirred/blob/master/SPEC.md"
+keywords = ["zcash", "zero-knowledge", "privacy", "halo2", "sybil-resistance"]
+categories = ["cryptography::cryptocurrencies", "command-line-utilities"]
 
 [workspace.dependencies]
 voting-circuits = { version = "=0.12.2", default-features = false, features = ["lrz"] }

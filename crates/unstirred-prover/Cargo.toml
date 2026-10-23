@@ -4,6 +4,14 @@ version.workspace = true
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
+repository.workspace = true
+homepage.workspace = true
+documentation.workspace = true
+keywords.workspace = true
+categories.workspace = true
+description = "The holder's half of Unstirred: read-only wallet access, note selection, historical witnesses at h0, the private nullifier lookup at h1, and the proof and binding signature that go in a proof package."
+readme = "README.md"
+include = ["src/**/*", "README.md"]
 
 [features]
 # Synthetic test support (the wallet and nullifier set in `testing`): everything a test needs to
@@ -19,7 +27,7 @@ test-harness = [
 ]
 
 [dependencies]
-unstirred-core = { path = "../unstirred-core" }
+unstirred-core = { path = "../unstirred-core", version = "=0.1.0" }
 rand = { workspace = true, optional = true }
 tempfile = { workspace = true, optional = true }
 zcash_primitives = { workspace = true, optional = true }

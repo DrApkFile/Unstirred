@@ -4,6 +4,14 @@ version.workspace = true
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
+repository.workspace = true
+homepage.workspace = true
+documentation.workspace = true
+keywords.workspace = true
+categories.workspace = true
+description = "The shared contract of Unstirred: the gate manifest, the window and context rules, the proof package schema, the binding message and the closed verdict code set."
+readme = "README.md"
+include = ["src/**/*", "README.md"]
 
 [dependencies]
 voting-circuits.workspace = true

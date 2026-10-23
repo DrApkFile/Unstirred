@@ -36,9 +36,12 @@ for claim, status, evidence, _where in (row[:4] for row in rows):
         if not pathlib.Path(link).is_file():
             problems.append(f"{claim!r} cites {link}, which does not exist")
 
-for document in ("README.md", "CLAIMS.md"):
-    for link in re.findall(r"\(((?:evidence|briefing)/[^)]+)\)", pathlib.Path(document).read_text()):
-        if not pathlib.Path(link).is_file():
+# Every document that cites a recorded run is held to it, each link read from where that
+# document sits, so LEAKS.md's ../evidence/… resolves the same way a reader's click does.
+for document in ("README.md", "CLAIMS.md", "SPEC.md", "briefing/LEAKS.md"):
+    here = pathlib.Path(document)
+    for link in re.findall(r"\]\(((?:\.\./)?(?:evidence|briefing)/[^)]+)\)", here.read_text()):
+        if not (here.parent / link).is_file():
             problems.append(f"{document} links {link}, which does not exist")
 
 recorded = {

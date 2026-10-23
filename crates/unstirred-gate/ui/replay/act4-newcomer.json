@@ -32,9 +32,10 @@
       "h1_root_provenance": "operator-pinned",
       "limit": 50,
       "holder": {
-        "label": "the newcomer's coins \u2014 from their wallet, not the gate's",
+        "label": "the newcomer's coins",
         "from": 4526842,
-        "to": 4528029
+        "to": 4528029,
+        "aside": "Both blocks were read from their own wallet by the knock. The gate is told neither."
       },
       "markers": [
         {

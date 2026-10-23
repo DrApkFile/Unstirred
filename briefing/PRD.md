@@ -193,6 +193,8 @@ Prover (decides before proving): `WALLET_NOT_SYNCED_PAST_H1`, `COINS_TOO_NEW`, `
 - A44 every replay act the gate ships is a valid page state whose code words are `unstirred-core`'s own, each act renders in a document that carries no network call site at all, and a replay page names an act only for the room that act belongs to
 - A45 a knock the room's own rule refuses asks that gate for nothing but its published manifest: no challenge is requested, nothing is posted, and the command says both that nothing was sent and that no challenge was asked for, so the gate holds no record of the attempt
 - A46 the demo's forced submission (`knock --force-unqualified-demo`) is in no usage text the CLI prints, and refuses to run at all for a wallet the room would admit, without asking that gate for a challenge
+- A47 two proofs of the same coins at the same gate carry different `rk`, session key and `van_comm`, because `alpha` and the blinding are drawn fresh per proof, while exactly one marker per real note repeats — that collision is what single use rests on, and the rest of the five are the circuit's padding nullifiers (LEAKS L7)
+- A48 a non-membership answer shows neither the IMT path nor the leaf bounds that bracket the holder's nullifier — not in its own `Debug`, nor in that of the lookup that carries it (LEAKS L5b)
 
 ## 11. Priorities
 - **P0:** core, prover, verifier, CLI (incl. `gate markers`), gate service, Holders' Room page, GitHub Release binaries, A01–A14, `LEAKS.md`, `SPEC.md`, real testnet evidence, README, demo video.
@@ -225,7 +227,7 @@ Fill in from the site's submission form when visible. Default answers: track Cor
 
 ## 16. Distribution and judge access (added 2026-10-15)
 - **Storage:** the gate creates `gate.sqlite` next to itself on first run. Judges never handle it. Deleting it resets the gate.
-- **Judge path 1, live demo:** hosted Holders' Room (gate + nf-server on a small server). Decide by M3 (2026-10-21).
+- **Judge path 1, the demo:** the video, and the recorded acts any locally run gate serves at `GET /room/<context>?replay=<act>` with no chain, no wallet and no nf-server. No hosted room (DECISIONS 2026-10-22).
 - **Judge path 2, local:** `unstirred gate serve`.
 - **Judge path 3, no database:** `unstirred verify <package.json> --manifest <gate.json>` against recorded evidence.
 - **Transparency:** `unstirred gate markers` prints everything the gate stores (markers, verdicts, timestamps; nothing else).
