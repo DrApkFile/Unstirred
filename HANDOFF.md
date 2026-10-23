@@ -1,15 +1,14 @@
 # HANDOFF
 
-State of Unstirred at commit `3f79c4e` **plus an uncommitted release-prep pass** (§11: act 4's
-broken axis, `SPEC.md`, the rebuilt README, LEAKS finalised, the release workflow and crates.io
-readiness) — **M1, M2, M3 and M4 are closed** (M2's last open item, a real two-source root run, was recorded
+State of Unstirred at commit `3d2bf57`, with a clean tree. **Act 4's visual fix, the docs and the
+release prep are committed** (§11: the broken axis, `SPEC.md`, the rebuilt README, LEAKS
+finalised, the release workflow and crates.io readiness). **M1, M2, M3 and M4 are closed** (M2's last open item, a real two-source root run, was recorded
 on 2026-10-20, §1; M3 step 1 is `6c2a288` and `34c3146`, §8; M3 step 2, the Holders' Room page, is
 `bf3fe87` with the browser review's fixes in `e02230d`, §9). **M4, the demo's act 4, is built and
 recorded** (§10): the newcomer's wallet was refused by the room's own rule on 2026-10-22 with
 nothing sent, and its forced submission was refused by the gate itself, REFUSED / ROOT_MISMATCH,
 writing nothing — both against the real testnet, and `act4-newcomer` is generated from them. M4 is
-committed, `2e24559` and `527f871`. **Act 4's visual fix and the docs are done and the release is
-prepared; what is left is the owner's three acts: commit, tag, publish** (§11).
+committed, `2e24559` and `527f871`. **What is next, in order: the demo video, then the audit.**
 Written 2026-10-20, revised 2026-10-21, 2026-10-22 and 2026-10-23,
 from the 2026-10-17 version. For the next session (agent or human).
 Read `briefing/CLAUDE.md` and `briefing/BUILD_CONTRACT.md` first; this file only says where the
@@ -140,6 +139,21 @@ rows for the two-source run, the `verify` wording constant and A33, the README t
 `origin/master` and both are pushed, so look for this work under two subjects, not one.
 
 ## 2. What to do next, precisely
+
+**Everything built so far is committed and green** (`3d2bf57`, GATE: PASS, 104 tests,
+`evidence/2026-10-23-gate-release-prep.md`). **Next, in order:**
+
+1. **The demo video**, built with HyperFrames. The five acts the gate serves are what it is cut
+   from: `?replay=<act>` with `&present=1`, rendered at exactly 1920x1080, where the stage is at
+   scale 1. `crates/unstirred-gate/ui/frame.md` is the design system the video shares with the
+   page, and a unit test fails if the two drift. PRD §9 is the script and its timings; act 7, the
+   chain itself, still has no run behind it.
+2. **The audit, with a GitHub Pages replay site.** The acts need no chain, no wallet and no
+   nf-server, so they can be served as static pages for an auditor to open without running
+   anything.
+
+The release is prepared and not performed: the tag and the crates.io publish are still open, with
+the order and the exact commands in §11. Deadline: last commit before **2026-10-27 08:00 UTC**.
 
 **M2 is closed. Nothing in it is open.** Both steps are committed, and the two-source rule has
 now run for real: on 2026-10-20 the owner's zebrad 7.0.0-rc.0 had synced past the window, and
@@ -838,11 +852,11 @@ are `SPEC.md`, the rebuilt README and the finalised LEAKS, and the release is pr
 it can be without committing, tagging or publishing. PRD §9's act 7, the chain itself, still has
 no run behind it.
 
-## 11. Release prep, 2026-10-22 and 2026-10-23, **nothing committed**
+## 11. Release prep, 2026-10-22 and 2026-10-23, committed as `3d2bf57`
 
-Three pieces, all in the working tree and none of them committed: act 4's visual fix, the docs,
-and everything the release needs short of doing it. The gate run that covers all of it is
-`evidence/2026-10-23-gate-release-prep.md`.
+Three pieces, all committed as `3d2bf57`: act 4's visual fix, the docs, and everything the
+release needs short of doing it. The gate run that covers all of it is
+`evidence/2026-10-23-gate-release-prep.md` — GATE: PASS, exit 0, 104 tests.
 
 ### Act 4's broken axis
 
@@ -931,18 +945,14 @@ both blocks were read from the holder's own wallet. Every number comes from the 
 - **The publish dry run passes for the whole workspace**, in dependency order, each crate packed
   and then compiled from its own tarball: `evidence/2026-10-23-publish-dry-run.md`.
 
-### What is left: the owner's three acts
+### What is left: two acts, neither done
 
-**Nothing below has been done, and nothing in this section is committed.**
+The commit is done (`3d2bf57`). Its gate run was made with
+`CARGO_BUILD_JOBS=2 RUST_TEST_THREADS=1` and with zebrad, the nf-server and every gate stopped,
+because the parallel run was killed for memory on this 7 GB machine first; the settings change
+what runs at once and nothing about what is asserted. **Neither of the two below has been done.**
 
-1. **Commit.** `./scripts/gate.sh` is green on this tree — **GATE: PASS**, exit 0, 104 tests,
-   `evidence/2026-10-23-gate-release-prep.md`. That run was made with
-   `CARGO_BUILD_JOBS=2 RUST_TEST_THREADS=1` and with zebrad, the nf-server and every gate stopped,
-   because the parallel run was killed for memory on this 7 GB machine first; the settings change
-   what runs at once and nothing about what is asserted. Everything is in the working tree;
-   review it and commit it.
-
-2. **Publish to crates.io**, from the tagged commit, with a clean tree. One version, 0.1.0, five
+1. **Publish to crates.io**, from the tagged commit, with a clean tree. One version, 0.1.0, five
    crates, in dependency order. Cargo does the ordering and the index waits itself:
 
    ```
@@ -967,7 +977,7 @@ both blocks were read from the holder's own wallet. Every number comes from the 
    single coordinated publish. `DECISIONS.md` still has the one open row — whether to reserve the
    names first with a 0.0.1 placeholder — and a straight 0.1.0 publish closes it either way.
 
-3. **Tag and release.** The workflow runs on the tag, not on the commit:
+2. **Tag and release.** The workflow runs on the tag, not on the commit:
 
    ```
    git tag -a v0.1.0 -m "Unstirred 0.1.0"
