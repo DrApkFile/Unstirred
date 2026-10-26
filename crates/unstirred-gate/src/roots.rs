@@ -10,6 +10,8 @@ use unstirred_verifier::{consult, parse_root_source_spec, root_source_note, Root
 /// The h0 root and tip for one window, with the provenance of every answer. Both implementations
 /// decide nothing: an unusable source is INCONCLUSIVE inside the readout, as it is for the CLI.
 pub trait RootAuthority: std::fmt::Debug + Send + Sync {
+    /// Asks every source for the h0 root and the tip, and reports what each one said alongside
+    /// the agreement they reached or the refusal that stopped them.
     fn consult(&self, network: Network, h0: u32) -> RootAuthorityReadout;
 
     /// The single-source label, when only one source was configured.

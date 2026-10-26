@@ -18,7 +18,10 @@ use crate::verdict::as_verdict;
 /// pinned by the operator until nf-server `verify-root` lands.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct PinnedRoots {
+    /// The note-commitment root at `h0`, as the root authority agreed it.
     pub nc_root_at_h0: [u8; 32],
+    /// The nullifier-set root at `h1`, operator-pinned in v1 and labelled as such wherever a
+    /// verdict is shown.
     pub nf_imt_root_at_h1: [u8; 32],
 }
 
@@ -26,8 +29,12 @@ pub struct PinnedRoots {
 /// the closed code set; which verdict kind a code maps to is fixed in `unstirred-core`.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Verdict {
+    /// Every check passed: this holder meets the gate's rule.
     Admitted,
+    /// A check failed about the holder or the package. Retrying the same package will not help.
     Refused(Refusal),
+    /// Nothing could be decided, because the verifier could not establish its own facts. Not a
+    /// statement about the holder.
     Inconclusive(Refusal),
 }
 
@@ -43,6 +50,23 @@ pub use crate::verdict::verdict_object;
 
 /// Runs steps 1-8 in order against a challenge the caller already chose. This is the
 /// no-database path: admission here records nothing.
+///
+/// The steps run in a fixed order, cheapest first, so a package is never charged a proof
+/// verification it cannot pass. Here the window itself is not final yet, which is settled before
+/// the package is even read:
+///
+/// ```
+/// use unstirred_core::Code;
+/// use unstirred_verifier::{verify_package, PinnedRoots, Verdict};
+///
+/// let manifest = r#"{"version":"unstirred/v1","network":"test","context":"holders-room",
+///                    "window":{"h0":4505790,"h1":4506510},"min_zatoshis":"12500000"}"#;
+/// let roots = PinnedRoots { nc_root_at_h0: [0u8; 32], nf_imt_root_at_h1: [0u8; 32] };
+///
+/// // A tip only one block past h1: h1 is not yet FINALITY_DEPTH deep.
+/// let verdict = verify_package(manifest, "{}", &roots, 4_506_511, &[0u8; 32]);
+/// assert!(matches!(&verdict, Verdict::Refused(r) if r.code == Code::WindowInvalid));
+/// ```
 pub fn verify_package(
     manifest_json: &str,
     package_json: &str,

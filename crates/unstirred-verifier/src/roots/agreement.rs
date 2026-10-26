@@ -9,14 +9,20 @@ use super::{RootSource, RootsFromServer};
 /// One source's outcome in a consultation, in the order the sources were given.
 #[derive(Debug)]
 pub struct SourceOutcome {
+    /// How the source names itself.
     pub source: String,
+    /// What it answered, or why it could not be used. Kept whichever way it went, so a report can
+    /// show every source rather than only the ones that worked.
     pub answer: Result<RootsFromServer, Refusal>,
 }
 
 /// The one root the sources agreed on, with the most conservative tip they reported.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct AgreedRoots {
+    /// The h0 root every usable source reported.
     pub nc_root_at_h0: [u8; 32],
+    /// The lowest tip any usable source reported, so the finality check uses the most
+    /// conservative chain on offer.
     pub tip: u32,
 }
 
@@ -24,7 +30,9 @@ pub struct AgreedRoots {
 /// agreement result.
 #[derive(Debug)]
 pub struct RootAuthorityReadout {
+    /// Every source's outcome, in the order the sources were given.
     pub per_source: Vec<SourceOutcome>,
+    /// The agreed root and tip, or the refusal that stopped the authority reaching one.
     pub agreement: Result<AgreedRoots, Refusal>,
 }
 

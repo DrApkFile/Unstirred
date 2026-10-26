@@ -16,12 +16,16 @@ const ROOT_BYTES: usize = 32;
 /// own parser would refuse.
 #[derive(Debug, Clone)]
 pub struct Room {
+    /// The parsed manifest, which the verifier reads the window, network and context from.
     pub manifest: Manifest,
+    /// The exact text `GET manifest` answers with.
     pub manifest_json: String,
+    /// The h1 nullifier-set root the operator pinned for this room.
     pub h1_root: [u8; ROOT_BYTES],
 }
 
 impl Room {
+    /// The room's name, which scopes its markers.
     pub fn context(&self) -> &str {
         &self.manifest.context
     }

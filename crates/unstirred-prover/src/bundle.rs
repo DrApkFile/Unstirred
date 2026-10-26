@@ -30,7 +30,11 @@ const IRONWOOD_NOTE_VERSION: NoteVersion = NoteVersion::V3;
 /// [`fmt::Debug`] shows the tree positions only. The notes, their witnesses and their leaf bounds
 /// are private witnesses of the circuit, and nothing outside it needs to see them.
 pub struct NoteInputs {
+    /// The tree positions behind the inputs, in the same order. Public, and the only part of
+    /// this a caller needs to see.
     pub positions: Vec<u64>,
+    /// The circuit's real-note inputs. Private witnesses: the notes, their paths and their leaf
+    /// bounds.
     pub inputs: Vec<RealNoteInput>,
 }
 

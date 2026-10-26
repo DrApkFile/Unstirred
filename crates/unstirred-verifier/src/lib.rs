@@ -2,6 +2,7 @@
 roots, never anything the package says about itself (PRD section 6). The engine is pure. `roots` \
 is the only network access, and `store` is the only database: hashed challenges, markers and \
 admission rows. The h1 nullifier-set root stays operator-pinned, labelled as operator-pinned."]
+#![warn(missing_docs)]
 
 pub mod admit;
 pub mod engine;

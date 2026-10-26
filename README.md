@@ -30,12 +30,16 @@ Binaries are attached to a `v*` tag by CI, so until 0.1.0 is tagged that page is
 path is [build from source](#build-from-source) — two commands, and a cold release build of the
 Halo2 and Zcash dependency graph is not quick.
 
-**2. Write the gate's manifest.** This is the gate the proof was made for, and `unstirred` writes
-it itself, so nothing about it is taken on trust:
+**2. The gate's manifest** is in the repository at
+[`examples/holders-room.json`](examples/holders-room.json) — the room this proof was made for, four
+numbers and nothing to configure. Nothing about it has to be taken on trust either: `unstirred`
+writes the same file from the same four numbers, and the two are byte-for-byte identical.
 
 ```
 unstirred gate init --network test --context holders-room --h0 4505790 --h1 4506510 \
     --out holders-room.json
+
+diff holders-room.json examples/holders-room.json    # no output
 ```
 
 **3. Verify the recorded proof** ([evidence/2026-10-17-first-proof.json](evidence/2026-10-17-first-proof.json))
@@ -43,7 +47,7 @@ against the live testnet, through one public lightwalletd:
 
 ```
 unstirred verify --package evidence/2026-10-17-first-proof.json \
-    --manifest holders-room.json \
+    --manifest examples/holders-room.json \
     --root-source lwd:https://testnet.zec.rocks:443 --single-root-source \
     --h1-root 8af0c16b82ff1c9170de5dc87b3c06ef3a7144befdba71fc40959effe9f5be26 \
     --challenge 17eeb99835dd5136c986f0204445ac8e8e0d556367752f73b3b22fdb8e1d4e57
@@ -83,25 +87,15 @@ and `unstirred verify` on a package with one byte changed is `PROOF_INVALID`, ex
 ## See the demo without running anything
 
 The gate serves the demo itself. Five acts, each one a recorded run rendered as a page — no chain,
-no wallet, no nf-server, no network call of any kind from the page:
+no wallet, no nf-server, no network call of any kind from the page. The config and both room
+manifests are in the repository, so there is nothing to write:
 
 ```
-unstirred gate init --network test --context holders-room --h0 4505790 --h1 4506510 --out holders-room.json
-unstirred gate init --network test --context second-room  --h0 4505790 --h1 4506510 --out second-room.json
-cat > gate.toml <<'TOML'
-listen = "127.0.0.1:8080"
-database = "gate.sqlite"
-root_sources = ["lwd:https://testnet.zec.rocks:443", "zebra:http://127.0.0.1:18232"]
-h1_root = "8af0c16b82ff1c9170de5dc87b3c06ef3a7144befdba71fc40959effe9f5be26"
-
-[[rooms]]
-manifest = "holders-room.json"
-
-[[rooms]]
-manifest = "second-room.json"
-TOML
-unstirred gate serve --config gate.toml
+unstirred gate serve --config examples/gate.toml
 ```
+
+[`examples/gate.toml`](examples/gate.toml) is commented line by line — it is the shortest
+explanation of what a gate owner actually decides.
 
 Then open:
 
@@ -143,6 +137,8 @@ Nothing is claimed here that does not link to a file in `evidence/`. This table 
 | **PROVEN** | A second real testnet wallet, funded after h0 4,505,790, is refused by the room's own rule on the holder's side — COINS_TOO_NEW, no proof made — when it knocks `holders-room`. That run predates the eligibility-before-challenge fix: its output shows the gate issuing a challenge and the knock printing "proving now" before the local refusal, which is the order A45 now forbids | [evidence/2026-10-21-bob-knock.txt](evidence/2026-10-21-bob-knock.txt) |
 | **PROVEN** | A gate serving the real Zcash testnet refuses the newcomer's forced submission REFUSED / ROOT_MISMATCH and writes nothing for it: the package is a real proof of a coin mined at block 4,526,842, built against the latest note-commitment root it appears in (block 4,528,029), and the room's log afterwards still shows the same five markers and the same one ADMITTED as before | [evidence/2026-10-22-bob-forced-knock.txt](evidence/2026-10-22-bob-forced-knock.txt), header [evidence/2026-10-22-bob-forced-knock.meta.md](evidence/2026-10-22-bob-forced-knock.meta.md) |
 | **PROVEN** | With the eligibility check in place, the newcomer's ordinary knock asks that gate for nothing but the room's manifest: no challenge line, no "proving now", and the run ends "nothing was sent to the gate" / "no challenge was asked for" (A45, on the real testnet wallet this time) | [evidence/2026-10-22-bob-knock.txt](evidence/2026-10-22-bob-knock.txt), header [evidence/2026-10-22-bob-forced-knock.meta.md](evidence/2026-10-22-bob-forced-knock.meta.md) |
+| **PROVEN** | The recorded first proof is still ADMITTED today by a program that uses nothing but `unstirred-verifier`'s public API, against an h0 root fetched from the live testnet at tip 4,544,493 — about 38,000 blocks past h1 — and reported as `a16809847bf51d60ac6d9bb3f71cbbf27483050868b94b242ca831fe14bf692d`, the same root the runs of 2026-10-17 and 2026-10-20 reported for h0 4,505,790. One source, opted into, labelled in the output | [the two examples, run](evidence/2026-10-26-examples-run.md) |
+| **PROVEN** | That same package is REFUSED / CHALLENGE_UNKNOWN_OR_EXPIRED by the 187-line allowlist example, which then holds 0 admissions and 0 markers: a package cannot be lifted out of one gate's records and replayed into another's, and the refusal writes nothing | [the two examples, run](evidence/2026-10-26-examples-run.md) |
 | **MEASURED** | No page the gate serves hides text to make itself fit: on every page, live, replayed and presented, at 1920x1080 and at 1326x683, the stage does not outgrow its 1080px, no box hides what does not fit, and no text has left the stage — measured in a real browser | [layout check](evidence/2026-10-21-page-layout-check.md) |
 | **MEASURED** | `?present=1` raises the smallest type on any page from 15-16px to 19-20px and takes the gate's own technical lines off the provenance foot, on a live page and on a replayed act alike | [layout check](evidence/2026-10-21-page-layout-check.md) |
 | **MEASURED** | The two page fixes of 2026-10-22 — the picker aligned to the top, and a derived time's explanation moved to the provenance foot, which `?present=1` drops while the card keeps "(time derived)" — hide nothing: every page variant measured again at 1920x1080 and 1326x683, and three frames looked at | [layout check](evidence/2026-10-22-page-layout-check.md) |
@@ -180,7 +176,7 @@ Nothing is claimed here that does not link to a file in `evidence/`. This table 
 | **SYNTHETIC** | Two proofs of the same coins at the same gate carry a different `rk`, session key and `van_comm`, because `alpha` and the value-commitment blinding are drawn fresh per proof; exactly one marker per real note repeats, which is the collision single use rests on, and the other markers in a proof are the circuit's own padding nullifiers (A47) | [gate log](evidence/2026-10-23-gate-release-prep.md) |
 | **NOT BUILT** | The h1 nullifier-set root checked by the verifier itself (nf-server `verify-root`) | — |
 
-50 claims: 14 PROVEN, 8 MEASURED, 20 GATED, 7 SYNTHETIC, 1 NOT BUILT. **PROVEN** — a recorded run against the real Zcash testnet; **MEASURED** — a recorded run of a named tool, against something this repo serves; **GATED** — settled by a recorded `scripts/gate.sh` run: fmt, clippy and the whole suite; **SYNTHETIC** — true of a wallet, nullifier set or root built inside the test process; **NOT BUILT** — named here so it cannot be read as working.
+52 claims: 16 PROVEN, 8 MEASURED, 20 GATED, 7 SYNTHETIC, 1 NOT BUILT. **PROVEN** — a recorded run against the real Zcash testnet; **MEASURED** — a recorded run of a named tool, against something this repo serves; **GATED** — settled by a recorded `scripts/gate.sh` run: fmt, clippy and the whole suite; **SYNTHETIC** — true of a wallet, nullifier set or root built inside the test process; **NOT BUILT** — named here so it cannot be read as working.
 
 <!-- end status table -->
 
@@ -245,11 +241,25 @@ machine with everything else stopped. CI uses neither setting.
 
 ## Docs
 
+- [`docs/GETTING_STARTED.md`](docs/GETTING_STARTED.md) — three paths, step by step: a holder with
+  a wallet, an owner standing a gate up, a developer reading the code
+- [`docs/INTEGRATION.md`](docs/INTEGRATION.md) — building on it: the HTTP flow in any language,
+  the Rust crates, embedding the prover in a wallet, and one context per purpose
 - [`SPEC.md`](SPEC.md) — what is proved, why it holds, the wire formats, the limits
 - [`CLAIMS.md`](CLAIMS.md) — every claim, its status, the file that settles it
 - [`briefing/LEAKS.md`](briefing/LEAKS.md) — every privacy channel, with its test or stated limit
 - [`briefing/PRD.md`](briefing/PRD.md) — the requirements, §10 being the test list
 - [`DECISIONS.md`](DECISIONS.md) — every decision that changed a frozen rule, dated
+
+Two runnable programs use nothing but the library's public API, and are the shortest way to read
+it: [`verify_package.rs`](crates/unstirred-verifier/examples/verify_package.rs) is `unstirred
+verify` in 164 lines, and [`allowlist.rs`](crates/unstirred-verifier/examples/allowlist.rs) is a
+whole one-admission-per-holder allowlist in 187. Both were
+[run and recorded](evidence/2026-10-26-examples-run.md).
+
+```
+cargo run --release -p unstirred-verifier --example verify_package -- --help
+```
 
 ## License
 

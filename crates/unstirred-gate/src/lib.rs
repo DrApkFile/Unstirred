@@ -7,6 +7,7 @@ store already holds (hashed challenges, markers and admission verdicts) is a bou
 feed of verdicts, which is forgotten when the process ends (LEAKS L16). It also serves the \
 Holders' Room page itself, from its own data, with no third-party request of any kind, no request \
 logging that records an address and no request body in any log (LEAKS L9, L10)."]
+#![warn(missing_docs)]
 
 pub mod client;
 pub mod config;
@@ -21,8 +22,8 @@ pub mod router;
 pub mod serve;
 pub mod state;
 
-pub use client::{Answer, GateClient, GateClientError, GateVerdict, IssuedChallenge};
-pub use config::{load_config, ConfigError, GateConfig, Room};
+pub use client::{AdvertisedServices, Answer, GateClient, GateClientError, GateVerdict, IssuedChallenge};
+pub use config::{load_config, ConfigError, GateConfig, Room, Services};
 pub use events::{CollectedLog, GateLog, StdoutLog};
 pub use page::{is_act_name, live_state, replay_state, Mode, PageState, REPLAY_ACTS};
 pub use recent::{RecentVerdict, RecentVerdicts, RECENT_PER_ROOM};

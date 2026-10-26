@@ -1,3 +1,7 @@
+#![doc = "Rebuilding each selected note's authentication path against the note-commitment tree at \
+h0, and checking every path against that height's root before it is used. A path that does not \
+hash to the root stops the run here rather than failing inside the circuit."]
+
 use incrementalmerkletree::{MerklePath, Position};
 use voting_crypto_deps::orchard::tree::MerkleHashOrchard;
 use zcash_protocol::consensus;
@@ -7,22 +11,29 @@ use crate::selection::HeldNote;
 use crate::treestate::{IronwoodTreeState, IRONWOOD_TREE_DEPTH};
 use crate::wallet::ReadOnlyWallet;
 
+/// One note's authentication path in the Ironwood commitment tree.
 pub type IronwoodMerklePath = MerklePath<MerkleHashOrchard, IRONWOOD_TREE_DEPTH>;
 
 /// One note's authentication path at h0, with the root that path hashes to. The path is only
 /// kept if that root is the h0 root, so `path_root` always equals [`Witnesses::root`].
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct NoteWitness {
+    /// The note this path is for.
     pub note: HeldNote,
+    /// The path itself, a private witness of the circuit.
     pub path: IronwoodMerklePath,
+    /// The root the path hashes to.
     pub path_root: [u8; 32],
 }
 
 /// Witnesses for a set of notes against one height's note commitment root.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Witnesses {
+    /// The height the tree was read at, which is the gate's h0.
     pub height: u32,
+    /// The note-commitment root at that height.
     pub root: [u8; 32],
+    /// One witness per note, in selection order.
     pub notes: Vec<NoteWitness>,
 }
 

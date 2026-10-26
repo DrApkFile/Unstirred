@@ -17,12 +17,17 @@ pub const RECENT_PER_ROOM: usize = 20;
 /// One answered verdict, as the feed keeps it. These three fields are the whole of it.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct RecentVerdict {
+    /// The verdict word, as the wire spells it.
     pub verdict: &'static str,
+    /// The code from the closed set, or nothing for an admission.
     pub code: Option<&'static str>,
+    /// The second it was answered.
     pub at: i64,
 }
 
 impl RecentVerdict {
+    /// One entry from a verdict the gate has just answered. The verdict itself is not kept: its
+    /// word and its code are, and nothing that could identify the holder.
     pub fn of(verdict: &Verdict, at: i64) -> Self {
         Self {
             verdict: name_of(verdict),
@@ -39,6 +44,8 @@ pub struct RecentVerdicts {
 }
 
 impl RecentVerdicts {
+    /// Remembers one verdict for this room, pushing the oldest off the end. In memory only:
+    /// nothing here reaches the database.
     pub fn record(&self, context: &str, verdict: &Verdict, at: i64) {
         let entry = RecentVerdict::of(verdict, at);
         let mut per_room = match self.per_room.lock() {
@@ -63,6 +70,8 @@ impl RecentVerdicts {
     }
 }
 
+/// The wire word for a verdict. One place, so the page, the log and the HTTP answer cannot
+/// spell a verdict three ways.
 pub fn name_of(verdict: &Verdict) -> &'static str {
     match verdict {
         Verdict::Admitted => "ADMITTED",

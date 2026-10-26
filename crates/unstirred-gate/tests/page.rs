@@ -15,8 +15,12 @@ mod gate {
 
 use std::error::Error;
 
-use gate::page_support::{absolute_urls_in_code, network_call_sites, off_origin_markers, parts};
-use gate::plain::{start_in, PlainGate, HOLDERS_ROOM, SECOND_ROOM};
+use gate::page_support::{
+    absolute_urls_in_code, links_to_anything_but_inline_icon_bytes, network_call_sites, off_origin_markers, parts,
+};
+use gate::plain::{
+    start_in, start_in_advertising, PlainGate, ADVERTISED_LIGHTWALLETD, ADVERTISED_PIR, HOLDERS_ROOM, SECOND_ROOM,
+};
 use unstirred_core::Code;
 use unstirred_gate::{replay_state, Mode, PageState, RECENT_PER_ROOM, REPLAY_ACTS, ROOM_LOG_LIMIT};
 
@@ -114,6 +118,19 @@ fn a02c_no_page_the_gate_serves_asks_for_anything_from_anywhere_else() -> TestRe
             off_origin_markers(page),
             Vec::<&str>::new(),
             "a page asked for something from somewhere else"
+        );
+        assert_eq!(
+            links_to_anything_but_inline_icon_bytes(page),
+            Vec::<String>::new(),
+            "a page links to something it would have to fetch"
+        );
+        assert!(
+            page.contains("<link rel=\"icon\" type=\"image/png\" href=\"data:image/png;base64,"),
+            "every page carries its own icon as bytes, not as a fetch"
+        );
+        assert!(
+            page.contains("img-src data:"),
+            "the policy admits the page's own inline icon bytes and no other image"
         );
         let split = parts(page)?;
         assert_eq!(
@@ -445,4 +462,35 @@ fn feed(gate: &PlainGate, context: &str) -> Result<serde_json::Value, Box<dyn Er
 
 fn json_of(answer: &unstirred_gate::Answer) -> Result<serde_json::Value, Box<dyn Error>> {
     Ok(serde_json::from_str(&answer.body)?)
+}
+
+/// A49, the published half: a gate that advertises its holders' service addresses carries them in
+/// `GET /rooms`, and a gate that advertises nothing carries no such field at all — a holder is
+/// never handed an empty suggestion to puzzle over.
+#[test]
+fn a49_the_room_list_carries_the_service_addresses_a_gate_chose_to_advertise() -> TestResult {
+    let silent = tempfile::tempdir()?;
+    let listing = start_in(silent.path())?.client.rooms()?.body;
+    assert!(
+        !listing.contains("services"),
+        "a gate that advertises nothing says nothing: {listing}"
+    );
+
+    let advertising = tempfile::tempdir()?;
+    let gate = start_in_advertising(advertising.path())?;
+    let listing = gate.client.rooms()?.body;
+    assert!(
+        listing.contains(ADVERTISED_PIR) && listing.contains(ADVERTISED_LIGHTWALLETD),
+        "the gate publishes both addresses it was given: {listing}"
+    );
+
+    let services = gate.client.services()?;
+    assert_eq!(services.pir_url.as_deref(), Some(ADVERTISED_PIR));
+    assert_eq!(services.lightwalletd_url.as_deref(), Some(ADVERTISED_LIGHTWALLETD));
+
+    // A holder reading a gate that advertises nothing gets two Nones, not an error.
+    let nothing = start_in(silent.path())?.client.services()?;
+    assert_eq!(nothing.pir_url, None);
+    assert_eq!(nothing.lightwalletd_url, None);
+    Ok(())
 }

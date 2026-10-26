@@ -3,6 +3,46 @@
 Things learned while building that the code and the other briefing files do not say. Decisions go
 to `DECISIONS.md`; recorded runs go to `evidence/`. This file is for the facts that cost time.
 
+## Final audit part A: advertised services, the guides, the examples, rustdoc, 2026-10-26
+
+- **A config file's paths resolve against the config file, so a path that reads correctly from the
+  repo root is usually wrong.** `examples/gate.toml` listed `manifest = "examples/holders-room.json"`
+  — which is what you type on the command line, and which the loader turned into
+  `examples/examples/holders-room.json`. Nothing caught it, because no test starts a gate from that
+  file and reading the line in isolation looks right. **The only check that settles a committed
+  config is starting the thing from it**, which is now done: `unstirred gate serve --config
+  examples/gate.toml` serves both rooms, and `curl /rooms` shows the advertised services.
+- **A stale `target/release` binary will lie to you about a feature you just added.** Testing the
+  new `pir_url` key with `./target/release/unstirred` reported `unknown field pir_url` — the binary
+  predated the field. `scripts/gate.sh` does not refresh it either (HANDOFF §10 already says so for
+  a different run). Build before you test a config surface, or test it through the crate's own
+  tests, which had already passed.
+- **`missing_docs` is a per-crate lint, so turning it on is four edits and one number.** The
+  workspace went from 479 missing items to zero. The bulk of it is one file: `ProverError` alone is
+  57 variants and 52 named fields. Those were documented by a script that parses the enum and
+  inserts a line above each variant and field, keyed by name — **never by retyping the
+  `#[error(...)]` strings**, which are user-visible text and the one thing a bulk edit must not
+  touch.
+- **A doc comment inserted above `pub struct` lands below the `#[derive]`, which is a compile
+  error.** Two scripted passes were needed: one to move doc blocks above their attributes, and one
+  to delete the attribute block a replacement had duplicated. If a bulk doc edit anchors on
+  `pub struct X {`, anchor on the attributes above it instead, or expect to clean up after.
+- **Doc tests are the expensive kind of test in a Halo2 workspace.** Each one links its own binary
+  against the whole dependency graph: five doc tests in `unstirred-verifier` took 145 s, almost all
+  of it linking. That is the reason there are 24 and not 60 — a doc example earns its place by
+  showing a rule that is hard to see in the signature (which codes a refusal uses, that a challenge
+  cannot be replayed, that the stored challenge is not the one handed out), not by restating the
+  types.
+- **One doc example is `no_run` on purpose and says so in its own text**: the prover's crate-level
+  example, the holder's whole path. It compiles — which is what keeps it honest when the API moves
+  — but running it would build a real Halo2 proof and would need a wallet, a lightwalletd and an
+  nf-server.
+- **Advertising a service address is a startup decision, not a request-time one.** A gate that
+  cannot say where its nf-server is should refuse to start, because the alternative is a holder
+  reading the mistake in their own terminal, from a URL they did not choose. `advertisable()`
+  checks scheme and host through `http::Uri` in `load_config`, so the refusal is `ConfigError` and
+  the socket is never bound (A49).
+
 ## The video's generators, and two steps closed rather than deferred, 2026-10-26
 
 - **A generator that lives in a scratchpad is a generator that is already lost.** `video/index.html`

@@ -22,8 +22,12 @@ use unstirred_core::Code;
 
 use crate::ProverError;
 
+/// What a test in this workspace returns: anything that went wrong, boxed, since a synthetic
+/// wallet can fail in as many ways as the harness it is built from.
 pub type TestResult = Result<(), Box<dyn Error>>;
 
+/// The verdict code behind a prover error, or `None` when the error is a local fault with no
+/// verdict meaning. A test asserting on a code should never pass because of a broken wallet.
 pub fn refusal_code(error: ProverError) -> Option<Code> {
     match error {
         ProverError::Refused(refusal) => Some(refusal.code),

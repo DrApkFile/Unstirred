@@ -7,6 +7,7 @@ use std::sync::{Arc, Mutex};
 
 /// Where a gate's lines go. Implementations must not add anything to a line.
 pub trait GateLog: std::fmt::Debug + Send + Sync {
+    /// Writes one line, exactly as given.
     fn line(&self, line: &str);
 }
 
@@ -27,6 +28,7 @@ pub struct CollectedLog {
 }
 
 impl CollectedLog {
+    /// Every line written so far, in order.
     pub fn lines(&self) -> Vec<String> {
         match self.lines.lock() {
             Ok(lines) => lines.clone(),

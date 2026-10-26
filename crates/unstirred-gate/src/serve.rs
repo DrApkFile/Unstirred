@@ -14,14 +14,30 @@ use hyper_util::rt::TokioIo;
 use crate::handlers::dispatch;
 use crate::state::GateState;
 
+/// Why the listener stopped, or never started.
 #[derive(Debug, thiserror::Error)]
 pub enum ServeError {
+    /// The address could not be bound.
     #[error("the gate could not bind {listen}: {source}")]
-    Bind { listen: SocketAddr, source: std::io::Error },
+    Bind {
+        /// The address that was tried.
+        listen: SocketAddr,
+        /// What the operating system reported.
+        source: std::io::Error,
+    },
+    /// No async runtime could be started to serve on.
     #[error("the gate could not start a runtime: {source}")]
-    Runtime { source: std::io::Error },
+    Runtime {
+        /// What the runtime builder reported.
+        source: std::io::Error,
+    },
+    /// The listener itself failed while accepting.
     #[error("the gate's listener stopped: {source}")]
-    Listener { source: std::io::Error },
+    Listener {
+        /// What the operating system reported.
+        source: std::io::Error,
+    },
+    /// The serving thread ended without returning anything, so why it stopped is not known.
     #[error("the gate's thread ended without a result")]
     ThreadLost,
 }
@@ -40,6 +56,7 @@ impl RunningGate {
         self.address
     }
 
+    /// The base URL a holder would knock on.
     pub fn url(&self) -> String {
         format!("http://{}", self.address)
     }

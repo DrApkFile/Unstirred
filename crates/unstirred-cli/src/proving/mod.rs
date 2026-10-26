@@ -29,6 +29,9 @@ pub struct ProofInputs {
     pub identity: PathBuf,
     pub expected_h1_root: Option<String>,
     pub account: Option<String>,
+    /// The service flags whose value came from the gate's own advertisement rather than from the
+    /// holder. A holder is told which addresses they are being pointed at and by whom (A50).
+    pub from_the_gate: Vec<&'static str>,
 }
 
 /// The flags every proving command shares.
@@ -41,16 +44,63 @@ pub const PROOF_FLAGS: [&str; 6] = [
     "--account",
 ];
 
+/// What a gate said its holders may use, when a command asked it. Both are suggestions: a flag
+/// always wins over an advertisement, and a command that has neither says which flag is missing
+/// (A50).
+#[derive(Debug, Clone, Default)]
+pub struct Advertised {
+    pub pir: Option<String>,
+    pub lightwalletd: Option<String>,
+}
+
 impl ProofInputs {
+    /// The inputs for a command that has nowhere to look them up: both service addresses are the
+    /// holder's to give.
     pub fn from_flags(flags: &Flags) -> Result<Self, String> {
+        Self::from_flags_or(flags, &Advertised::default())
+    }
+
+    /// The same, for a command that has asked a gate what it advertises. An explicit flag always
+    /// wins; the advertisement is only consulted where the holder gave nothing (A50).
+    pub fn from_flags_or(flags: &Flags, advertised: &Advertised) -> Result<Self, String> {
+        let mut from_the_gate = Vec::new();
+        let lightwalletd = either(
+            flags,
+            "--lightwalletd",
+            advertised.lightwalletd.as_deref(),
+            &mut from_the_gate,
+        )?;
+        let pir = either(flags, "--pir", advertised.pir.as_deref(), &mut from_the_gate)?;
         Ok(Self {
             wallet: PathBuf::from(required(flags, "--wallet")?),
-            lightwalletd: required(flags, "--lightwalletd")?.to_owned(),
-            pir: required(flags, "--pir")?.to_owned(),
+            lightwalletd,
+            pir,
             identity: PathBuf::from(required(flags, "--identity")?),
             expected_h1_root: optional(flags, "--expected-h1-root").map(str::to_owned),
             account: optional(flags, "--account").map(str::to_owned),
+            from_the_gate,
         })
+    }
+}
+
+/// The holder's flag, or the gate's suggestion, or the reason there is neither. The flag always
+/// wins — a gate suggests where to look, it does not decide — and a gate that advertises nothing
+/// leaves the holder exactly where they were, which is what the message says (A50).
+fn either(
+    flags: &Flags,
+    flag: &'static str,
+    advertised: Option<&str>,
+    from_the_gate: &mut Vec<&'static str>,
+) -> Result<String, String> {
+    match (optional(flags, flag), advertised) {
+        (Some(given), _) => Ok(given.to_owned()),
+        (None, Some(suggested)) => {
+            from_the_gate.push(flag);
+            Ok(suggested.to_owned())
+        }
+        (None, None) => Err(format!(
+            "{flag} <url> is required: this gate advertises none, so there is nothing to fall back to"
+        )),
     }
 }
 

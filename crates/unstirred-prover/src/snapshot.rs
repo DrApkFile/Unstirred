@@ -18,11 +18,25 @@ use crate::transport::HttpTransport;
 /// at that height.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PirDataset {
+    /// The height the server is synced to, which must be the gate's h1.
     pub height: u32,
+    /// The nullifier-set root at that height, which must be the one the gate pinned.
     pub root: [u8; 32],
 }
 
-/// Reads a 32-byte root from the hex a gate owner or `nf-server verify-root` prints.
+/// Reads a 32-byte root from the hex a gate owner or `nf-server verify-root` prints. Surrounding
+/// whitespace is allowed, because this value is usually pasted.
+///
+/// ```
+/// use unstirred_prover::root_from_hex;
+///
+/// let root = root_from_hex("  a16809847bf51d60ac6d9bb3f71cbbf27483050868b94b242ca831fe14bf692d\n")?;
+/// assert_eq!(root.len(), 32);
+///
+/// assert!(root_from_hex("a168").is_err()); // too short to be a root
+/// assert!(root_from_hex("not hex").is_err());
+/// # Ok::<(), unstirred_prover::ProverError>(())
+/// ```
 pub fn root_from_hex(hex_root: &str) -> Result<[u8; 32], ProverError> {
     let bytes = hex::decode(hex_root.trim()).map_err(|_| ProverError::ExpectedRootMalformed(hex_root.to_owned()))?;
     <[u8; 32]>::try_from(bytes.as_slice()).map_err(|_| ProverError::ExpectedRootMalformed(hex_root.to_owned()))

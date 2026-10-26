@@ -39,7 +39,10 @@ const SESSION_KEY_BYTES: usize = 32;
 /// command line; from M3 the gate issues it.
 #[derive(Debug, Clone, Copy)]
 pub struct ProofRequest<'a> {
+    /// The gate's published rule. Its network and context give the `round_id`, and its window is
+    /// what the two roots are pinned at.
     pub manifest: &'a Manifest,
+    /// The selected notes' authentication paths at h0, already checked against h0's root.
     pub witnesses: &'a Witnesses,
     /// The height at which the wallet must still report every witnessed note unspent, which is
     /// where its nullifier is read. A holding proof passes the gate's h1: witnessed at h0 and
@@ -47,7 +50,11 @@ pub struct ProofRequest<'a> {
     /// passes anything else is `knock --force-unqualified-demo`, whose coins did not exist at
     /// the gate's h1 and whose package the gate refuses on the roots.
     pub notes_unspent_at: u32,
+    /// The h1 nullifier-set root the gate pinned. The lookup service must be serving this exact
+    /// root, or nothing it answers is about this gate.
     pub expected_nf_imt_root: [u8; 32],
+    /// The gate's challenge. It goes into the binding message, so a package answers one
+    /// challenge at one gate and nothing else.
     pub challenge: [u8; 32],
 }
 
@@ -55,9 +62,14 @@ pub struct ProofRequest<'a> {
 /// positions stay on the holder's side: they are not in the package.
 #[derive(Debug)]
 pub struct Proven {
+    /// The package to hand the gate. This is the only part that leaves the holder's machine.
     pub package: ProofPackage,
+    /// The tree positions the proof was made from. They stay here: the package carries none of
+    /// them.
     pub positions: Vec<u64>,
+    /// The note-commitment root at h0 this proof is about.
     pub nc_root: [u8; 32],
+    /// The nullifier-set root at h1 this proof is about.
     pub nf_imt_root: [u8; 32],
 }
 

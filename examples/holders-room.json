@@ -1,0 +1,10 @@
+{
+  "version": "unstirred/v1",
+  "network": "test",
+  "context": "holders-room",
+  "window": {
+    "h0": 4505790,
+    "h1": 4506510
+  },
+  "min_zatoshis": "12500000"
+}

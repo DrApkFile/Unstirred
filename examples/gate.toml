@@ -1,0 +1,31 @@
+# A gate serving the two rooms of the recorded demo, on the Zcash testnet.
+#
+# The two manifests beside this file are what holders prove against; this file is the gate's own
+# configuration and is never published. `h1_root` is operator-pinned, which is a stated limit
+# (SPEC.md §10): the verifier cannot yet check it for itself. The root sources are only read when
+# something is admitted — the pages this gate serves never touch them.
+#
+#     unstirred gate serve --config examples/gate.toml
+#
+# The second source is a Zcash node you run. Replace it with your own testnet zebrad, or drop to
+# one source with `--single-root-source` on the command line and accept the label that comes with
+# it.
+
+listen = "127.0.0.1:8080"
+database = "gate.sqlite"
+root_sources = ["lwd:https://testnet.zec.rocks:443", "zebra:http://127.0.0.1:18232"]
+h1_root = "8af0c16b82ff1c9170de5dc87b3c06ef3a7144befdba71fc40959effe9f5be26"
+
+# Optional, and public: the two services a holder needs that they have no way to discover. A gate
+# that sets them advertises them in GET /rooms, and `unstirred knock` uses them when --pir or
+# --lightwalletd is left out; a flag the holder gives always wins. These are the operator's own
+# addresses, identical for every holder, and carry nothing about any one of them (LEAKS L18).
+# Leave them out and holders must be told both addresses some other way.
+pir_url = "http://127.0.0.1:3000"
+lightwalletd_url = "https://testnet.zec.rocks:443"
+
+[[rooms]]
+manifest = "holders-room.json"
+
+[[rooms]]
+manifest = "second-room.json"

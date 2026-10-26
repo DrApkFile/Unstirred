@@ -4,6 +4,13 @@ the holder reads and the action it points at. One match so a new code cannot be 
 use super::{Code, CodeSpec, VerdictKind};
 
 impl Code {
+    /// This code's words: its wire name, its verdict kind, whether retrying can help, what the
+    /// holder is told and what they can do. One `match`, so a code cannot exist without them.
+    ///
+    /// ```
+    /// use unstirred_core::Code;
+    /// assert_eq!(Code::RootMismatch.spec().wire_name, "ROOT_MISMATCH");
+    /// ```
     pub const fn spec(self) -> CodeSpec {
         use VerdictKind::{Inconclusive, Refused};
         match self {

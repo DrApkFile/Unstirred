@@ -5,17 +5,34 @@ A judge can read all of it without proving anything."]
 use hyper::StatusCode;
 use unstirred_core::Manifest;
 
-use crate::config::Room;
+use crate::config::{Room, Services};
 use crate::reply::{body_with_note, json, Reply};
 use crate::state::GateState;
 
 pub(super) fn listing(state: &GateState) -> Reply {
     let note = state.note();
-    let body = serde_json::json!({
+    let mut body = serde_json::json!({
         "rooms": state.rooms().map(describe).collect::<Vec<_>>(),
         "root_sources": state.roots.describe(),
     });
+    if let (Some(object), true) = (body.as_object_mut(), state.services.any()) {
+        object.insert("services".to_owned(), advertised(&state.services));
+    }
     json(StatusCode::OK, body_with_note(body, note), note)
+}
+
+/// The two public addresses a holder would otherwise have to be told out of band. They are this
+/// operator's own services, identical for everyone who knocks, and a holder who would rather use
+/// their own passes `--pir` or `--lightwalletd` instead (LEAKS L18, A49).
+fn advertised(services: &Services) -> serde_json::Value {
+    let mut object = serde_json::Map::new();
+    if let Some(url) = &services.pir_url {
+        object.insert("pir_url".to_owned(), serde_json::Value::String(url.clone()));
+    }
+    if let Some(url) = &services.lightwalletd_url {
+        object.insert("lightwalletd_url".to_owned(), serde_json::Value::String(url.clone()));
+    }
+    serde_json::Value::Object(object)
 }
 
 /// The room's manifest, exactly as this gate parsed it. It carries no field of ours: a manifest

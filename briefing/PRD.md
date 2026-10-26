@@ -195,6 +195,8 @@ Prover (decides before proving): `WALLET_NOT_SYNCED_PAST_H1`, `COINS_TOO_NEW`, `
 - A46 the demo's forced submission (`knock --force-unqualified-demo`) is in no usage text the CLI prints, and refuses to run at all for a wallet the room would admit, without asking that gate for a challenge
 - A47 two proofs of the same coins at the same gate carry different `rk`, session key and `van_comm`, because `alpha` and the blinding are drawn fresh per proof, while exactly one marker per real note repeats — that collision is what single use rests on, and the rest of the five are the circuit's padding nullifiers (LEAKS L7)
 - A48 a non-membership answer shows neither the IMT path nor the leaf bounds that bracket the holder's nullifier — not in its own `Debug`, nor in that of the lookup that carries it (LEAKS L5b)
+- A49 a gate may advertise the public service addresses its holders would otherwise have to be told out of band — `pir_url` and `lightwalletd_url` — and `GET /rooms` carries them; both are optional, a gate that sets neither advertises neither field, and a value that is not an http or https URL with a host is a startup refusal rather than something a holder is handed (LEAKS L18)
+- A50 `unstirred knock` uses a gate's advertised addresses when `--pir` or `--lightwalletd` is omitted, an explicit flag always wins over what the gate advertises, and a knock with neither the flag nor an advertisement is refused as usage before it asks that gate for a challenge
 
 ## 11. Priorities
 - **P0:** core, prover, verifier, CLI (incl. `gate markers`), gate service, Holders' Room page, GitHub Release binaries, A01–A14, `LEAKS.md`, `SPEC.md`, real testnet evidence, README, demo video.

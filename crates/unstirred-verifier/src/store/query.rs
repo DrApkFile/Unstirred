@@ -29,6 +29,8 @@ impl Store {
         self.db_result(found)
     }
 
+    /// Every challenge row, oldest first. The hashes are not returned: a row says when a
+    /// challenge was issued, expires and was consumed, and nothing that could be presented.
     pub fn challenges(&self) -> Result<Vec<ChallengeRow>, StoreError> {
         let prepared = self.conn.prepare(
             "SELECT issued_at, expires_at, consumed_at FROM challenges
@@ -45,6 +47,8 @@ impl Store {
         collect_rows(&self.path, rows)
     }
 
+    /// Every marker the gate holds, by context. This is the gate's whole memory of who has been
+    /// through it, and it links to no address, amount or coin.
     pub fn markers(&self) -> Result<Vec<MarkerRow>, StoreError> {
         let prepared = self
             .conn
@@ -60,6 +64,7 @@ impl Store {
         collect_rows(&self.path, rows)
     }
 
+    /// Every committed verdict row, in the order it was written.
     pub fn admissions(&self) -> Result<Vec<AdmissionRow>, StoreError> {
         let prepared = self
             .conn
@@ -109,7 +114,9 @@ impl Store {
 /// What [`Store::durability`] reports. `busy_timeout_ms` is this connection's setting.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Durability {
+    /// SQLite's journal mode for the file, which the store requires to be WAL.
     pub journal_mode: String,
+    /// How long this connection waits on a locked file before giving up.
     pub busy_timeout_ms: i64,
 }
 

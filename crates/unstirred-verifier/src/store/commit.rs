@@ -12,19 +12,29 @@ use super::{challenge_hash, challenge_refused, Store, StoreError};
 /// transaction hashes it the same way [`super::Store::record`] did.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct AdmissionWrite {
+    /// The gate this admission belongs to. Markers are unique per context, not globally.
     pub context: String,
+    /// The raw challenge the package answered. The transaction hashes it.
     pub challenge: [u8; 32],
+    /// The five markers to insert. A single one already present rolls the whole write back.
     pub markers: [[u8; 32]; 5],
+    /// The time to record, from the caller's clock.
     pub now: i64,
 }
 
+/// What the admission transaction did. A `Refused` outcome has written nothing: the transaction
+/// was rolled back.
 #[derive(Debug)]
 pub enum CommitOutcome {
+    /// The markers, the consumed challenge and the verdict row are committed.
     Admitted,
+    /// A marker was already held, or the challenge was not open any more. Nothing was written.
     Refused(unstirred_core::Refusal),
 }
 
 impl Store {
+    /// The one write an admission may make: an immediate transaction that inserts the five
+    /// markers, consumes the challenge and records the verdict, or rolls all of it back.
     pub fn commit_admission(&mut self, write: &AdmissionWrite) -> Result<CommitOutcome, StoreError> {
         self.write_admission(write, false)
     }
@@ -69,17 +79,24 @@ impl Store {
 /// One stored marker. `marker` is the 32-byte canonical encoding of a `gov_null` field element.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct MarkerRow {
+    /// The gate the marker was written for.
     pub context: String,
+    /// The marker bytes. They identify these coins at this gate and nowhere else.
     pub marker: [u8; 32],
+    /// When the admission that wrote it was committed.
     pub admitted_at: i64,
 }
 
 /// One committed admission. `code` is empty when the verdict is ADMITTED: there is no refusal code.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct AdmissionRow {
+    /// The gate this verdict was recorded at.
     pub context: String,
+    /// The verdict word, as the wire spells it.
     pub verdict: String,
+    /// The refusal code, or `None` for an admission.
     pub code: Option<String>,
+    /// When the row was committed.
     pub at: i64,
 }
 

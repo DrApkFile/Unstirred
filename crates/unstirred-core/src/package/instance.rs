@@ -20,19 +20,33 @@ const FIELD_BYTES: usize = 32;
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct PublicInstance {
+    /// The signed nullifier the circuit exposes.
     pub nf_signed: String,
+    /// The x coordinate of the randomized verification key `rk`.
     pub rk_x: String,
+    /// The y coordinate of `rk`. Carried whole, but only its parity is read.
     pub rk_y: String,
+    /// The new note commitment the circuit produces.
     pub cmx_new: String,
+    /// The value commitment, blinded freshly per proof, so two proofs of the same balance do not
+    /// commit to it the same way.
     pub van_comm: String,
+    /// The gate's `round_id`, derived from its network and context and from no height. This is
+    /// what the verifier compares against its own manifest to catch a proof made for elsewhere.
     pub vote_round_id: String,
+    /// The note-commitment root the proof was made against — pinned at `h0`.
     pub nc_root: String,
+    /// The nullifier-set IMT root the proof was made against — pinned at `h1`.
     pub nf_imt_root: String,
+    /// The five markers. Exactly one per real note repeats across two proofs of the same coins,
+    /// which is the collision single use rests on; the rest are the circuit's padding nullifiers.
     pub gov_null: [String; 5],
+    /// The circuit's domain separator.
     pub dom: String,
 }
 
 impl PublicInstance {
+    /// The hex form of a circuit instance, for putting in a package.
     pub fn of(instance: &Instance) -> Self {
         Self {
             nf_signed: hex::encode(instance.nf_signed.to_bytes()),
@@ -48,6 +62,8 @@ impl PublicInstance {
         }
     }
 
+    /// Back to a circuit instance, rebuilding `rk` from `rk_x` and `rk_y`'s parity. Any value
+    /// that is not a canonical field element is `PROOF_INVALID`.
     pub fn decode(&self) -> Result<Instance, Refusal> {
         let nf_signed = Option::from(Nullifier::from_bytes(&bytes_from_hex::<FIELD_BYTES>(
             "nf_signed",

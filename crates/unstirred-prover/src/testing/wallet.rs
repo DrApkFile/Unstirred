@@ -22,18 +22,25 @@ use zcash_protocol::value::Zatoshis;
 
 use crate::{IronwoodFrontier, IronwoodTreeState, WALLET_DATABASE_FILE};
 
+/// The height the synthetic network activates at. Nothing exists below it.
 pub const ACTIVATION: u32 = 100_000;
+/// Note A's value: comfortably over the threshold on its own.
 pub const NOTE_A_ZATOSHIS: u64 = 100_000_000;
+/// Note B's value: exactly the threshold, so a test can tell "just enough" from "more than
+/// enough".
 pub const NOTE_B_ZATOSHIS: u64 = 12_500_000;
 
 /// Note A is mined at `ACTIVATION`, note B one block later.
 pub const NOTE_A_HEIGHT: u32 = ACTIVATION;
+/// Note B's mined height, one block above note A's.
 pub const NOTE_B_HEIGHT: u32 = ACTIVATION + 1;
 
 /// `h0` sits above both notes, `h1` is a multiple of ten, and the recorded tip is far enough above
 /// `h1` for the window rules in `unstirred-core` to accept it.
 pub const H0: u32 = ACTIVATION + 5;
+/// The window's h1: a multiple of ten, so a nullifier snapshot could exist for it.
 pub const H1: u32 = ACTIVATION + 20;
+/// The tip the harness records, far enough above `H1` that the window is final.
 pub const CHAIN_TIP: u32 = H1 + 200;
 
 /// The two notes occupy the first two blocks above activation; the rest are empty.
@@ -46,7 +53,9 @@ pub const SPEND_HEIGHT: u32 = ACTIVATION + 10;
 /// What happens to the larger note after it is received.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum NoteA {
+    /// It is held across the whole window, so a proof can be made from it.
     StaysPut,
+    /// It is spent between h0 and h1, so only note B survives to h1.
     SpentInsideTheWindow,
 }
 
@@ -65,6 +74,8 @@ impl std::fmt::Debug for SyntheticWallet {
 }
 
 impl SyntheticWallet {
+    /// Builds the wallet and scans it through `H1`, with note A either held or spent inside the
+    /// window.
     pub fn build(note_a: NoteA) -> Result<Self, Box<dyn Error>> {
         let activation = BlockHeight::from_u32(ACTIVATION);
         let network = LocalNetwork {
@@ -116,6 +127,7 @@ impl SyntheticWallet {
         Ok(Self { state, ironwood_trees })
     }
 
+    /// The one account the harness built.
     pub fn account(&self) -> Result<AccountUuid, Box<dyn Error>> {
         Ok(self
             .state
@@ -137,6 +149,7 @@ impl SyntheticWallet {
             .orchard())
     }
 
+    /// The consensus parameters this wallet was built under. A local test network, not testnet.
     pub fn network(&self) -> LocalNetwork {
         *self.state.network()
     }
@@ -171,6 +184,7 @@ fn snapshot(state: &TestState<BlockCache, TestDb, LocalNetwork>, trees: &mut BTr
     }
 }
 
+/// A `holders-room` manifest over the given window, for pointing the prover at this wallet.
 pub fn manifest(h0: u32, h1: u32) -> Result<Manifest, Box<dyn Error>> {
     let json = format!(
         r#"{{"version":"unstirred/v1","network":"test","context":"holders-room",

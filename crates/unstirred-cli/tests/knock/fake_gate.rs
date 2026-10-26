@@ -47,29 +47,46 @@ pub struct FakeGate {
     pub asked: Asked,
 }
 
+/// The two service addresses this recorder advertises in `GET /rooms`, for the knock that leaves
+/// a flag out (A50). Neither is reachable, and neither needs to be: what is under test is which
+/// address the command chose, which it prints before it goes anywhere.
+pub const ADVERTISED_PIR: &str = "http://advertised-nf-server.invalid:8081";
+pub const ADVERTISED_LIGHTWALLETD: &str = "https://advertised-lightwalletd.invalid:443";
+
 impl FakeGate {
+    /// A recorder that advertises nothing, as a gate written before this existed does.
     pub fn serving(rooms: &[(&str, u32, u32)]) -> Result<Self, Box<dyn Error>> {
+        Self::start(rooms, false)
+    }
+
+    /// A recorder whose `GET /rooms` carries both service addresses.
+    pub fn advertising(rooms: &[(&str, u32, u32)]) -> Result<Self, Box<dyn Error>> {
+        Self::start(rooms, true)
+    }
+
+    fn start(rooms: &[(&str, u32, u32)], advertise: bool) -> Result<Self, Box<dyn Error>> {
         let listener = TcpListener::bind(SocketAddr::from(([127, 0, 0, 1], 0)))?;
         let url = format!("http://{}", listener.local_addr()?);
         let asked = Asked::default();
-        let manifests: Vec<(String, String)> = rooms
+        let mut routes: Vec<(String, String)> = rooms
             .iter()
             .map(|(context, h0, h1)| (format!("/rooms/{context}/manifest"), manifest_json(context, *h0, *h1)))
             .collect();
+        routes.push(("/rooms".to_owned(), rooms_json(advertise)));
         let answering = asked.clone();
         std::thread::spawn(move || {
             for stream in listener.incoming().flatten() {
-                let _ = answer(stream, &manifests, &answering);
+                let _ = answer(stream, &routes, &answering);
             }
         });
         Ok(Self { url, asked })
     }
 }
 
-fn answer(mut stream: TcpStream, manifests: &[(String, String)], asked: &Asked) -> Result<(), Box<dyn Error>> {
+fn answer(mut stream: TcpStream, routes: &[(String, String)], asked: &Asked) -> Result<(), Box<dyn Error>> {
     let path = read_request_path(&mut stream)?;
     asked.record(path.clone());
-    let body = manifests
+    let body = routes
         .iter()
         .find(|(route, _)| *route == path)
         .map(|(_, json)| json.clone());
@@ -77,7 +94,7 @@ fn answer(mut stream: TcpStream, manifests: &[(String, String)], asked: &Asked) 
         Some(json) => ("200 OK", json),
         None => (
             "404 Not Found",
-            "{\"error\":\"this recorder answers manifests only\"}".to_owned(),
+            "{\"error\":\"this recorder answers the room list and manifests only\"}".to_owned(),
         ),
     };
     let response = format!(
@@ -105,6 +122,18 @@ fn read_request_path(stream: &mut TcpStream) -> Result<String, Box<dyn Error>> {
     let first = text.lines().next().unwrap_or_default();
     let path = first.split_whitespace().nth(1).unwrap_or_default();
     Ok(path.to_owned())
+}
+
+/// The room list, with or without the `services` a gate may advertise. The rooms themselves are
+/// left out: a knock reads this route for the advertisement and for nothing else.
+fn rooms_json(advertise: bool) -> String {
+    if advertise {
+        format!(
+            r#"{{"rooms":[],"root_sources":[],"services":{{"pir_url":"{ADVERTISED_PIR}","lightwalletd_url":"{ADVERTISED_LIGHTWALLETD}"}}}}"#
+        )
+    } else {
+        r#"{"rooms":[],"root_sources":[]}"#.to_owned()
+    }
 }
 
 fn manifest_json(context: &str, h0: u32, h1: u32) -> String {

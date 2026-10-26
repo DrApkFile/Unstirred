@@ -37,13 +37,27 @@ pub struct PlainGate {
 
 /// Starts a gate whose database lives in `directory`. Calling it twice on one directory is a
 /// restart: the file is the same and the process is not, which is what A43 needs.
+/// The two addresses the advertising fixture publishes. Neither is reachable: what is under test
+/// is what the gate says, not what a holder would find there.
+pub const ADVERTISED_PIR: &str = "http://nf-server.invalid:8081";
+pub const ADVERTISED_LIGHTWALLETD: &str = "https://lightwalletd.invalid:443";
+
 pub fn start_in(directory: &Path) -> Result<PlainGate, Box<dyn Error>> {
+    start_advertising(directory, false)
+}
+
+/// The same gate, with the two public service addresses its operator chose to advertise (A49).
+pub fn start_in_advertising(directory: &Path) -> Result<PlainGate, Box<dyn Error>> {
+    start_advertising(directory, true)
+}
+
+fn start_advertising(directory: &Path, advertise: bool) -> Result<PlainGate, Box<dyn Error>> {
     for context in [HOLDERS_ROOM, SECOND_ROOM] {
         let json = build_manifest(Network::Test, context, Window { h0: H0, h1: H1 })?;
         std::fs::write(directory.join(format!("{context}.json")), &json)?;
     }
     let config_path = directory.join("gate.toml");
-    std::fs::write(&config_path, config_toml())?;
+    std::fs::write(&config_path, config_toml(advertise))?;
     let config = load_config(&config_path)?;
     let roots = FixedRoots {
         nc_root_at_h0: [0x5b; 32],
@@ -60,13 +74,18 @@ pub fn start_in(directory: &Path) -> Result<PlainGate, Box<dyn Error>> {
     Ok(PlainGate { client, _gate: gate })
 }
 
-fn config_toml() -> String {
+fn config_toml(advertise: bool) -> String {
+    let services = if advertise {
+        format!("pir_url = \"{ADVERTISED_PIR}\"\nlightwalletd_url = \"{ADVERTISED_LIGHTWALLETD}\"\n")
+    } else {
+        String::new()
+    };
     format!(
         r#"listen = "127.0.0.1:0"
 database = "gate.sqlite"
 root_sources = ["lwd:https://first.invalid:443", "zebra:http://second.invalid:18232"]
 h1_root = "{H1_ROOT_HEX}"
-
+{services}
 [[rooms]]
 manifest = "{HOLDERS_ROOM}.json"
 

@@ -34,6 +34,24 @@ pub(super) fn print_header(request: &Request, manifest: &Manifest, json: bool) {
         ),
     );
     out(json, format!("threshold     {} zatoshis", manifest.min_zatoshis));
+    print_services(request, json);
+}
+
+/// Which service addresses this knock is about to use, and whose they are. A holder who did not
+/// name one is told they are taking the gate's suggestion, and how to not take it (A50).
+fn print_services(request: &Request, json: bool) {
+    for (flag, url) in [
+        ("--lightwalletd", &request.inputs.lightwalletd),
+        ("--pir", &request.inputs.pir),
+    ] {
+        let whose = if request.inputs.from_the_gate.contains(&flag) {
+            format!("  (this gate's own, advertised; pass {flag} to use another)")
+        } else {
+            String::new()
+        };
+        let name = flag.trim_start_matches("--");
+        out(json, format!("{name:<14}{url}{whose}"));
+    }
 }
 
 pub(super) fn print_challenge(challenge: &IssuedChallenge, json: bool) {

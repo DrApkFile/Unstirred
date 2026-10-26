@@ -5,43 +5,92 @@ and the service cannot drift apart."]
 
 use hyper::Method;
 
+/// The room list, and the prefix every room's own routes sit under.
 pub const ROOMS: &str = "/rooms";
+/// The prefix for the page a gate serves for one room.
 pub const ROOM_PAGE: &str = "/room";
+/// The leaf that serves a room's published rule.
 pub const MANIFEST: &str = "manifest";
+/// The leaf a holder posts to for a challenge.
 pub const CHALLENGE: &str = "challenge";
+/// The leaf a holder posts a package to.
 pub const ADMIT: &str = "admit";
+/// The leaf that serves a room's committed admissions and markers.
 pub const LOG: &str = "log";
+/// The leaf the page polls for verdicts just answered, including refusals, which are never
+/// written.
 pub const RECENT: &str = "recent";
 
 /// What one request asks for. The context is whatever the path carried; whether the gate hosts a
 /// room by that name is the dispatcher's question, not the router's.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Route {
+    /// `GET /` — the room picker page.
     Picker,
+    /// `GET /room/<context>` — one room's page.
     RoomPage(String),
+    /// `GET /rooms` — the room list, with any advertised services.
     RoomList,
+    /// `GET /rooms/<context>/manifest` — the room's published rule.
     Manifest(String),
+    /// `POST /rooms/<context>/challenge` — issue a challenge.
     Challenge(String),
+    /// `POST /rooms/<context>/admit` — answer one with a package.
     Admit(String),
+    /// `GET /rooms/<context>/log` — the committed admissions and markers.
     Log(String),
+    /// `GET /rooms/<context>/recent` — the verdicts just answered.
     Recent(String),
 }
 
 /// Why a request matched no route: an unknown path, or a known one asked with the wrong method.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum NoRoute {
+    /// No route has this path, whatever the method.
     UnknownPath,
-    WrongMethod { allowed: &'static str },
+    /// The path is a route, but not with this method.
+    WrongMethod {
+        /// The method that would have worked, for the `Allow` header.
+        allowed: &'static str,
+    },
 }
 
+/// One of a room's JSON paths. The client in this crate builds its requests with this, so a
+/// renamed leaf cannot leave the client asking for the old one.
+///
+/// ```
+/// use unstirred_gate::router::{room_path, ADMIT};
+/// assert_eq!(room_path("holders-room", ADMIT), "/rooms/holders-room/admit");
+/// ```
 pub fn room_path(context: &str, leaf: &str) -> String {
     format!("{ROOMS}/{context}/{leaf}")
 }
 
+/// The page path for one room.
 pub fn room_page_path(context: &str) -> String {
     format!("{ROOM_PAGE}/{context}")
 }
 
+/// Matches one request. Nothing is matched by pattern or prefix: a path the gate does not host is
+/// an unknown path, and a known path asked with the wrong method says which method to use.
+///
+/// ```
+/// use hyper::Method;
+/// use unstirred_gate::router::{route, NoRoute, Route};
+///
+/// assert_eq!(route(&Method::GET, "/rooms"), Ok(Route::RoomList));
+/// assert_eq!(
+///     route(&Method::POST, "/rooms/holders-room/admit"),
+///     Ok(Route::Admit("holders-room".to_owned())),
+/// );
+///
+/// // A challenge is a POST, and asking for it any other way says so.
+/// assert_eq!(
+///     route(&Method::GET, "/rooms/holders-room/challenge"),
+///     Err(NoRoute::WrongMethod { allowed: "POST" }),
+/// );
+/// assert_eq!(route(&Method::GET, "/admin"), Err(NoRoute::UnknownPath));
+/// ```
 pub fn route(method: &Method, path: &str) -> Result<Route, NoRoute> {
     let trimmed = path.trim_end_matches('/');
     if trimmed.is_empty() {

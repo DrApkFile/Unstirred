@@ -15,24 +15,56 @@ use hyper_util::client::legacy::Client;
 use hyper_util::rt::TokioExecutor;
 use unstirred_core::{parse_manifest, Manifest};
 
-pub use answers::{Answer, GateVerdict, IssuedChallenge};
+pub use answers::{AdvertisedServices, Answer, GateVerdict, IssuedChallenge};
 
 use crate::router::{room_path, ADMIT, CHALLENGE, LOG, MANIFEST, ROOMS};
 
 const CONNECT_TIMEOUT: Duration = Duration::from_secs(15);
 
+/// Why talking to a gate failed. None of these is a verdict: a gate that answers REFUSED has
+/// answered, and that comes back as an [`Answer`].
 #[derive(Debug, thiserror::Error)]
 pub enum GateClientError {
+    /// The gate URL is not one this client can address.
     #[error("the gate URL {url:?} cannot be used: {detail}")]
-    Url { url: String, detail: String },
+    Url {
+        /// The URL as given.
+        url: String,
+        /// What is wrong with it.
+        detail: String,
+    },
+    /// No async runtime could be started for the request.
     #[error("the gate could not be started up against: {detail}")]
-    Runtime { detail: String },
+    Runtime {
+        /// What the runtime builder reported.
+        detail: String,
+    },
+    /// The gate could not be reached at all.
     #[error("the gate at {url} could not be reached: {detail}")]
-    Unreachable { url: String, detail: String },
+    Unreachable {
+        /// The URL that was tried.
+        url: String,
+        /// What the transport reported.
+        detail: String,
+    },
+    /// The gate answered with a status this route does not use.
     #[error("the gate answered {status} for {path}: {body}")]
-    Status { status: u16, path: String, body: String },
+    Status {
+        /// The status it answered.
+        status: u16,
+        /// The path that was asked for.
+        path: String,
+        /// The body, which usually names the problem.
+        body: String,
+    },
+    /// The body is not the shape the route promises. Never guessed at.
     #[error("the gate's answer for {path} is not what that route returns: {detail}")]
-    Unreadable { path: String, detail: String },
+    Unreadable {
+        /// The path that was asked for.
+        path: String,
+        /// What the reader could not make of it.
+        detail: String,
+    },
 }
 
 /// One gate, addressed by its base URL. No cookies, no redirects and no retries: one request per
@@ -45,6 +77,8 @@ pub struct GateClient {
 }
 
 impl GateClient {
+    /// A client for the gate at this base URL. The URL is checked here; nothing is dialled
+    /// until a request is made.
     pub fn new(url: &str) -> Result<Self, GateClientError> {
         let uri: http::Uri = url.parse().map_err(|e| GateClientError::Url {
             url: url.to_owned(),
@@ -70,8 +104,16 @@ impl GateClient {
         })
     }
 
+    /// `GET /rooms`, as answered. The rooms this gate hosts, and any services it advertises.
     pub fn rooms(&self) -> Result<Answer, GateClientError> {
         self.request(Method::GET, ROOMS, Vec::new())
+    }
+
+    /// The public service addresses this gate advertises, if it advertises any. One request, and
+    /// a gate that advertises nothing is answered as two `None`s rather than as an error (A49).
+    pub fn services(&self) -> Result<AdvertisedServices, GateClientError> {
+        let answer = self.require_ok(Method::GET, ROOMS, Vec::new())?;
+        answers::read_services(&answer.body, ROOMS)
     }
 
     /// The room's manifest, parsed by `unstirred-core`: a gate that published text core refuses
@@ -86,6 +128,8 @@ impl GateClient {
         })
     }
 
+    /// Asks the room for a challenge. `unstirred knock` reaches this only once the wallet has
+    /// something to prove, so a holder who does not qualify never appears in a gate's records.
     pub fn challenge(&self, room: &str) -> Result<IssuedChallenge, GateClientError> {
         let path = room_path(room, CHALLENGE);
         let answer = self.require_ok(Method::POST, &path, Vec::new())?;
@@ -98,6 +142,7 @@ impl GateClient {
         self.request(Method::POST, &room_path(room, ADMIT), package_json.as_bytes().to_vec())
     }
 
+    /// `GET /rooms/<room>/log`, as answered: the committed admissions and the markers held.
     pub fn room_log(&self, room: &str) -> Result<Answer, GateClientError> {
         self.request(Method::GET, &room_path(room, LOG), Vec::new())
     }

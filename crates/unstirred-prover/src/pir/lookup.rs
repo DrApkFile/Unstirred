@@ -26,8 +26,12 @@ pub trait NullifierSetAtH1: ImtProvider {
 /// nullifier, and the circuit keeps them as private witnesses.
 #[derive(Clone)]
 pub struct NoteNonMembership {
+    /// The note's position in the commitment tree.
     pub position: u64,
+    /// The non-membership proof, in the shape the delegation circuit takes.
     pub proof: ImtProofData,
+    /// Whether that same proof, checked here and outside the circuit, actually excludes this
+    /// note's nullifier. A proof that does not stops the run rather than going into it.
     pub proven_unspent: bool,
 }
 
@@ -43,12 +47,17 @@ impl fmt::Debug for NoteNonMembership {
 /// Every selected note's lookup, against one h1 nullifier-set root.
 #[derive(Debug, Clone)]
 pub struct NullifierLookup {
+    /// The height the snapshot is of, which must be the gate's h1.
     pub height: u32,
+    /// The nullifier-set root every proof here authenticates to.
     pub root: [u8; 32],
+    /// One entry per selected note, in selection order.
     pub notes: Vec<NoteNonMembership>,
 }
 
 impl NullifierLookup {
+    /// Whether every note's proof actually excludes its nullifier. A single `false` means no
+    /// proof can be made from this lookup.
     pub fn all_proven_unspent(&self) -> bool {
         self.notes.iter().all(|note| note.proven_unspent)
     }

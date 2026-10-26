@@ -19,8 +19,12 @@ const CHALLENGE_PERSONALIZATION: &[u8; 16] = b"UnstirredChal_v1";
 /// is told is the one the admission transaction will test against (PRD section 3.3).
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Issued {
+    /// The raw challenge, for the holder. This is the only place it exists outside the request:
+    /// the file holds only [`challenge_hash`] of it.
     pub raw: [u8; 32],
+    /// When it was issued, by the caller's clock.
     pub issued_at: i64,
+    /// When it stops being presentable. The admission transaction tests this same value.
     pub expires_at: i64,
 }
 
@@ -28,8 +32,11 @@ pub struct Issued {
 /// raw challenge, and the file holds only [`challenge_hash`] of it.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ChallengeRow {
+    /// When the challenge was issued.
     pub issued_at: i64,
+    /// When it stops being presentable.
     pub expires_at: i64,
+    /// When an admission consumed it, or `None` while it is unused.
     pub consumed_at: Option<i64>,
 }
 
@@ -82,6 +89,15 @@ pub(crate) fn challenge_refused() -> Refusal {
 
 /// BLAKE2b-256 of the raw challenge under a fixed personalisation. The personalisation keeps
 /// this hash from matching any other BLAKE2b the process computes over the same bytes.
+///
+/// ```
+/// use unstirred_verifier::store::challenge_hash;
+///
+/// let raw = [7u8; 32];
+/// assert_eq!(challenge_hash(&raw), challenge_hash(&raw));
+/// // What is stored does not resemble what the holder was handed.
+/// assert_ne!(challenge_hash(&raw), raw);
+/// ```
 pub fn challenge_hash(raw: &[u8; 32]) -> [u8; 32] {
     let digest = blake2b_simd::Params::new()
         .hash_length(32)

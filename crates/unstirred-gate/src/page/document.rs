@@ -10,17 +10,27 @@ const ROOM_TEMPLATE: &str = include_str!("../../ui/room.html");
 const TOKENS: &str = include_str!("../../ui/tokens.css");
 const RENDERER: &str = include_str!("../../ui/render.js");
 const POLLER: &str = include_str!("../../ui/live.js");
+/// The page's icon, as the base64 of a 32x32 PNG cut from `assets/icon.png` by
+/// `scripts/make-favicon.sh`. It is carried in the document as a `data:` URI rather than fetched:
+/// bytes already in the page are not a request to an origin, which is what keeps a replayed act
+/// openable from a file with nothing behind it (A02c, LEAKS L10).
+const FAVICON: &str = include_str!("../../ui/favicon.b64");
 
 const TOKENS_SLOT: &str = "/*TOKENS*/";
 const RENDERER_SLOT: &str = "/*RENDERER*/";
 const POLLER_SLOT: &str = "/*POLLER*/";
+const FAVICON_SLOT: &str = "/*FAVICON*/";
 const CONNECT_SLOT: &str = "/*CONNECT*/";
 const STATE_SLOT: &str = "/*STATE*/";
 
+/// The room picker, as one self-contained document. The state is checked first, so a state the
+/// renderer would mislead a viewer with is never served.
 pub fn picker_document(state: &PageState) -> Result<String, String> {
     document(PICKER_TEMPLATE, state)
 }
 
+/// One room's page, as one self-contained document. In replay mode the live poller is left out
+/// of the document entirely, so a replayed act has no network call site at all.
 pub fn room_document(state: &PageState) -> Result<String, String> {
     document(ROOM_TEMPLATE, state)
 }
@@ -38,7 +48,8 @@ fn document(template: &str, state: &PageState) -> Result<String, String> {
         .replace(TOKENS_SLOT, TOKENS)
         .replace(RENDERER_SLOT, RENDERER)
         .replace(POLLER_SLOT, &poller)
-        .replace(CONNECT_SLOT, connect);
+        .replace(CONNECT_SLOT, connect)
+        .replace(FAVICON_SLOT, &FAVICON.replace('\n', ""));
     if !assembled.contains(STATE_SLOT) {
         return Err("the page template has no state slot".to_owned());
     }

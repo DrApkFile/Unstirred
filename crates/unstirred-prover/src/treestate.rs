@@ -19,6 +19,8 @@ pub const IRONWOOD_TREE_DEPTH: u8 = orchard::NOTE_COMMITMENT_TREE_DEPTH as u8;
 const CONNECT_TIMEOUT: Duration = Duration::from_secs(15);
 const REQUEST_TIMEOUT: Duration = Duration::from_secs(30);
 
+/// The Ironwood commitment tree's right edge at one height, which is all a witness needs from
+/// the tree itself.
 pub type IronwoodFrontier = Frontier<MerkleHashOrchard, IRONWOOD_TREE_DEPTH>;
 
 /// The Ironwood note commitment tree as of one block height, as one source reported it. This is
@@ -30,10 +32,13 @@ pub struct IronwoodTreeState {
 }
 
 impl IronwoodTreeState {
+    /// A tree state from a frontier the caller already has, for tests and for callers that
+    /// fetched the tree themselves.
     pub fn from_parts(height: u32, tree: IronwoodFrontier) -> Self {
         Self { height, tree }
     }
 
+    /// The height this tree state is of.
     pub fn height(&self) -> u32 {
         self.height
     }
@@ -43,6 +48,7 @@ impl IronwoodTreeState {
         self.tree.root()
     }
 
+    /// The same root as the 32 bytes a gate pins and a package carries.
     pub fn root_bytes(&self) -> [u8; 32] {
         self.tree.root().to_bytes()
     }

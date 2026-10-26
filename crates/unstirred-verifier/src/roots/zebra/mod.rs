@@ -11,12 +11,16 @@ use unstirred_core::{Network, Refusal};
 use self::treestate::proto_tree_state;
 use super::{ironwood_root_at, unavailable, RootSource, RootsFromServer};
 
+/// A Zebra node's JSON-RPC as a root source. Plain HTTP only: this build speaks no TLS to
+/// JSON-RPC, so an `https:` URL is refused here rather than silently downgraded.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ZebraSource {
     pub(super) rpc: String,
 }
 
 impl ZebraSource {
+    /// A source reading from this JSON-RPC URL, or an error naming what is wrong with it. The
+    /// node is not contacted.
     pub fn new(rpc: &str) -> Result<Self, String> {
         let uri = rpc
             .parse::<Uri>()

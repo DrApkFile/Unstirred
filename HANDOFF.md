@@ -1193,3 +1193,71 @@ session: **all eleven files identical.** `video/tools/README.md` now names this 
 3. GitHub Pages not set up; the film's close says `replay site: — (not published yet)`.
 
 **The video is done.** The next step is **the final audit, parts A and B** (§2 item 2).
+
+### Session note — 2026-10-26, final audit part A — uncommitted
+
+Part A is done. **Nothing is committed**, and **no CLAIMS row says GATED for this work**: the gate
+has not been run for it, by instruction — one gate run at the very end covers parts A and B
+together.
+
+**1. A simpler knock (A49, A50).** A gate may now advertise the two public service addresses a
+holder has no way to discover. `pir_url` and `lightwalletd_url` are optional top-level keys in
+`gate.toml`; a value that is not http(s) with a host is a **startup refusal**, not a holder's
+problem. `GET /rooms` carries a `services` object only when the gate sets at least one of them.
+`knock` asks the gate for them only when `--pir` or `--lightwalletd` is missing, a flag the holder
+passes always wins, and the report says which address came from the gate. A gate that advertises
+nothing is read as two `None`s, not as an error, and a missing flag with nothing to fall back on is
+a usage error before any challenge is asked for. Checked end to end against a serving gate:
+`unstirred gate serve --config examples/gate.toml` and `curl /rooms` carries both addresses.
+Registered first in `briefing/PRD.md` §10 as **A49** and **A50**, with the non-leak stated as
+**L18** in `briefing/LEAKS.md` and the decision in `DECISIONS.md`.
+
+**2–3. The two guides.** `docs/GETTING_STARTED.md` has the three paths step by step — a holder with
+a wallet, an owner standing a gate up, a developer reading the code. `docs/INTEGRATION.md` has the
+HTTP flow with curl and `fetch` examples, the Rust crates by git tag now and crates.io later,
+embedding `unstirred-prover` in a wallet, one context per purpose, and the known limit that an app
+cannot yet bind its own data (a vote, a payout address) into the signed message. Both are linked
+from README's Docs section.
+
+**4. Two runnable examples**, in `crates/unstirred-verifier/examples/`: `verify_package.rs` (164
+lines) and `allowlist.rs` (187). They use nothing but the crate's public API, compile in the
+workspace, and were **run and recorded** in `evidence/2026-10-26-examples-run.md`: the recorded
+first proof is still ADMITTED against an h0 root fetched from the live testnet at tip 4,544,493,
+and the same package is REFUSED / CHALLENGE_UNKNOWN_OR_EXPIRED by the allowlist, which then holds
+0 admissions and 0 markers. Two PROVEN rows in `CLAIMS.md`.
+
+**5. The manifests are in the repository.** `examples/holders-room.json`, `examples/second-room.json`
+and a commented `examples/gate.toml`. README's 60-second path now points at the committed manifest
+and shows that `unstirred gate init` writes the same file byte for byte (checked), and the demo
+section is one line: `unstirred gate serve --config examples/gate.toml`. One fault found and fixed
+while testing it: `examples/gate.toml` listed its rooms as `examples/holders-room.json`, but a
+config's paths resolve against **its own** directory, so the gate looked for
+`examples/examples/…`. The paths are now relative to the file, and the gate was started from it.
+
+**6. Rustdoc on every public item** in core, verifier, prover and gate. `#![warn(missing_docs)]` is
+on all four crates and the workspace is at **zero** missing-docs warnings, from 479 at the start.
+**24 doc tests, all passing**: 12 in core, 5 in the verifier, 4 in the prover, 3 in the gate. One
+is compile-only and says so in its own text — the prover's crate-level example, the holder's whole
+path, because running it would build a real Halo2 proof and needs a wallet, a lightwalletd and an
+nf-server. Everything else runs. Clippy with `-D warnings` is clean over `--all-targets
+--all-features`, so a missing doc now fails the gate as an error rather than scrolling past as a
+warning; `missing_docs` is left at `warn` so an ordinary local build is not blocked by it.
+
+**Also run, and clean:** `cargo fmt --all`, the leak scan, the claims check (52 claims) and the
+status table. **Not run:** `scripts/gate.sh`.
+
+**Open, in the order they matter**
+
+1. **Part B, the publish-ready audit** — the prompt the owner gave before part A: GitHub Pages
+   site, logo and favicon, README reordering, clean-clone audit, v0.1.0 release prep, hygiene. Some
+   of it is already on disk, uncommitted, from before the two parts were untangled: `assets/icon.png`,
+   `scripts/make-favicon.sh` and the inline `data:` favicon in both pages (with `scripts/leak-scan.sh`
+   and A02c narrowed from "no `<link>` tag" to "no reference to any origin", recorded in
+   `DECISIONS.md`), and `scripts/render-md.py`, which still needs repointing at `docs/`.
+2. **One gate run at the very end**, covering A and B. The GATED rows for both parts are written
+   then and not before.
+3. README's "Watch the demo" still says the video is not recorded. It is (`1cd7148`). Part B's
+   README pass.
+4. The clean-clone build from part B is kept warm at
+   `~/.cache/unstirred-audit-2026-10-26/clone-warm` — a cold `CARGO_BUILD_JOBS=2 cargo build
+   --release --locked` there succeeded in 22m 27s.

@@ -1,3 +1,7 @@
+#![doc = "Opening a zcash-devtool wallet read-only, and the few questions the prover asks it. \
+The handle is checked to be read-only after opening, so a wallet this crate holds cannot be \
+written to even by mistake."]
+
 use std::collections::BTreeSet;
 use std::fmt;
 use std::path::{Path, PathBuf};
@@ -52,10 +56,12 @@ impl<P: consensus::Parameters> ReadOnlyWallet<P> {
         })
     }
 
+    /// The database file this handle is open on.
     pub fn path(&self) -> &Path {
         &self.path
     }
 
+    /// Every account the wallet holds.
     pub fn accounts(&self) -> Result<Vec<AccountUuid>, ProverError> {
         Ok(self.db.get_account_ids()?)
     }

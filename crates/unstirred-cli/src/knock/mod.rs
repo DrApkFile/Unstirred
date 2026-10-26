@@ -4,8 +4,10 @@ use unstirred_core::Manifest;
 use unstirred_gate::{GateClient, GateClientError};
 use unstirred_prover::ProverError;
 
-use crate::args::{parse_flags, required, strip_bool_flags, Flags};
-use crate::proving::{prepare, prepare_forced_demo, NotForcible, Prepared, ProofInputs, DEMO_FLAG, PROOF_FLAGS};
+use crate::args::{optional, parse_flags, required, strip_bool_flags, Flags};
+use crate::proving::{
+    prepare, prepare_forced_demo, Advertised, NotForcible, Prepared, ProofInputs, DEMO_FLAG, PROOF_FLAGS,
+};
 use crate::refusal::print_refusal;
 use crate::{EXIT_ERROR, EXIT_REFUSED, EXIT_USAGE};
 
@@ -14,7 +16,7 @@ mod report;
 use report::{print_answer, print_challenge, print_demo, print_header, print_nothing_sent, print_proving_now};
 
 pub const USAGE: &str = "unstirred knock --gate <url> --room <context> --wallet <dir> \\
-    --pir <url> --lightwalletd <url> --identity <age file> [--expected-h1-root <hex>] \\
+    --identity <age file> [--pir <url>] [--lightwalletd <url>] [--expected-h1-root <hex>] \\
     [--account <uuid>] [--json]
 
 Knocks on one room of a running gate: checks this wallet against the room's published rule, and
@@ -23,6 +25,10 @@ gate's threshold in Ironwood unmoved across the window, posts the package and pr
 verdict. A wallet the rule refuses never asks for a challenge, so the gate keeps no record of it.
 The wallet is opened read-only, no transaction is created, and the package carries no address,
 note value, tree position or nullifier.
+
+--pir and --lightwalletd may be left out when the gate advertises its own, which it does in
+GET /rooms; a flag you give always wins over what the gate suggests. The gate is only asked when
+one of them is missing.
 
 Exit codes: 0 admitted, 1 refused, 2 usage, 3 local error, 4 inconclusive.";
 
@@ -36,20 +42,19 @@ pub fn run(args: &[String]) -> ExitCode {
         Ok(flags) => flags,
         Err(problem) => return usage(&problem),
     };
-    let request = match Request::from_flags(&flags) {
-        Ok(request) => request,
-        Err(problem) => return usage(&problem),
-    };
     let json = bools.iter().any(|flag| flag == "--json");
     let forced = bools.iter().any(|flag| flag == DEMO_FLAG);
-    match knock(&request, json, forced) {
+    match knock(&flags, json, forced) {
         Ok(exit) => exit,
         Err(exit) => exit,
     }
 }
 
-fn knock(request: &Request, json: bool, forced: bool) -> Result<ExitCode, ExitCode> {
-    let client = GateClient::new(&request.gate).map_err(local)?;
+fn knock(flags: &Flags, json: bool, forced: bool) -> Result<ExitCode, ExitCode> {
+    let gate = required(flags, "--gate").map_err(|problem| usage(&problem))?;
+    let client = GateClient::new(gate).map_err(local)?;
+    let request = Request::resolve(flags, gate, &client).map_err(|problem| usage(&problem))?;
+    let request = &request;
     let manifest = client.manifest(&request.room).map_err(local)?;
     require_room_is_its_own_context(&manifest, &request.room)?;
     print_header(request, &manifest, json);
@@ -143,11 +148,26 @@ pub(crate) struct Request {
 }
 
 impl Request {
-    fn from_flags(flags: &Flags) -> Result<Self, String> {
+    /// What this knock will do, once the gate has been asked what it advertises. The gate is only
+    /// asked when the holder left a service flag out — a knock that names both addresses makes
+    /// exactly the requests it made before this existed (A50).
+    fn resolve(flags: &Flags, gate: &str, client: &GateClient) -> Result<Self, String> {
+        let needs_advertisement = optional(flags, "--pir").is_none() || optional(flags, "--lightwalletd").is_none();
+        let advertised = if needs_advertisement {
+            let services = client
+                .services()
+                .map_err(|e| format!("this gate could not be asked what it advertises: {e}"))?;
+            Advertised {
+                pir: services.pir_url,
+                lightwalletd: services.lightwalletd_url,
+            }
+        } else {
+            Advertised::default()
+        };
         Ok(Self {
-            gate: required(flags, "--gate")?.to_owned(),
+            gate: gate.to_owned(),
             room: required(flags, "--room")?.to_owned(),
-            inputs: ProofInputs::from_flags(flags)?,
+            inputs: ProofInputs::from_flags_or(flags, &advertised)?,
         })
     }
 }

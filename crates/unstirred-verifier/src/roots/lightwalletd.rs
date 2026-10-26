@@ -13,12 +13,16 @@ use super::{ironwood_root_at, unavailable, RootSource, RootsFromServer};
 const CONNECT_TIMEOUT: Duration = Duration::from_secs(15);
 const REQUEST_TIMEOUT: Duration = Duration::from_secs(30);
 
+/// A lightwalletd server as a root source. Holds only the URL; nothing is dialled until
+/// [`RootSource::read_roots`] is called.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct LightwalletdSource {
     server: String,
 }
 
 impl LightwalletdSource {
+    /// A source reading from this gRPC URL. `http://` and `https://` are both accepted; a URL
+    /// that does not parse is reported when the source is read, not here.
     pub fn new(server: &str) -> Self {
         Self {
             server: server.to_owned(),

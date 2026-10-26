@@ -22,9 +22,13 @@ use unstirred_core::{Network, Refusal};
 /// server every root and the tip came from.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct RootsFromServer {
+    /// How the source names itself, as [`RootSource::describe`] gives it.
     pub server: String,
+    /// The Ironwood note-commitment root this source reports for `h0`.
     pub nc_root_at_h0: [u8; 32],
+    /// The height the root is for. The agreement step refuses an answer for any other height.
     pub h0: u32,
+    /// The chain tip this source reports, used for the finality check.
     pub tip: u32,
 }
 
@@ -35,11 +39,27 @@ pub trait RootSource: std::fmt::Debug {
     /// The name this source reports itself by in provenance output and refusals.
     fn describe(&self) -> String;
 
+    /// Reads the h0 root and the chain tip. Every failure, including a wrong network or a chain
+    /// that has not reached `h0`, is a `Refusal` with an INCONCLUSIVE code: a source that cannot
+    /// answer says nothing about the holder.
     fn read_roots(&self, network: Network, h0: u32) -> Result<RootsFromServer, Refusal>;
 }
 
 /// Parses one `--root-source` value: `lwd:<url>` for a lightwalletd gRPC server, `zebra:<url>`
-/// for a Zebra node's JSON-RPC.
+/// for a Zebra node's JSON-RPC. Parsing reaches no network; the source is contacted only when it
+/// is read.
+///
+/// ```
+/// use unstirred_verifier::parse_root_source_spec;
+///
+/// assert_eq!(
+///     parse_root_source_spec("lwd:https://zcash-testnet.chainsafe.dev")?.describe(),
+///     "lwd:https://zcash-testnet.chainsafe.dev",
+/// );
+/// assert!(parse_root_source_spec("https://example.invalid").is_err()); // no kind
+/// assert!(parse_root_source_spec("rpc:http://127.0.0.1:8232").is_err()); // unknown kind
+/// # Ok::<(), String>(())
+/// ```
 pub fn parse_root_source_spec(spec: &str) -> Result<Box<dyn RootSource>, String> {
     let (kind, url) = spec
         .split_once(':')
@@ -59,6 +79,13 @@ pub const SINGLE_SOURCE_NOTE: &str = "ROOT FROM ONE SOURCE: not independently ch
 
 /// The label a run's outputs must carry: the single-source note when exactly one source was
 /// consulted, nothing when the two-source rule ran.
+///
+/// ```
+/// use unstirred_verifier::{root_source_note, SINGLE_SOURCE_NOTE};
+///
+/// assert_eq!(root_source_note(1), Some(SINGLE_SOURCE_NOTE));
+/// assert_eq!(root_source_note(2), None);
+/// ```
 pub fn root_source_note(source_count: usize) -> Option<&'static str> {
     (source_count == 1).then_some(SINGLE_SOURCE_NOTE)
 }

@@ -5,6 +5,7 @@ every root, from the manifest and its own root authority, never from here (PRD s
 
 mod instance;
 
+/// The circuit's public inputs, as the package carries them.
 pub use instance::PublicInstance;
 
 use serde::{Deserialize, Serialize};
@@ -22,18 +23,33 @@ const CHALLENGE_BYTES: usize = 32;
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct ProofPackage {
+    /// Always `unstirred/v1`; any other value is refused at parse time.
     pub version: String,
+    /// The context the holder believes they are proving for. **Echoed for diagnostics only** —
+    /// the verifier takes the context from the manifest and compares the instance's
+    /// `vote_round_id` to it.
     pub context: String,
+    /// The network, echoed. Not read as authority, for the same reason.
     pub network: Network,
+    /// The window, echoed. Not read as authority: the verifier uses the gate's own.
     pub window: Window,
+    /// The circuit's fourteen public inputs. This is the part that is actually checked.
     pub instance: PublicInstance,
+    /// The Halo2 proof, hex.
     pub proof: String,
+    /// The per-proof session public key, 32 bytes of hex. It has no private half in v1.
     pub session_pubkey: String,
+    /// The gate's challenge this package answers, 32 bytes of hex.
     pub challenge: String,
+    /// A RedPallas signature over the binding message, under `rk`, 64 bytes of hex. This is what
+    /// stops a viewing-key holder proving as someone else.
     pub binding_signature: String,
 }
 
 impl ProofPackage {
+    /// Assembles a package from everything the prover has just produced. The context, network and
+    /// window are copied from the manifest, so a package can never claim a rule it was not made
+    /// against.
     pub fn new(
         manifest: &Manifest,
         instance: &Instance,
@@ -57,6 +73,14 @@ impl ProofPackage {
 
     /// Reads a package strictly: an unknown field, a missing field or a wrong version is refused
     /// rather than ignored.
+    ///
+    /// ```
+    /// use unstirred_core::{Code, ProofPackage};
+    ///
+    /// // Anything a verifier cannot fully read is PROOF_INVALID — there is no partial package.
+    /// let refusal = ProofPackage::parse("{}").unwrap_err();
+    /// assert_eq!(refusal.code, Code::ProofInvalid);
+    /// ```
     pub fn parse(json: &str) -> Result<Self, Refusal> {
         let package: Self = serde_json::from_str(json)
             .map_err(|e| Refusal::new(Code::ProofInvalid, format!("not a valid proof package: {e}")))?;
@@ -70,27 +94,35 @@ impl ProofPackage {
         }
     }
 
+    /// The package as the JSON a holder hands over. Pretty-printed, because people read these.
     pub fn to_json(&self) -> Result<String, Refusal> {
         serde_json::to_string_pretty(self)
             .map_err(|e| Refusal::new(Code::ProofInvalid, format!("the package could not be written: {e}")))
     }
 
+    /// The circuit instance these public inputs decode to, or a refusal if any of them is not a
+    /// canonical field element.
     pub fn instance(&self) -> Result<Instance, Refusal> {
         self.instance.decode()
     }
 
+    /// The proof as bytes.
     pub fn proof_bytes(&self) -> Result<Vec<u8>, Refusal> {
         hex::decode(&self.proof).map_err(|_| malformed("proof", "not hex"))
     }
 
+    /// The session public key as 32 bytes.
     pub fn session_pubkey(&self) -> Result<[u8; SESSION_BYTES], Refusal> {
         bytes_from_hex("session_pubkey", &self.session_pubkey)
     }
 
+    /// The challenge this package answers, as 32 bytes. The gate looks this up before it spends
+    /// anything on the signature or the proof.
     pub fn challenge(&self) -> Result<[u8; CHALLENGE_BYTES], Refusal> {
         bytes_from_hex("challenge", &self.challenge)
     }
 
+    /// The binding signature, ready to verify under `rk`.
     pub fn binding_signature(&self) -> Result<redpallas::Signature<SpendAuth>, Refusal> {
         Ok(redpallas::Signature::from(bytes_from_hex::<SIGNATURE_BYTES>(
             "binding_signature",

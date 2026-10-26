@@ -10,6 +10,8 @@ type TestResult = Result<(), Box<dyn Error>>;
 
 const H1_ROOT: &str = "8af0c16b82ff1c9170de5dc87b3c06ef3a7144befdba71fc40959effe9f5be26";
 const OTHER_ROOT: &str = "a16809847bf51d60ac6d9bb3f71cbbf27483050868b94b242ca831fe14bf692d";
+const ADDRESS: &str = "127.0.0.1:8080";
+const SOURCES: &[&str] = &["lwd:https://a.invalid:443", "zebra:http://b.invalid:18232"];
 
 /// A41: the config refusals, each one named. A gate starts only when it can read every room it
 /// hosts, knows where to write, has the root sources its own rule requires, and has one pinned h1
@@ -215,6 +217,55 @@ fn a41_a_gate_refuses_to_start_on_an_invalid_config() -> TestResult {
     match refusal(home, "unknown.toml", &unknown_setting)? {
         ConfigError::Toml { .. } => {}
         other => return Err(format!("expected Toml, got {other}").into()),
+    }
+    Ok(())
+}
+
+/// A49, the config half: a gate may advertise the two public service addresses its holders would
+/// otherwise have to be told out of band. Both are optional, and an address a holder could not
+/// actually reach refuses the gate here rather than being handed out.
+#[test]
+fn a49_a_gate_advertises_only_service_addresses_a_holder_could_reach() -> TestResult {
+    let directory = tempfile::tempdir()?;
+    let home = directory.path();
+    write_manifest(home, "holders-room", 4_505_790, 4_506_510)?;
+    // The service keys are whole-gate settings, so they go above the first [[rooms]] table.
+    let advertising = |lines: &str| {
+        let mut text = config(ADDRESS, SOURCES, false, Some(H1_ROOT), "");
+        text.push_str(lines);
+        text.push_str("\n[[rooms]]\nmanifest = \"holders-room.json\"\n");
+        text
+    };
+
+    let silent = load_config(written(home, "silent.toml", &advertising(""))?)?;
+    assert_eq!(silent.services, unstirred_gate::Services::default());
+    assert!(!silent.services.any(), "a gate that sets neither advertises neither");
+
+    let both =
+        advertising("pir_url = \"http://127.0.0.1:8081\"\nlightwalletd_url = \"https://testnet.zec.rocks:443\"\n");
+    let loaded = load_config(written(home, "both.toml", &both)?)?;
+    assert_eq!(loaded.services.pir_url.as_deref(), Some("http://127.0.0.1:8081"));
+    assert_eq!(
+        loaded.services.lightwalletd_url.as_deref(),
+        Some("https://testnet.zec.rocks:443")
+    );
+    assert!(loaded.services.any());
+
+    let one = advertising("pir_url = \"http://127.0.0.1:8081\"\n");
+    let loaded = load_config(written(home, "one.toml", &one)?)?;
+    assert!(loaded.services.any(), "one of the two is still an advertisement");
+    assert_eq!(loaded.services.lightwalletd_url, None);
+
+    for (name, line) in [
+        ("no-scheme.toml", "pir_url = \"127.0.0.1:8081\"\n"),
+        ("no-host.toml", "pir_url = \"http:///lookup\"\n"),
+        ("not-http.toml", "lightwalletd_url = \"ftp://example.invalid\"\n"),
+        ("empty.toml", "lightwalletd_url = \"\"\n"),
+    ] {
+        match refusal(home, name, &advertising(line))? {
+            ConfigError::ServiceUrl { .. } => {}
+            other => return Err(format!("expected ServiceUrl for {name}, got {other}").into()),
+        }
     }
     Ok(())
 }

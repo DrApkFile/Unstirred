@@ -70,11 +70,19 @@ import sys
 
 UI = pathlib.Path("crates/unstirred-gate/ui")
 ASKS_ELSEWHERE = re.compile(
-    r"<script\s+src|<link|<img|<iframe|<frame|<object|<embed|<video|<audio|<track|<base"
+    r"<script\s+src|<img|<iframe|<frame|<object|<embed|<video|<audio|<track|<base"
     r"|@import|url\(|srcset|integrity=|crossorigin|sendBeacon|importScripts",
     re.IGNORECASE,
 )
 ABSOLUTE_IN_CODE = re.compile(r"""["']\s*(?:https?:)?//""")
+
+# The one subresource reference a page may carry is its own icon, and only because the bytes are
+# in the document: a `data:` URI is not a request to an origin. Any other <link>, and any icon
+# whose href is not inline PNG bytes, is the thing this scan exists to stop.
+LINK_TAG = re.compile(r"<link\b[^>]*>", re.IGNORECASE)
+INLINE_ICON = re.compile(
+    r'^<link rel="icon" type="image/png" href="data:image/png;base64,[A-Za-z0-9+/=]*(?:/\*FAVICON\*/)?" />$'
+)
 
 problems = []
 for path in sorted(UI.rglob("*")):
@@ -83,6 +91,9 @@ for path in sorted(UI.rglob("*")):
     text = path.read_text()
     for found in ASKS_ELSEWHERE.findall(text):
         problems.append(f"{path} asks for a subresource: {found!r}")
+    for found in LINK_TAG.findall(text):
+        if not INLINE_ICON.match(found.strip()):
+            problems.append(f"{path} links to something that is not inline icon bytes: {found!r}")
     for found in ABSOLUTE_IN_CODE.findall(text):
         problems.append(f"{path} names an absolute or protocol-relative URL: {found!r}")
 

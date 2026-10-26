@@ -25,6 +25,8 @@ pub struct NoteNullifier {
 }
 
 impl NoteNullifier {
+    /// The note's position in the Ironwood commitment tree. Public: it is what a witness is
+    /// addressed by.
     pub fn position(&self) -> u64 {
         self.position
     }

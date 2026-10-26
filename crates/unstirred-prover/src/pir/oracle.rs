@@ -71,6 +71,7 @@ impl PirNullifierOracle {
         })
     }
 
+    /// The height of the snapshot this oracle answers about, which must be the gate's h1.
     pub fn height(&self) -> u32 {
         self.height
     }

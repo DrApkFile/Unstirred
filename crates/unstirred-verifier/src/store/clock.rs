@@ -6,6 +6,8 @@ use std::time::{SystemTime, UNIX_EPOCH};
 /// The time the store trusts. The engine and the store never call the operating system; the
 /// caller passes a clock, and only [`SystemClock`] reads one.
 pub trait Clock: std::fmt::Debug {
+    /// Seconds since the unix epoch. A clock that cannot say returns zero, which expires every
+    /// challenge rather than admitting one.
     fn unix_seconds(&self) -> i64;
 }
 

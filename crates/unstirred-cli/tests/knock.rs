@@ -16,7 +16,10 @@ mod knock {
     pub mod fake_gate;
 }
 
-use knock::fake_gate::{run_unstirred, unreadable_wallet, FakeGate, Ran, TestResult, SCANNED_THROUGH};
+use knock::fake_gate::{
+    run_unstirred, unreadable_wallet, FakeGate, Ran, TestResult, ADVERTISED_LIGHTWALLETD, ADVERTISED_PIR,
+    SCANNED_THROUGH,
+};
 use unstirred_gate::GateClient;
 use unstirred_prover::testing::H0;
 
@@ -107,6 +110,143 @@ fn a46_the_forced_demo_is_in_no_usage_text_and_still_asks_for_no_challenge() -> 
         ran.stderr
     );
     Ok(())
+}
+
+/// A50: where the two service addresses come from. A flag the holder gave always wins, the gate
+/// is asked only when one is missing, and a gate that advertises nothing leaves the holder with
+/// the error they would have had anyway — before a challenge is requested.
+#[test]
+fn a50_a_flag_beats_the_gates_advertisement_and_the_gate_is_asked_only_when_one_is_missing() -> TestResult {
+    let directory = tempfile::tempdir()?;
+    let wallet = unreadable_wallet(directory.path())?;
+    let rooms = [("too-new", BEFORE_THE_COINS, SCANNED_THROUGH)];
+
+    // Both flags given: the gate is never asked what it advertises, and the holder's own
+    // addresses are the ones printed.
+    let gate = FakeGate::advertising(&rooms)?;
+    let ran = knock_at(&gate, "too-new", &wallet, &[])?;
+    assert_eq!(
+        gate.asked.paths(),
+        vec!["/rooms/too-new/manifest".to_owned()],
+        "a knock that names both addresses asks for nothing but the rule: {}{}",
+        ran.stdout,
+        ran.stderr
+    );
+    assert!(
+        !ran.said(ADVERTISED_PIR),
+        "the gate's suggestion was not taken: {}",
+        ran.stdout
+    );
+    assert!(
+        !ran.said("advertised"),
+        "nothing is said about an advertisement that was never read: {}",
+        ran.stdout
+    );
+
+    // Neither flag given: the gate is asked once, and both of its addresses are used and named
+    // as its own.
+    let gate = FakeGate::advertising(&rooms)?;
+    let ran = knock_without(&gate, "too-new", &wallet, &["--pir", "--lightwalletd"])?;
+    assert_eq!(
+        gate.asked.paths(),
+        vec!["/rooms".to_owned(), "/rooms/too-new/manifest".to_owned()],
+        "the room list is read once, before the rule: {}{}",
+        ran.stdout,
+        ran.stderr
+    );
+    assert!(
+        ran.said(ADVERTISED_PIR) && ran.said(ADVERTISED_LIGHTWALLETD),
+        "both advertised addresses are the ones used: {}{}",
+        ran.stdout,
+        ran.stderr
+    );
+    assert!(
+        ran.said("this gate's own, advertised"),
+        "the holder is told whose address they are using: {}{}",
+        ran.stdout,
+        ran.stderr
+    );
+
+    // One of each: the holder's flag wins for the one they gave, the gate's fills the other.
+    let gate = FakeGate::advertising(&rooms)?;
+    let ran = knock_without(&gate, "too-new", &wallet, &["--lightwalletd"])?;
+    assert!(
+        ran.said(ADVERTISED_LIGHTWALLETD),
+        "the missing one came from the gate: {}{}",
+        ran.stdout,
+        ran.stderr
+    );
+    assert!(
+        !ran.said(ADVERTISED_PIR),
+        "the one the holder named is the holder's: {}{}",
+        ran.stdout,
+        ran.stderr
+    );
+
+    // A gate that advertises nothing: usage, naming the flag, with no challenge asked for.
+    let gate = FakeGate::serving(&rooms)?;
+    let ran = knock_without(&gate, "too-new", &wallet, &["--pir"])?;
+    assert_eq!(
+        ran.code,
+        Some(2),
+        "a missing address is usage: {}{}",
+        ran.stdout,
+        ran.stderr
+    );
+    assert!(
+        ran.said("--pir <url> is required") && ran.said("this gate advertises none"),
+        "the holder is told which flag and why there was no fallback: {}{}",
+        ran.stdout,
+        ran.stderr
+    );
+    assert_eq!(
+        gate.asked.paths(),
+        vec!["/rooms".to_owned()],
+        "nothing beyond the advertisement was asked for: {}{}",
+        ran.stdout,
+        ran.stderr
+    );
+    Ok(())
+}
+
+/// A knock with some of its service flags left out, so the gate's advertisement is what fills
+/// them. `without` names the flags to drop, each one taking its value with it.
+fn knock_without(
+    gate: &FakeGate,
+    room: &str,
+    wallet: &std::path::Path,
+    without: &[&str],
+) -> Result<Ran, Box<dyn std::error::Error>> {
+    let wallet = wallet.to_string_lossy().into_owned();
+    let full = [
+        "knock",
+        "--gate",
+        &gate.url,
+        "--room",
+        room,
+        "--wallet",
+        &wallet,
+        "--pir",
+        "http://127.0.0.1:1",
+        "--lightwalletd",
+        "http://127.0.0.1:1",
+        "--identity",
+        "/dev/null",
+    ];
+    let mut args: Vec<&str> = Vec::with_capacity(full.len());
+    let mut skip_value = false;
+    for argument in full {
+        if skip_value {
+            skip_value = false;
+            continue;
+        }
+        if without.contains(&argument) {
+            skip_value = true;
+            continue;
+        }
+        args.push(argument);
+    }
+    run_unstirred(&args)
 }
 
 fn knock_at(

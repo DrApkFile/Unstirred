@@ -8,10 +8,11 @@ use std::error::Error;
 const STATE_CARRIER: &str = " type=\"application/json\" id=\"unstirred-state\"";
 
 /// Every way an HTML document can ask a browser for a subresource, open a socket or phone home.
-/// None of these may appear anywhere in a page this gate serves (A02c, LEAKS L10).
-const OFF_ORIGIN: [&str; 17] = [
+/// None of these may appear anywhere in a page this gate serves (A02c, LEAKS L10). `<link` is not
+/// here because a page carries its own icon; `links_to_anything_but_inline_icon_bytes` is the
+/// narrower rule that covers it.
+const OFF_ORIGIN: [&str; 16] = [
     "<script src",
-    "<link",
     "<img",
     "<image",
     "<iframe",
@@ -80,6 +81,28 @@ pub fn off_origin_markers(document: &str) -> Vec<&'static str> {
         .into_iter()
         .filter(|marker| lowered.contains(&marker.to_lowercase()))
         .collect()
+}
+
+/// The one `<link>` a page may carry is its own icon, and only because the bytes are in the
+/// document: a `data:` URI names no origin and makes no request, which is what lets a replayed act
+/// open from a file with nothing behind it. Any other link, and any icon that would be fetched
+/// from somewhere, is returned here (A02c, LEAKS L10).
+pub fn links_to_anything_but_inline_icon_bytes(document: &str) -> Vec<String> {
+    const ICON: &str = "<link rel=\"icon\" type=\"image/png\" href=\"data:image/png;base64,";
+    let mut found = Vec::new();
+    for tag in document.split("<link").skip(1) {
+        let tag = format!("<link{}>", tag.split_once('>').map(|(head, _)| head).unwrap_or(tag));
+        let inline_icon = tag.starts_with(ICON)
+            && tag
+                .trim_start_matches(ICON)
+                .trim_end_matches("\" />")
+                .chars()
+                .all(|c| c.is_ascii_alphanumeric() || c == '+' || c == '/' || c == '=');
+        if !inline_icon {
+            found.push(tag.chars().take(72).collect());
+        }
+    }
+    found
 }
 
 /// Absolute or protocol-relative URLs written into the page's own code. The state block is not
