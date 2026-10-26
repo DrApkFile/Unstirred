@@ -39,6 +39,9 @@ fn main() -> Result<(), String> {
     }
     let mut picker = act_state(PICKER_ACT, false)?;
     picker.room = None;
+    for room in &mut picker.rooms {
+        room.page = Some(first_act_of(&room.context)?);
+    }
     write(out, "index.html", &picker_document(&picker)?)?;
     written.push("index.html".to_owned());
 
@@ -50,6 +53,19 @@ fn main() -> Result<(), String> {
         written.len()
     );
     Ok(())
+}
+
+/// Where an exported picker's room card opens: the first recorded act of that room. A gate route
+/// has no file behind it in a static export, so a published picker that kept `/room/<context>`
+/// would hand a visitor a 404 (A51).
+fn first_act_of(context: &str) -> Result<String, String> {
+    for (act, _) in REPLAY_ACTS {
+        let state = act_state(act, false)?;
+        if state.room.as_deref() == Some(context) {
+            return Ok(file_name(act, false));
+        }
+    }
+    Err(format!("no recorded act is about room {context:?}"))
 }
 
 fn act_state(act: &str, present: bool) -> Result<PageState, String> {

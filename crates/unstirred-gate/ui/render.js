@@ -664,7 +664,7 @@
         node("p", "rule-aside", "network " + room.network + " · markers: " + digits(room.markers.length))
       );
       var link = node("a", "open-room", "Open room");
-      link.href = "/room/" + encodeURIComponent(room.context);
+      link.href = room.page ? room.page : "/room/" + encodeURIComponent(room.context);
       card.appendChild(link);
       cards.push(card);
     }

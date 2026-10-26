@@ -15,16 +15,28 @@ as one, and to the file on GitHub when it is not, so no link on the site dead-en
 import argparse
 import html
 import pathlib
+import posixpath
 import re
 import sys
 
 REPO = "https://github.com/DrApkFile/Unstirred/blob/master/"
 
-# Files published as pages of this site, and the page each one becomes.
+# The directory the file being rendered lives in, so that a link it writes relative to itself —
+# `../CLAIMS.md` from inside docs/ — becomes the path GitHub wants rather than one with a `..` in
+# it, which a browser normalises away into a URL that does not exist.
+source_directory = ""
+
+# Files published as pages of this site, and the page each one becomes. Both spellings are here
+# because a link reads differently depending on where it was written: README says
+# `docs/INTEGRATION.md`, and one guide linking to another says `INTEGRATION.md`.
 AS_PAGE = {
+    "docs/GETTING_STARTED.md": "getting-started.html",
+    "docs/INTEGRATION.md": "integration.html",
     "GETTING_STARTED.md": "getting-started.html",
     "INTEGRATION.md": "integration.html",
     "SPEC.md": "spec.html",
+    "../SPEC.md": "spec.html",
+    "../README.md": "../index.html",
 }
 
 INLINE_CODE = re.compile(r"`([^`]+)`")
@@ -54,7 +66,7 @@ def destination(href, depth):
         return AS_PAGE[path] + fragment
     if not path:
         return fragment
-    return REPO + path + fragment
+    return REPO + posixpath.normpath(posixpath.join(source_directory, path)) + fragment
 
 
 def inline(text, depth):
@@ -235,7 +247,15 @@ def main():
     parser.add_argument("--title", required=True)
     parser.add_argument("--description", default="")
     parser.add_argument("--depth", type=int, default=1, help="how many directories below the site root")
+    parser.add_argument(
+        "--source-path",
+        default=None,
+        help="the file's path in the repository, for the footer link (default: the source argument)",
+    )
     args = parser.parse_args()
+
+    global source_directory
+    source_directory = posixpath.dirname(args.source_path or args.source)
 
     source = pathlib.Path(args.source)
     body, contents = render(source.read_text(), args.depth)
@@ -253,7 +273,7 @@ def main():
             body=body,
             contents=nav,
             up=up,
-            source=source.name,
+            source=args.source_path or args.source,
         )
     )
     print(f"{args.source} -> {args.out} ({len(body)} bytes of body, {len(contents)} sections)")

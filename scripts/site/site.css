@@ -1,0 +1,334 @@
+/* The site's own document layout. The tokens above this block are the gate's own
+   (crates/unstirred-gate/ui/tokens.css, concatenated by scripts/build-site.sh), so the published
+   pages and the pages the gate serves cannot drift into two colour schemes. Nothing here is
+   fetched from anywhere: no font, no image, no stylesheet off this origin. */
+
+:root {
+  --measure: 46rem;
+  --page-gap: clamp(16px, 4vw, 40px);
+}
+
+body {
+  font-size: 17px;
+  -webkit-text-size-adjust: 100%;
+}
+
+img {
+  max-width: 100%;
+  height: auto;
+}
+
+.masthead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--gap-2);
+  padding: var(--gap-2) var(--page-gap);
+  border-bottom: var(--edge) solid var(--panel-edge);
+  background: var(--panel);
+}
+
+.wordmark img {
+  display: block;
+  height: 34px;
+  width: auto;
+}
+
+.masthead nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--gap-3);
+  font-size: 15px;
+}
+
+.masthead nav a {
+  text-decoration: none;
+  color: var(--ink-dim);
+}
+
+.masthead nav a:hover,
+.masthead nav a:focus-visible {
+  color: var(--accent);
+  text-decoration: underline;
+}
+
+main {
+  padding: var(--gap-5) var(--page-gap) var(--gap-4);
+  margin: 0 auto;
+  max-width: 64rem;
+}
+
+footer {
+  padding: var(--gap-3) var(--page-gap) var(--gap-5);
+  border-top: var(--edge) solid var(--panel-edge);
+  font-size: 15px;
+  color: var(--ink-faint);
+  text-align: center;
+}
+
+/* The hero of the landing page. One sentence, then the three things a visitor can do. */
+.hero {
+  max-width: var(--measure);
+  margin: 0 auto var(--gap-5);
+  text-align: center;
+}
+
+.hero img {
+  height: 76px;
+  width: auto;
+  margin-bottom: var(--gap-3);
+}
+
+.hero h1 {
+  font-size: clamp(28px, 5vw, 44px);
+  letter-spacing: -0.02em;
+  margin-bottom: var(--gap-2);
+}
+
+.hero p {
+  font-size: clamp(17px, 2.2vw, 21px);
+  color: var(--ink-dim);
+  margin-bottom: var(--gap-3);
+}
+
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+  gap: var(--gap-3);
+  margin-bottom: var(--gap-5);
+}
+
+.card {
+  background: var(--panel);
+  border: var(--edge) solid var(--panel-edge);
+  border-radius: var(--radius-2);
+  padding: var(--gap-3);
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap-2);
+}
+
+.card h2 {
+  font-size: var(--type-body);
+}
+
+.card p {
+  font-size: 16px;
+  color: var(--ink-dim);
+  margin: 0;
+}
+
+.card .more {
+  margin-top: auto;
+  font-weight: 650;
+  text-decoration: none;
+}
+
+.card .more:hover,
+.card .more:focus-visible {
+  text-decoration: underline;
+}
+
+.note {
+  background: var(--accent-wash);
+  border: var(--edge) solid var(--panel-edge);
+  border-radius: var(--radius-1);
+  padding: var(--gap-2) var(--gap-3);
+  font-size: 16px;
+  color: var(--ink-dim);
+  max-width: var(--measure);
+  margin: 0 auto var(--gap-4);
+}
+
+/* The act list. Each act is one recorded run, with its two readings. */
+.acts {
+  display: grid;
+  gap: var(--gap-3);
+  max-width: 54rem;
+  margin: 0 auto;
+}
+
+.act {
+  background: var(--panel);
+  border: var(--edge) solid var(--panel-edge);
+  border-radius: var(--radius-2);
+  padding: var(--gap-3);
+  display: grid;
+  grid-template-columns: 2.6rem 1fr auto;
+  gap: var(--gap-2) var(--gap-3);
+  align-items: baseline;
+}
+
+.act .number {
+  font-family: var(--mono);
+  font-size: var(--type-mono);
+  color: var(--ink-faint);
+}
+
+.act h2 {
+  font-size: var(--type-body);
+  margin: 0;
+}
+
+.act p {
+  grid-column: 2 / -1;
+  font-size: 16px;
+  color: var(--ink-dim);
+  margin: 0;
+}
+
+.act .readings {
+  display: flex;
+  gap: var(--gap-2);
+  font-size: 15px;
+  white-space: nowrap;
+}
+
+/* Prose: a guide rendered from its markdown. */
+.prose {
+  max-width: var(--measure);
+}
+
+.prose h1 {
+  font-size: clamp(26px, 4vw, 36px);
+  letter-spacing: -0.02em;
+  margin-bottom: var(--gap-3);
+}
+
+.prose h2 {
+  font-size: clamp(20px, 3vw, 26px);
+  margin-top: var(--gap-5);
+  margin-bottom: var(--gap-2);
+  padding-top: var(--gap-2);
+  border-top: var(--edge) solid var(--panel-edge);
+}
+
+.prose h3 {
+  font-size: var(--type-body);
+  margin-top: var(--gap-4);
+  margin-bottom: var(--gap-1);
+}
+
+.prose p,
+.prose li {
+  margin-bottom: var(--gap-2);
+  line-height: 1.6;
+}
+
+.prose ul,
+.prose ol {
+  padding-left: 1.4em;
+  margin-bottom: var(--gap-3);
+  list-style: disc;
+}
+
+.prose ol {
+  list-style: decimal;
+}
+
+.prose pre {
+  background: var(--panel);
+  border: var(--edge) solid var(--panel-edge);
+  border-radius: var(--radius-1);
+  padding: var(--gap-2) var(--gap-3);
+  overflow-x: auto;
+  margin-bottom: var(--gap-3);
+}
+
+.prose pre code {
+  font-family: var(--mono);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.prose code {
+  font-family: var(--mono);
+  font-size: 0.92em;
+  background: var(--accent-wash);
+  border-radius: 4px;
+  padding: 1px 4px;
+}
+
+.prose pre code {
+  background: none;
+  padding: 0;
+}
+
+.prose blockquote {
+  margin: 0 0 var(--gap-3);
+  padding: var(--gap-2) var(--gap-3);
+  border-left: 3px solid var(--panel-edge);
+  color: var(--ink-dim);
+}
+
+.prose hr {
+  border: none;
+  border-top: var(--edge) solid var(--panel-edge);
+  margin: var(--gap-4) 0;
+}
+
+.prose table {
+  border-collapse: collapse;
+  font-size: 15px;
+  min-width: 100%;
+}
+
+.prose th,
+.prose td {
+  border: var(--edge) solid var(--panel-edge);
+  padding: var(--gap-1) var(--gap-2);
+  text-align: left;
+  vertical-align: top;
+}
+
+.prose th {
+  background: var(--panel);
+}
+
+/* A wide table scrolls rather than pushing the page sideways or being clipped. */
+.scroll {
+  overflow-x: auto;
+  margin-bottom: var(--gap-3);
+}
+
+.contents {
+  background: var(--panel);
+  border: var(--edge) solid var(--panel-edge);
+  border-radius: var(--radius-1);
+  padding: var(--gap-2) var(--gap-3);
+  margin-bottom: var(--gap-4);
+  font-size: 15px;
+}
+
+.contents p {
+  font-weight: 650;
+  margin-bottom: var(--gap-1);
+}
+
+.contents ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  columns: 2;
+  column-gap: var(--gap-4);
+}
+
+.contents li {
+  margin: 0;
+  padding: 1px 0;
+}
+
+@media (max-width: 40rem) {
+  .contents ul {
+    columns: 1;
+  }
+
+  .act {
+    grid-template-columns: 2.2rem 1fr;
+  }
+
+  .act .readings {
+    grid-column: 2 / -1;
+  }
+}

@@ -494,3 +494,71 @@ fn a49_the_room_list_carries_the_service_addresses_a_gate_chose_to_advertise() -
     assert_eq!(nothing.lightwalletd_url, None);
     Ok(())
 }
+
+/// A51: where a room card opens. A gate serves its own routes, so a live card opens
+/// `/room/<context>` and the state says nothing; a static export has no such route, so it says
+/// where each card opens, and the page contract refuses anything that is not a path beside the
+/// page it is on.
+#[test]
+fn a51_a_room_card_opens_a_gate_route_live_and_a_file_beside_it_when_exported() -> TestResult {
+    let directory = tempfile::tempdir()?;
+    let gate = start_in(directory.path())?;
+    let picker = gate.client.request(http::Method::GET, "/", Vec::new())?;
+    for room in state_of(&picker.body)?.rooms {
+        assert!(
+            room.page.is_none(),
+            "a gate serves /room/{}, so its own picker says nothing about where the card opens",
+            room.context
+        );
+    }
+    let renderer = parts(&picker.body)?.code;
+    assert!(
+        renderer.contains("room.page ? room.page :"),
+        "the renderer must prefer the state's own link and fall back to the gate route"
+    );
+
+    // Every room any act shows is the subject of some act, so an export always has a file to
+    // point a card at. Without this the exporter would have nothing to write.
+    for (act, _) in REPLAY_ACTS {
+        for room in &act_state(act)?.rooms {
+            let has_own_act = REPLAY_ACTS
+                .iter()
+                .filter_map(|(name, _)| act_state(name).ok())
+                .any(|state| state.room.as_deref() == Some(room.context.as_str()));
+            assert!(
+                has_own_act,
+                "{act} shows room {:?}, which no act is about, so an exported card could open nothing",
+                room.context
+            );
+        }
+    }
+
+    let accepted = with_room_page("act1-rule.html")?;
+    accepted.check()?;
+
+    for refused in [
+        "/room/holders-room",
+        "https://example.invalid/act1.html",
+        "//example.invalid/act1.html",
+        "",
+    ] {
+        let problem = with_room_page(refused)?
+            .check()
+            .err()
+            .ok_or_else(|| format!("a card opening {refused:?} was accepted"))?;
+        assert!(
+            problem.contains("beside the page it is on") || problem.contains("opens at nothing"),
+            "the refusal says what is wrong with {refused:?}: {problem}"
+        );
+    }
+    Ok(())
+}
+
+/// The first act's state with one room card pointed somewhere, which is the only thing an export
+/// changes about a picker.
+fn with_room_page(page: &str) -> Result<PageState, Box<dyn Error>> {
+    let mut state: serde_json::Value = serde_json::from_str(REPLAY_ACTS[0].1)?;
+    state["room"] = serde_json::Value::Null;
+    state["rooms"][0]["page"] = serde_json::Value::String(page.to_owned());
+    Ok(serde_json::from_value(state)?)
+}

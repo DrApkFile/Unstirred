@@ -22,10 +22,10 @@ Either take a binary, or build one.
 tarball for your platform, check it against the `.sha256` beside it, and unpack it:
 
 ```
-curl -LO https://github.com/DrApkFile/Unstirred/releases/download/v0.1.0-rc.1/unstirred-v0.1.0-rc.1-x86_64-unknown-linux-gnu.tar.gz
-curl -LO https://github.com/DrApkFile/Unstirred/releases/download/v0.1.0-rc.1/unstirred-v0.1.0-rc.1-x86_64-unknown-linux-gnu.tar.gz.sha256
-sha256sum --check unstirred-v0.1.0-rc.1-x86_64-unknown-linux-gnu.tar.gz.sha256
-tar -xzf unstirred-v0.1.0-rc.1-x86_64-unknown-linux-gnu.tar.gz
+curl -LO https://github.com/DrApkFile/Unstirred/releases/download/v0.1.0/unstirred-v0.1.0-x86_64-unknown-linux-gnu.tar.gz
+curl -LO https://github.com/DrApkFile/Unstirred/releases/download/v0.1.0/unstirred-v0.1.0-x86_64-unknown-linux-gnu.tar.gz.sha256
+sha256sum --check unstirred-v0.1.0-x86_64-unknown-linux-gnu.tar.gz.sha256
+tar -xzf unstirred-v0.1.0-x86_64-unknown-linux-gnu.tar.gz
 ```
 
 The binary is inside, beside the README, the spec and both licences. Put it on your `PATH`.
@@ -39,8 +39,10 @@ cargo build --release
 ```
 
 That is a cold build of the Halo2 and Zcash dependency graph and it is not quick: a recorded
-clean-clone build took **22 minutes** on four cores with a warm cargo registry. The binary lands at
-`target/release/unstirred`.
+clean-clone build of 350 crates took **27 minutes 34 seconds** with `CARGO_BUILD_JOBS=2` on a
+four-core 2.40 GHz i3 with 7 GB of memory and a warm cargo registry
+([the audit](../evidence/2026-10-26-clean-clone-audit.md)). A faster machine with all four jobs
+running is considerably quicker. The binary lands at `target/release/unstirred`.
 
 Check it runs, and read the verdicts it can give you, before anything else:
 

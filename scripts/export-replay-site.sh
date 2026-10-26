@@ -18,5 +18,5 @@ cd "$root"
 cargo run --release --quiet -p unstirred-gate --example export-replay-site -- "$out"
 
 echo
-echo "The picker's room cards link to /room/<context>, which is a gate route and not a file here;"
-echo "serving site/ as a replay site means deciding what those links should point at."
+echo "The picker's room cards open the first recorded act of each room, because /room/<context> is"
+echo "a gate route with no file behind it here (A51). Every link in $out resolves inside $out."

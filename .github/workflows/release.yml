@@ -55,9 +55,13 @@ jobs:
           set -euo pipefail
           version="${{ inputs.tag || github.ref_name }}"
           name="unstirred-${version}-${{ matrix.target }}"
-          mkdir -p "dist/${name}"
+          mkdir -p "dist/${name}/examples" "dist/${name}/evidence"
           cp "target/${{ matrix.target }}/release/unstirred" "dist/${name}/"
-          cp README.md SPEC.md CLAIMS.md LICENSE-MIT LICENSE-APACHE "dist/${name}/"
+          cp README.md SPEC.md CLAIMS.md CHANGELOG.md LICENSE-MIT LICENSE-APACHE "dist/${name}/"
+          # The two files README's 60-second path names. Without them a stranger who downloaded
+          # the binary has the commands and neither of their arguments.
+          cp examples/holders-room.json "dist/${name}/examples/"
+          cp evidence/2026-10-17-first-proof.json "dist/${name}/evidence/"
           tar -C dist -czf "dist/${name}.tar.gz" "${name}"
           cd dist
           if command -v sha256sum > /dev/null; then

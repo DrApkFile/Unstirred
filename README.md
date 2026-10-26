@@ -1,6 +1,8 @@
-# Unstirred
+<p align="center"><img src="assets/icon.png" alt="Unstirred" width="560" /></p>
 
-**Proof your coins stayed put. Nothing else.**
+<h1 align="center">Unstirred</h1>
+
+<p align="center"><strong>Proof your coins stayed put. Nothing else.</strong></p>
 
 Unstirred lets a Zcash holder prove to a gate — a community, an allowlist, a faucet — that they
 held at least 0.125 ZEC in the Ironwood pool, unmoved, from one block to another, without
@@ -12,12 +14,33 @@ used unchanged and pinned, with the two roots pinned to **two different heights*
 turns a snapshot proof into a duration proof. [`SPEC.md`](SPEC.md) is the protocol: the statement,
 the soundness argument for the split height, and every limit.
 
+## See it on the web
+
+**[drapkfile.github.io/Unstirred](https://drapkfile.github.io/Unstirred/)** — the five recorded
+runs as pages you can click through, the three guides, and the API reference. Every page there is
+built from this repository by `scripts/build-site.sh`, and none of them asks any other origin for
+anything: no analytics, no fonts, no scripts, no beacons.
+
+- [**The demo**](https://drapkfile.github.io/Unstirred/replay/index.html) — five real testnet runs,
+  each rendered by the gate's own page code, with no chain, wallet or gate behind them
+- [**Getting started**](https://drapkfile.github.io/Unstirred/guides/getting-started.html) — a
+  holder, a gate owner, a developer
+- [**The protocol**](https://drapkfile.github.io/Unstirred/guides/spec.html) — what is proved and
+  why the split height holds
+- [**API reference**](https://drapkfile.github.io/Unstirred/api/index.html) — rustdoc for the four
+  libraries
+
 ## Watch the demo
 
-> **Not recorded yet.** The two-minute demo is cut from the pages in
-> ["See the demo without running anything"](#see-the-demo-without-running-anything) below, which
-> you can open today. This line becomes the link when the video exists; there is no video at any
-> other URL.
+<!-- PLACEHOLDER: replace the line below with the video link once it is uploaded. It is the only
+     place in this repository that needs the URL. -->
+
+> **The two-minute walkthrough is recorded but not uploaded yet, so there is no link here — a
+> placeholder, not a dead link.** It is rendered from `video/`: 2:00, 1920x1080, thirty-two
+> narrated lines, sha256 `9d1d7acb820e2343119fa8d818f3859da78c976d3a92f3522f4a86c081522399`
+> ([the render](evidence/2026-10-26-demo-video-walkthrough.md)). Every page it is cut from is one
+> of the acts on [the demo site](https://drapkfile.github.io/Unstirred/replay/index.html), which
+> you can open today.
 
 ## Check it yourself in 60 seconds
 
@@ -26,9 +49,19 @@ a real Zcash testnet wallet** against the **real testnet root**, in your own pro
 
 **1. Get the binary.** From [the releases page](https://github.com/DrApkFile/Unstirred/releases),
 download the tarball for your platform, check it against the `.sha256` beside it and unpack it.
-Binaries are attached to a `v*` tag by CI, so until 0.1.0 is tagged that page is empty and the
-path is [build from source](#build-from-source) — two commands, and a cold release build of the
-Halo2 and Zcash dependency graph is not quick.
+CI builds them for Linux x86-64 and macOS on both architectures. The tarball also carries the two
+files the commands below name, so everything in this section runs from inside the unpacked
+directory with nothing else to fetch.
+
+```
+sha256sum -c unstirred-v0.1.0-x86_64-unknown-linux-gnu.tar.gz.sha256
+tar -xzf unstirred-v0.1.0-x86_64-unknown-linux-gnu.tar.gz
+cd unstirred-v0.1.0-x86_64-unknown-linux-gnu
+```
+
+`unstirred` below means `./unstirred` from inside that directory, or the binary wherever you put it
+on your path. No binary for your platform? [Build from source](#build-from-source) — two commands,
+though a cold release build of the Halo2 and Zcash dependency graph is not quick.
 
 **2. The gate's manifest** is in the repository at
 [`examples/holders-room.json`](examples/holders-room.json) — the room this proof was made for, four
@@ -53,7 +86,8 @@ unstirred verify --package evidence/2026-10-17-first-proof.json \
     --challenge 17eeb99835dd5136c986f0204445ac8e8e0d556367752f73b3b22fdb8e1d4e57
 ```
 
-Expect, after about 35 seconds of Halo2 verification:
+Expect, after about 35 seconds of Halo2 verification on an idle machine — it is one core, and a
+busy machine takes two or three times that:
 
 ```
 root sources for the h0 Ironwood note-commitment root (network test, h0 4505790):
@@ -72,7 +106,7 @@ this is the form that was recorded in
 
 ```
 unstirred verify --package evidence/2026-10-17-first-proof.json \
-    --manifest holders-room.json \
+    --manifest examples/holders-room.json \
     --root-source lwd:https://testnet.zec.rocks:443 \
     --root-source zebra:http://127.0.0.1:18232 \
     --h1-root 8af0c16b82ff1c9170de5dc87b3c06ef3a7144befdba71fc40959effe9f5be26 \
@@ -139,6 +173,7 @@ Nothing is claimed here that does not link to a file in `evidence/`. This table 
 | **PROVEN** | With the eligibility check in place, the newcomer's ordinary knock asks that gate for nothing but the room's manifest: no challenge line, no "proving now", and the run ends "nothing was sent to the gate" / "no challenge was asked for" (A45, on the real testnet wallet this time) | [evidence/2026-10-22-bob-knock.txt](evidence/2026-10-22-bob-knock.txt), header [evidence/2026-10-22-bob-forced-knock.meta.md](evidence/2026-10-22-bob-forced-knock.meta.md) |
 | **PROVEN** | The recorded first proof is still ADMITTED today by a program that uses nothing but `unstirred-verifier`'s public API, against an h0 root fetched from the live testnet at tip 4,544,493 — about 38,000 blocks past h1 — and reported as `a16809847bf51d60ac6d9bb3f71cbbf27483050868b94b242ca831fe14bf692d`, the same root the runs of 2026-10-17 and 2026-10-20 reported for h0 4,505,790. One source, opted into, labelled in the output | [the two examples, run](evidence/2026-10-26-examples-run.md) |
 | **PROVEN** | That same package is REFUSED / CHALLENGE_UNKNOWN_OR_EXPIRED by the 187-line allowlist example, which then holds 0 admissions and 0 markers: a package cannot be lifted out of one gate's records and replayed into another's, and the refusal writes nothing | [the two examples, run](evidence/2026-10-26-examples-run.md) |
+| **PROVEN** | A stranger following README gets ADMITTED both ways: from the released binary (v0.1.0-rc.1, sha256 checked, exit 0, h0 root `a16809847bf51d60ac6d9bb3f71cbbf27483050868b94b242ca831fe14bf692d` at tip 4,545,089) and from one built out of a clean tree (exit 0 in 44 s, the same root at tip 4,545,161). `unstirred gate init` writes `examples/holders-room.json` byte for byte on both, and the same package with one hex digit of `proof` flipped is REFUSED / PROOF_INVALID, exit 1 | [clean-clone audit](evidence/2026-10-26-clean-clone-audit.md) |
 | **MEASURED** | No page the gate serves hides text to make itself fit: on every page, live, replayed and presented, at 1920x1080 and at 1326x683, the stage does not outgrow its 1080px, no box hides what does not fit, and no text has left the stage — measured in a real browser | [layout check](evidence/2026-10-21-page-layout-check.md) |
 | **MEASURED** | `?present=1` raises the smallest type on any page from 15-16px to 19-20px and takes the gate's own technical lines off the provenance foot, on a live page and on a replayed act alike | [layout check](evidence/2026-10-21-page-layout-check.md) |
 | **MEASURED** | The two page fixes of 2026-10-22 — the picker aligned to the top, and a derived time's explanation moved to the provenance foot, which `?present=1` drops while the card keeps "(time derived)" — hide nothing: every page variant measured again at 1920x1080 and 1326x683, and three frames looked at | [layout check](evidence/2026-10-22-page-layout-check.md) |
@@ -147,6 +182,8 @@ Nothing is claimed here that does not link to a file in `evidence/`. This table 
 | **MEASURED** | Every recorded act, in normal and in presentation mode, and the room picker, export to static HTML that opens with no gate, no chain, no wallet and no nf-server: eleven pages, written by the gate's own `room_document` and `picker_document` rather than by a second renderer | [the export and the render](evidence/2026-10-23-demo-video-render.md) |
 | **MEASURED** | The 2:27 silent cut of the demo video was a recorded render, not a description of one: 2:27.0 at 1920x1080 and 30 fps, 4,410 frames, 12.1 MB, no audio stream, produced by HyperFrames 0.8.186 from `video/` as it stood on 2026-10-23. `video/` has since been rebuilt as a 2:00 narrated walkthrough, so that render is the record of a film this project no longer produces | [the export and the render](evidence/2026-10-23-demo-video-render.md) |
 | **MEASURED** | The 2:00 narrated walkthrough is a recorded render, not a description of one: 120.000000 s at 1920x1080 and 30 fps, 3,600 frames, two streams (h264 High and aac LC 48 kHz stereo), 16,218,341 bytes, sha256 `9d1d7acb820e2343119fa8d818f3859da78c976d3a92f3522f4a86c081522399`, produced by HyperFrames 0.8.186 from `video/` in 30 m 41.3 s. Twelve scenes planned in `video/STORYBOARD.md` before they were built; thirty-two narration lines generated locally by `hyperframes tts` with Kokoro-82M `af_heart`, covering 81.7 s of the 120 s, each caption the exact string handed to the engine on the same `data-start` (no `transcript.json`: no transcription backend is installed and the npm install of one is refused by this project's script policy); `npm run check` passes every pass, including `9/9 text checks pass WCAG AA`, with the old `film_silent` warning gone; twelve stills in `video/out/stills/`, one per scene, cut out of the delivered file itself | [the rebuild and the render](evidence/2026-10-26-demo-video-walkthrough.md) |
+| **MEASURED** | A clean tree of this repository — 342 files, 6.6 MB, exactly what a clone holds — builds `unstirred 0.1.0` with `cargo build --release --locked`: 350 crates in 27 m 34 s with two jobs on a four-core 2.40 GHz i3, with no edit to `Cargo.lock`. The audit found the release tarball carried neither file README's 60-second path names as an argument, which `.github/workflows/release.yml` now fixes | [clean-clone audit](evidence/2026-10-26-clean-clone-audit.md) |
+| **MEASURED** | The published site is built from this repository by one script and asks no other origin for anything: 869 files, 556 pages, 17 MB, of which 17 are the site's own and the rest are rustdoc's. Every local link in those 17 resolves inside the site, and no page fetches a file that is not beside it — both confirmed against six planted faults, a third-party stylesheet and a tracking pixel among them, each one failing the build and naming the page. An act described in `scripts/site/acts.json` that the gate does not serve fails it too | [the site build](evidence/2026-10-26-site-build.md) |
 | **GATED** | M1 step 1 (read-only wallet, held notes, selection) passed the gate | [evidence/2026-10-16-gate-m1-step1.md](evidence/2026-10-16-gate-m1-step1.md) |
 | **GATED** | M1 step 2 (h0 tree state, historical witnesses) passed the gate | [evidence/2026-10-16-gate-m1-step2.md](evidence/2026-10-16-gate-m1-step2.md) |
 | **GATED** | M1 step 3 (private nullifier lookup) passed the gate | [evidence/2026-10-16-gate-m1-step3.md](evidence/2026-10-16-gate-m1-step3.md) |
@@ -167,6 +204,10 @@ Nothing is claimed here that does not link to a file in `evidence/`. This table 
 | **GATED** | An admit body refused on its declared length is read and thrown away, up to four times the limit the gate accepts, before the 413 is written, so the refusal reaches the client instead of being lost to a reset; nothing drained is kept, parsed, verified or stored (A37) | [gate log](evidence/2026-10-22-gate-m4-step2.md) |
 | **GATED** | A private non-membership answer shows neither the IMT path nor the leaf bounds that bracket the holder's nullifier — not in its own `Debug`, nor in that of the lookup that carries it (A48) | [gate log](evidence/2026-10-23-gate-release-prep.md) |
 | **GATED** | The release-prep pass passes the gate: act 4's broken axis, `SPEC.md`, the README rebuilt around a 60-second judge path with a status table the gate checks against this ledger, `briefing/LEAKS.md` with no untested row left, and the crates.io metadata and release workflow — 104 tests, the leak scan, the claims check and the status-table check | [gate log](evidence/2026-10-23-gate-release-prep.md) |
+| **GATED** | The final audit passes the gate, parts A and B in one run: fmt, clippy with `-D warnings`, 132 tests (108 of them unit, property, oracle and adversarial; 24 doc tests), the API reference with no rustdoc warning, the leak scan, the claims check and the README status table against this ledger | [gate log](evidence/2026-10-26-gate-final-audit.md) |
+| **GATED** | A gate advertises the two public service addresses a holder cannot discover — `pir_url` and `lightwalletd_url` in `GET /rooms` — refusing at startup anything that is not an http or https URL with a host (A49), and `unstirred knock` falls back to them only when the matching flag is absent, an explicit flag always winning (A50) | [gate log](evidence/2026-10-26-gate-final-audit.md) |
+| **GATED** | A room card carries where it opens, so one picker works as a gate route and as a file: a live gate leaves it unset and the card opens `/room/<context>`, the static export sets it to that room's first recorded act, and a value with a scheme, a host or a leading slash is refused by the state contract rather than rendered (A51) | [gate log](evidence/2026-10-26-gate-final-audit.md) |
+| **GATED** | Every public item in the four libraries is documented and the examples in those docs compile: `missing_docs` is on in all four, `cargo doc` with `-D warnings` is clean, and 24 doc tests run — one of them compile-only, because running it would build a real Halo2 proof, which its own text says | [gate log](evidence/2026-10-26-gate-final-audit.md) |
 | **SYNTHETIC** | M1 step 5 (`unstirred verify`) passed the gate, with the prover's tests over a real K=12 proof on a synthetic wallet | [evidence/2026-10-17-gate-m1-step5.md](evidence/2026-10-17-gate-m1-step5.md) |
 | **SYNTHETIC** | M2 step 2 (challenge and marker store, `admit`, `gate markers`) passed the gate: A02b, A05, A05c, A05d, A07, A08 and A11 on synthetic packages | [evidence/2026-10-17-gate-m2-step2.md](evidence/2026-10-17-gate-m2-step2.md) |
 | **SYNTHETIC** | A single root source is an explicit opt-in, labelled "ROOT FROM ONE SOURCE: not independently checked" in human output and in the JSON verdict | [evidence/2026-10-17-gate-m2-step1.md](evidence/2026-10-17-gate-m2-step1.md) |
@@ -176,7 +217,7 @@ Nothing is claimed here that does not link to a file in `evidence/`. This table 
 | **SYNTHETIC** | Two proofs of the same coins at the same gate carry a different `rk`, session key and `van_comm`, because `alpha` and the value-commitment blinding are drawn fresh per proof; exactly one marker per real note repeats, which is the collision single use rests on, and the other markers in a proof are the circuit's own padding nullifiers (A47) | [gate log](evidence/2026-10-23-gate-release-prep.md) |
 | **NOT BUILT** | The h1 nullifier-set root checked by the verifier itself (nf-server `verify-root`) | — |
 
-52 claims: 16 PROVEN, 8 MEASURED, 20 GATED, 7 SYNTHETIC, 1 NOT BUILT. **PROVEN** — a recorded run against the real Zcash testnet; **MEASURED** — a recorded run of a named tool, against something this repo serves; **GATED** — settled by a recorded `scripts/gate.sh` run: fmt, clippy and the whole suite; **SYNTHETIC** — true of a wallet, nullifier set or root built inside the test process; **NOT BUILT** — named here so it cannot be read as working.
+59 claims: 17 PROVEN, 10 MEASURED, 24 GATED, 7 SYNTHETIC, 1 NOT BUILT. **PROVEN** — a recorded run against the real Zcash testnet; **MEASURED** — a recorded run of a named tool, against something this repo serves; **GATED** — settled by a recorded `scripts/gate.sh` run: fmt, clippy and the whole suite; **SYNTHETIC** — true of a wallet, nullifier set or root built inside the test process; **NOT BUILT** — named here so it cannot be read as working.
 
 <!-- end status table -->
 
@@ -224,8 +265,9 @@ cargo build --release
 ./scripts/gate.sh
 ```
 
-`scripts/gate.sh` is fmt, clippy with `-D warnings`, the whole test suite, the repository leak
-scan, the claims check and the status-table check. It prints `GATE: PASS` or fails.
+`scripts/gate.sh` is fmt, clippy with `-D warnings`, the whole test suite, the API reference with
+no rustdoc warning, the repository leak scan, the claims check and the status-table check. It
+prints `GATE: PASS` or fails.
 
 **It wants about 7 GB of free memory.** Several targets build real K=12 Halo2 proofs, and by
 default cargo builds and runs them in parallel, which is what makes the suite tolerable (about
@@ -250,6 +292,9 @@ machine with everything else stopped. CI uses neither setting.
 - [`briefing/LEAKS.md`](briefing/LEAKS.md) — every privacy channel, with its test or stated limit
 - [`briefing/PRD.md`](briefing/PRD.md) — the requirements, §10 being the test list
 - [`DECISIONS.md`](DECISIONS.md) — every decision that changed a frozen rule, dated
+- [`CHANGELOG.md`](CHANGELOG.md) — what each release does
+- [`docs/RELEASING.md`](docs/RELEASING.md) — what an owner does by hand to cut a release, and why
+  each step is by hand
 
 Two runnable programs use nothing but the library's public API, and are the shortest way to read
 it: [`verify_package.rs`](crates/unstirred-verifier/examples/verify_package.rs) is `unstirred

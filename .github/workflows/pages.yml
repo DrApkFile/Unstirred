@@ -1,0 +1,69 @@
+name: pages
+
+# Publishes the site this repository builds for itself: the recorded acts, the API reference, the
+# guides and a landing page. `scripts/build-site.sh` produces all of it, so what is published is
+# what `scripts/build-site.sh` gives you locally — there is no second rendering of anything here.
+#
+# One repository setting makes this live: Settings -> Pages -> Build and deployment -> Source =
+# "GitHub Actions". Nothing else; no branch and no directory to choose.
+on:
+  push:
+    branches: [master]
+  workflow_dispatch:
+
+# Only what deploying a site needs. The job writes nothing to the repository.
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# One deployment at a time, and a newer push wins: a half-finished site is never left live.
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - name: Check out the commit to publish
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Restore the cargo registry and the build directory
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: |
+            ~/.cargo/registry/index
+            ~/.cargo/registry/cache
+            ~/.cargo/git/db
+            target
+          key: pages-${{ runner.os }}-${{ hashFiles('rust-toolchain.toml', 'Cargo.lock') }}
+
+      - name: Refuse a Cargo.lock the build would change
+        run: cargo metadata --locked --format-version 1 > /dev/null
+
+      - name: Build the site
+        run: ./scripts/build-site.sh site
+
+      - name: Say what was built
+        run: |
+          find site -maxdepth 2 -name '*.html' | sort
+          du -sh site
+
+      - name: Upload it as the Pages artifact
+        uses: actions/upload-pages-artifact@7b1f4a764d45c48632c6b24a0339c27f5614fb0b # v4.0.0
+        with:
+          path: site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Publish it
+        id: deployment
+        uses: actions/deploy-pages@d6db90164ac5ed86f2b6aed7e0febac5b3c0c03e # v4.0.5

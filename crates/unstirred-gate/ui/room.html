@@ -19,8 +19,10 @@
     <noscript>
       <p>
         This page renders this gate's own data and fetches nothing from anywhere else. With
-        scripting off, the same data is published as JSON: <a href="/rooms">the rooms</a> this gate
-        hosts, and each room's manifest, log and recent verdicts beneath it.
+        scripting off, the same data is published as JSON at <code>/rooms</code> — the rooms this
+        gate hosts — and under <code>/rooms/&lt;room&gt;/</code> for each room's manifest, log and
+        recent verdicts. They are paths here rather than links because this same document is also
+        published as a file, where a gate route has nothing behind it (A51).
       </p>
     </noscript>
     <script type="application/json" id="unstirred-state">

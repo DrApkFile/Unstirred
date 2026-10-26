@@ -91,6 +91,13 @@ pub struct RoomState {
     pub min_zatoshis: String,
     /// The pinned h1 nullifier-set root, hex.
     pub h1_root: String,
+    /// Where this room's card opens, when the page is not being served by a gate. A live gate
+    /// leaves it unset and the card opens `/room/<context>`; the static export sets it to the
+    /// first recorded act of this room, so an exported picker is a file that links to files
+    /// beside it. It must be a relative path — a scheme, a host or a leading slash is refused,
+    /// because a page the gate serves references no origin (A51, LEAKS L10).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub page: Option<String>,
     /// Where that root came from, in words. It is operator-pinned in v1, and the page says so
     /// rather than letting a viewer assume it was checked.
     pub h1_root_provenance: String,
@@ -218,6 +225,9 @@ impl RoomState {
             .parse::<u64>()
             .map_err(|e| format!("room {:?} has min_zatoshis {:?}: {e}", self.context, self.min_zatoshis))?;
         require_hex(&self.h1_root, &format!("room {:?}'s h1 root", self.context))?;
+        if let Some(page) = &self.page {
+            require_relative_path(page, &self.context)?;
+        }
         if let Some(holder) = &self.holder {
             if holder.from > holder.to {
                 return Err(format!(
@@ -240,6 +250,21 @@ impl RoomState {
         }
         Ok(())
     }
+}
+
+/// A room card may only open something beside the page it is on. Anything with a scheme, an
+/// authority or a leading slash would make an exported page reference somewhere else, which is
+/// the one thing every page the gate serves is checked not to do.
+fn require_relative_path(page: &str, context: &str) -> Result<(), String> {
+    if page.is_empty() {
+        return Err(format!("room {context:?} says it opens at nothing"));
+    }
+    if page.starts_with('/') || page.contains("//") || page.contains(':') {
+        return Err(format!(
+            "room {context:?} opens at {page:?}, which is not a path beside the page it is on"
+        ));
+    }
+    Ok(())
 }
 
 fn require_hex(value: &str, what: &str) -> Result<(), String> {

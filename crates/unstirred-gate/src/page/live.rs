@@ -38,6 +38,9 @@ pub fn live_state(state: &GateState, room: Option<&str>, present: bool) -> Resul
             min_zatoshis: hosted.manifest.min_zatoshis.to_string(),
             h1_root: hex::encode(hosted.h1_root),
             h1_root_provenance: "operator-pinned".to_owned(),
+            // A gate serves its own routes, so a card opens /room/<context>. Only a static
+            // export, where that route is no file, says where it opens (A51).
+            page: None,
             limit: ROOM_LOG_LIMIT,
             // A holder line illustrates one act; it is not something a gate knows about anyone.
             holder: None,

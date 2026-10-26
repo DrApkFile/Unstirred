@@ -161,11 +161,11 @@ rows for the two-source run, the `verify` wording constant and A33, the README t
    GitHub Pages replay site. `scripts/export-replay-site.sh` writes the five acts, each in normal
    and presentation mode, plus the room picker, into `site/` as static HTML, straight out of the
    gate's own page module, so an exported file is byte for byte what the gate serves — re-verified
-   2026-10-26 against `video/assets/site/`, all eleven files identical. **Pages itself is not set
-   up**, by instruction. One thing to decide first: the picker's room cards link to
-   `/room/<context>`, which is a gate route and not a file in `site/`. *(The repo has never written
-   down which half is "A" and which is "B"; the reading used here is A = the clean-clone audit,
-   B = the replay site. Settle the labels at the start of that session.)*
+   2026-10-26 against `video/assets/site/`, all eleven files identical. **Settled in part B
+   (§14):** the picker's room cards now open the first recorded act of each room (A51), the site
+   is built by `scripts/build-site.sh` and published by `.github/workflows/pages.yml`, and Pages
+   waits on one repository setting the owner switches. *(Part A turned out to be the simpler
+   knock, the guides, the examples and the rustdoc; part B the publish-ready pass.)*
 
 The release is prepared and not performed: the tag and the crates.io publish are still open, with
 the order and the exact commands in §11. Deadline: last commit before **2026-10-27 08:00 UTC**.
@@ -384,10 +384,11 @@ proving or verifying paths. The ones most likely to bite the next step:
 
 ## 6. Open items
 
-- `scripts/gate.sh` prints `GATE: PASS` since 2026-10-20: fmt, clippy, the whole suite, the leak
-  scan and the claims check. What it still cannot see is a leak through a channel rather than a
-  string in a running process, and whether a file in `evidence/` says what `CLAIMS.md` says it
-  says. A02's package and database scans remain in-process tests.
+- `scripts/gate.sh` prints `GATE: PASS` since 2026-10-20: fmt, clippy, the whole suite, the API
+  reference with no rustdoc warning (added in part A, 2026-10-26), the leak scan, the claims check
+  and the README status table against `CLAIMS.md`. What it still cannot see is a leak through a
+  channel rather than a string in a running process, and whether a file in `evidence/` says what
+  `CLAIMS.md` says it says. A02's package and database scans remain in-process tests.
 - `unstirred-gate` HTTP is built and committed (M3 step 1, section 8) and exposes the M2 store
   without adding a check of its own. Its real two-room run was made on 2026-10-20 — ADMITTED,
   `ALREADY_USED_IN_CONTEXT` for the same coins at that room, ADMITTED at the second room, with
@@ -407,25 +408,30 @@ proving or verifying paths. The ones most likely to bite the next step:
   Ironwood activation plus an independently trusted block hash at h1. Until then h1 stays
   operator-pinned via `--h1-root` and labelled operator-pinned in output and docs.
 - `DECISIONS.md` has one `open` row: whether to reserve the crates.io names now with a 0.0.1
-  placeholder. Owner's call. The planned publish is a single 0.1.0 around 2026-10-26, and §11 has
-  the order and the commands; the dry run for it passes on the whole workspace.
-- `crates/unstirred-prover/src/error.rs` is 194 lines, over the ~180-line rule, because it is one
-  enum (see the cleanup note in §1). `DECISIONS.md` rows written before 2026-10-20 still cite the
-  pre-split file paths; they are a record of decisions, so they were left as written.
+  placeholder. Owner's call. The planned publish is a single 0.1.0, and `docs/RELEASING.md` has the
+  order, the exact commands and the release-notes text; the dry run for it passes on the whole
+  workspace.
+- The ~180-line file rule keeps **ten recorded exceptions**, listed with their line counts and the
+  reason for each in the `DECISIONS.md` row of 2026-10-26; `crates/unstirred-prover/src/error.rs`
+  (377, one enum of 57 documented variants) is the largest of the source files among them. Every
+  other tracked Rust file is at or under 195 lines, which that row counts as inside `~180`.
+  `DECISIONS.md` rows written before 2026-10-20 still cite the pre-split file paths; they are a
+  record of decisions, so they were left as written.
 - Two page files are also over the ~180-line rule, for the same kind of reason.
   `crates/unstirred-gate/ui/render.js` (470) is one pure function and its private helpers in one
   closure; splitting it would mean a namespace object quoted on every call, which is worse to read
   than the length it saves. `ui/tokens.css` (441) is the one `:root` token block the video's design
   system mirrors, plus the styles that use it, and the only way CSS has to split a file is
-  `@import`, which is a third-party request waiting to happen and is what LEAKS L10 forbids. Every
-  Rust file in the step is under the limit.
+  `@import`, which is a third-party request waiting to happen and is what LEAKS L10 forbids.
 - The README is rebuilt (§11): a 60-second judge path, and a status table generated from
   `CLAIMS.md` by `scripts/status-table.py`, which the gate re-runs with `--check`. `SPEC.md` is
   the protocol document beside it, and `briefing/LEAKS.md` has no "planned" row left.
-- Judge path 1 is decided: **no hosted Holders' Room.** The paths are the video, the replay acts a
-  gate the judge runs serves (no chain, no wallet, no nf-server), and `unstirred verify` against the
-  recorded evidence (owner's decision, `DECISIONS.md` 2026-10-22, PRD §16 rewritten to match). Nothing
-  has to be deployed or kept running after the deadline.
+- Judge path 1 is decided: **no hosted Holders' Room.** There is now a published site
+  (`.github/workflows/pages.yml`, §14), but it is static: the five recorded acts, the guides and the
+  API reference, with no gate, no chain, no wallet and no nf-server behind any of it. The paths are
+  that site, the video, the replay acts a gate the judge runs serves, and `unstirred verify` against
+  the recorded evidence (owner's decision, `DECISIONS.md` 2026-10-22, PRD §16 rewritten to match).
+  Nothing has to be deployed or kept running after the deadline.
 - Stated limit worth re-reading before any claim about key hygiene: `orchard 0.15.5` does not
   zeroize its key types on drop (`briefing/BUILD_NOTES.md`, `LEAKS.md` L15b).
 
@@ -1070,9 +1076,11 @@ exactly as the gate serves it. It works because a replay page fetches nothing.
 
 **`scripts/export-replay-site.sh`** writes the acts and the picker as static HTML, default
 `site/`, via `crates/unstirred-gate/examples/export-replay-site.rs`, which calls the gate's own
-`room_document` and `picker_document`. Eleven files. The picker's room cards link to
-`/room/<context>`, a gate route with no file behind it in `site/`; that is the one thing to settle
-before the site is published.
+`room_document` and `picker_document`. Eleven files. The picker's room cards open the first
+recorded act of each room, because `/room/<context>` is a gate route with nothing behind it in a
+static export (A51, §14). `scripts/build-site.sh` is what assembles the published site around
+them, and it renames the exported picker to `picker.html` so the site's own index of the acts can
+take that directory's `index.html`.
 
 **What ran.** `evidence/2026-10-26-demo-video-walkthrough.md` records it.
 `npm run check` passes every pass against the delivered tree: Lint `0 error(s), 1 warning(s)`,
@@ -1188,17 +1196,16 @@ session: **all eleven files identical.** `video/tools/README.md` now names this 
 **Open, in the order they matter**
 
 1. Nothing is committed, by instruction.
-2. The picker's room cards link to `/room/<context>`, a gate route with no file behind it in the
-   exported static site. Settle before publishing.
-3. GitHub Pages not set up; the film's close says `replay site: — (not published yet)`.
+2. GitHub Pages not set up; the film's close says `replay site: — (not published yet)`. The
+   workflow and the site build landed in part B (§14); the setting is the owner's.
 
-**The video is done.** The next step is **the final audit, parts A and B** (§2 item 2).
+**The video is done.** The next step is **the final audit, parts A and B** (§2 item 2). Both are
+done; see §13 and §14.
 
-### Session note — 2026-10-26, final audit part A — uncommitted
+## 13. Final audit part A: the simpler knock, the guides, the examples, the rustdoc — committed as `456d19a`
 
-Part A is done. **Nothing is committed**, and **no CLAIMS row says GATED for this work**: the gate
-has not been run for it, by instruction — one gate run at the very end covers parts A and B
-together.
+Part A is done and committed as a checkpoint. **No CLAIMS row says GATED for it**: the gate was
+not run for part A on its own, by instruction — one gate run at the end covers A and B together.
 
 **1. A simpler knock (A49, A50).** A gate may now advertise the two public service addresses a
 holder has no way to discover. `pir_url` and `lightwalletd_url` are optional top-level keys in
@@ -1246,18 +1253,70 @@ warning; `missing_docs` is left at `warn` so an ordinary local build is not bloc
 **Also run, and clean:** `cargo fmt --all`, the leak scan, the claims check (52 claims) and the
 status table. **Not run:** `scripts/gate.sh`.
 
-**Open, in the order they matter**
+Three things were on disk uncommitted when part A was committed, from the session that began part
+B before the two halves were untangled, and they are part of `456d19a`: `assets/icon.png`,
+`scripts/make-favicon.sh` with the inline `data:` favicon in both pages (which is why
+`scripts/leak-scan.sh` and A02c were narrowed from "no `<link>` tag" to "no reference to any
+origin", recorded in `DECISIONS.md`), and a first draft of `scripts/render-md.py`.
 
-1. **Part B, the publish-ready audit** — the prompt the owner gave before part A: GitHub Pages
-   site, logo and favicon, README reordering, clean-clone audit, v0.1.0 release prep, hygiene. Some
-   of it is already on disk, uncommitted, from before the two parts were untangled: `assets/icon.png`,
-   `scripts/make-favicon.sh` and the inline `data:` favicon in both pages (with `scripts/leak-scan.sh`
-   and A02c narrowed from "no `<link>` tag" to "no reference to any origin", recorded in
-   `DECISIONS.md`), and `scripts/render-md.py`, which still needs repointing at `docs/`.
-2. **One gate run at the very end**, covering A and B. The GATED rows for both parts are written
-   then and not before.
-3. README's "Watch the demo" still says the video is not recorded. It is (`1cd7148`). Part B's
-   README pass.
-4. The clean-clone build from part B is kept warm at
-   `~/.cache/unstirred-audit-2026-10-26/clone-warm` — a cold `CARGO_BUILD_JOBS=2 cargo build
-   --release --locked` there succeeded in 22m 27s.
+**What followed:** part B, in §14.
+
+## 14. Final audit part B: the published site, the clean-clone audit, the release prepared — uncommitted
+
+Part B is the publish-ready pass. Nothing in it was tagged, published or uploaded, and nothing was
+run against either wallet.
+
+**1. The site, and the one setting the owner switches.** `scripts/build-site.sh` builds the whole
+thing into one directory and `.github/workflows/pages.yml` runs that same script on every push to
+`master`, so there is no second renderer: the five recorded acts (each in both readings) and the
+room picker, straight out of the gate's own page module; the three guides rendered by
+`scripts/render-md.py` into the site's own design tokens, which are the gate's `ui/tokens.css`
+followed by `scripts/site/site.css`; `cargo doc` under `/api` behind a hand-written index naming
+the four libraries; and a landing page. **869 files, 556 pages, 17 MB**, recorded in
+`evidence/2026-10-26-site-build.md` along with the six planted faults each check was confirmed
+against. All five actions are SHA-pinned (`checkout` v4.2.2, `cache` v6.1.0,
+`upload-pages-artifact` v4.0.0, `deploy-pages` v4.0.5, and in `release.yml`
+`softprops/action-gh-release` v3.0.3), each SHA re-checked against the GitHub tag API on
+2026-10-26. The **one repository setting**: *Settings → Pages → Build and deployment → Source =
+"GitHub Actions"*. No branch, no directory.
+
+`scripts/site-pages.py` ends in two checks the build fails on — every local link resolves inside
+the site, and no page fetches anything that is not a file beside it — plus one that compares
+`scripts/site/acts.json` against `REPLAY_ACTS` in `crates/unstirred-gate/ui/replay/acts.rs` and
+refuses to write the index if the acts described are not the acts the gate serves.
+
+**2. The logo.** `assets/icon.png` is the README header, the site's header and the site's favicon
+(decoded from the gate's own `ui/favicon.b64`, which is also the inline `data:` favicon of every
+page the gate serves). **The owner uploads the social preview by hand**: *Settings → General →
+Social preview → Edit → Upload an image*, with `assets/icon.png`, which is already 1280×640.
+
+**3. README.** The site comes first, then the walkthrough video as a **clearly marked placeholder**
+— the only place in the repository that needs the upload URL, with an HTML comment above it saying
+so — then the 60-second path, which now uses the committed `examples/holders-room.json`.
+
+**4. The clean-clone audit** is `evidence/2026-10-26-clean-clone-audit.md`: both README paths
+followed as a stranger. **Three faults found and fixed.** The release tarball carried neither
+file README's 60-second path names as an argument (`release.yml` now ships `examples/` and
+`evidence/`); `docs/GETTING_STARTED.md` quoted a build time no run had produced (now 27 m 34 s,
+350 crates, from this audit); and the guides named `v0.1.0-rc.1` while README named `v0.1.0`
+(all `v0.1.0` now, with `docs/RELEASING.md` step 1 stating plainly that four links do not resolve
+until that tag is pushed). One rough edge was left alone and written down: `unstirred codes | head`
+ends in std's `SIGPIPE` panic.
+
+**5. The release is prepared and not performed.** Versions were already `0.1.0` everywhere.
+`CHANGELOG.md` has the 0.1.0 entry; `docs/RELEASING.md` has every command the owner runs, in
+order — the gate, the two repository settings, `git tag`, the release notes (written out in full,
+ready to paste), `gh release upload` for the video with its sha256, and `cargo publish` in
+dependency order: **core, prover, verifier, gate, unstirred**. **Nothing was tagged, uploaded or
+published.**
+
+**6. Hygiene.** `CLAIMS.md` is at 55 claims and the README status table is generated from it; the
+leak scan, the claims check and the status-table check all pass; §6 of this file has had its stale
+lines corrected; and the ~180-line rule's ten exceptions are listed with a reason each in the
+`DECISIONS.md` row of 2026-10-26, with every other tracked Rust file at or under 195 lines.
+
+**The gate run at the end of part B covers A and B together, and it passed**:
+`CARGO_BUILD_JOBS=2 RUST_TEST_THREADS=1 ./scripts/gate.sh`, exit 0, **132 tests** (108 ordinary,
+24 doc tests), recorded in `evidence/2026-10-26-gate-final-audit.md`. The four GATED rows that
+follow from it — the audit itself, A49/A50, A51 and the documented public API — are in `CLAIMS.md`,
+which is now at **59 claims**. Nothing is committed, tagged, published or uploaded.

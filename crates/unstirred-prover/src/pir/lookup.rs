@@ -11,7 +11,7 @@ use crate::error::ProverError;
 /// The h1 nullifier set as the prover is allowed to ask about it: the delegation builder's
 /// [`ImtProvider`], plus the typed reason the last question failed.
 ///
-/// The builder's trait can only answer with [`ImtError`], a string. That is enough to stop a
+/// The builder's trait can only answer with its own `ImtError`, a string. That is enough to stop a
 /// proof but not enough to tell a holder what happened: a service that could not be reached is
 /// `PIR_UNAVAILABLE` (inconclusive, retryable) and must never be read as "this note has moved".
 pub trait NullifierSetAtH1: ImtProvider {

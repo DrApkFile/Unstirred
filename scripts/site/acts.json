@@ -1,0 +1,27 @@
+{
+  "act1-rule": {
+    "title": "The door, before anyone has knocked",
+    "shows": "The rule the room publishes, and an empty log. Four numbers: a network, a context, two block heights and the threshold.",
+    "from": "the two-room knock of 2026-10-20"
+  },
+  "act2-admitted": {
+    "title": "ADMITTED, and the five markers",
+    "shows": "A real holder is admitted, and the gate writes down the only thing it keeps: five markers that name these coins at this room and nowhere else.",
+    "from": "the two-room knock of 2026-10-20"
+  },
+  "act3-refused": {
+    "title": "The same coins again",
+    "shows": "ALREADY_USED_IN_CONTEXT. The markers are unchanged, because the refusal wrote nothing at all.",
+    "from": "the two-room knock of 2026-10-20"
+  },
+  "act4-newcomer": {
+    "title": "A newcomer, 20,332 blocks too new",
+    "shows": "A real proof against a root this gate never pinned: ROOT_MISMATCH. The rail is broken rather than stretched, with the real distance printed on the mark.",
+    "from": "the newcomer's forced knock of 2026-10-22"
+  },
+  "act5-second-room": {
+    "title": "The same coins at a second room",
+    "shows": "Admitted again, with a marker set that shares nothing with the first room's. Neither gate's log matches the other's.",
+    "from": "the two-room knock of 2026-10-20"
+  }
+}

@@ -78,6 +78,8 @@ A live page never draws a holder line: the gate knows no holder's block range. T
 
 ## The acts
 
+A room card carries where it opens only when the page is not being served by a gate: live, the card opens `/room/<context>` and the state says nothing about it; in the static export, each card's `page` is the first recorded act of that room, so an exported picker links to files beside it rather than to a gate route with nothing behind it. A `page` that is not a path beside the page it is on — anything with a scheme, a host or a leading slash — is refused by the state contract (A51).
+
 Each act is a page state in `ui/replay/`, generated from the recorded runs in `evidence/` by `scripts/replay-from-evidence.py`, which also writes the list of the acts the gate serves beside them as `ui/replay/acts.rs`: an act exists when a run produced it, and never before. Render one by opening the gate at `/room/<context>?replay=<act>`: that document polls nothing, reads no clock and carries the act inside it, so two renders of it are the same frames.
 
 | Act | Page | What the frame shows |

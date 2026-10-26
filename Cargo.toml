@@ -14,8 +14,8 @@ edition = "2021"
 rust-version = "1.91"
 license = "MIT OR Apache-2.0"
 repository = "https://github.com/DrApkFile/Unstirred"
-homepage = "https://github.com/DrApkFile/Unstirred"
-documentation = "https://github.com/DrApkFile/Unstirred/blob/master/SPEC.md"
+homepage = "https://drapkfile.github.io/Unstirred/"
+documentation = "https://drapkfile.github.io/Unstirred/api/index.html"
 keywords = ["zcash", "zero-knowledge", "privacy", "halo2", "sybil-resistance"]
 categories = ["cryptography::cryptocurrencies", "command-line-utilities"]
 

@@ -185,8 +185,8 @@ made from:
 
 ```toml
 [dependencies]
-unstirred-core = { git = "https://github.com/DrApkFile/Unstirred", tag = "v0.1.0-rc.1" }
-unstirred-verifier = { git = "https://github.com/DrApkFile/Unstirred", tag = "v0.1.0-rc.1" }
+unstirred-core = { git = "https://github.com/DrApkFile/Unstirred", tag = "v0.1.0" }
+unstirred-verifier = { git = "https://github.com/DrApkFile/Unstirred", tag = "v0.1.0" }
 ```
 
 Once 0.1.0 is published, the same code works against the registry:
@@ -296,7 +296,7 @@ separate process.
 
 ```toml
 [dependencies]
-unstirred-prover = { git = "https://github.com/DrApkFile/Unstirred", tag = "v0.1.0-rc.1" }
+unstirred-prover = { git = "https://github.com/DrApkFile/Unstirred", tag = "v0.1.0" }
 ```
 
 What embedding buys your users: they never export a spending key, never run a second binary, and

@@ -3,6 +3,39 @@
 Things learned while building that the code and the other briefing files do not say. Decisions go
 to `DECISIONS.md`; recorded runs go to `evidence/`. This file is for the facts that cost time.
 
+## Final audit part B: the site, and what a clean clone said, 2026-10-26
+
+- **A release tarball is a separate deliverable from the repository, and nobody tests it.** README's
+  60-second path names two files as arguments — `examples/holders-room.json` and
+  `evidence/2026-10-17-first-proof.json` — and the v0.1.0-rc.1 tarball carried neither. The binary
+  worked, the commands were right, and there was nothing to run them on. **Download your own
+  release and follow your own README from inside the directory it unpacks into**, because the only
+  thing that settles what is in a tarball is opening the tarball.
+- **A relative link in a subdirectory becomes a wrong absolute URL when it is rewritten.**
+  `scripts/render-md.py` turns a link to a file the site does not publish into
+  `https://github.com/.../blob/master/` + the path. From `docs/`, `../CLAIMS.md` became
+  `blob/master/../CLAIMS.md`, which a browser normalises into a URL that does not exist — a dead
+  link on every rendered guide, and one that no link checker that only looks *inside* the site can
+  see. The fix is one `posixpath.normpath(join(source_directory, path))`; the lesson is that a link
+  rewriter needs to know where the file it is rewriting lives.
+- **A generated page cannot be used to test the checker that generates it.** Planting a tracking
+  pixel in `site/index.html` proves nothing: `site-pages.py` writes that file before it checks it,
+  so the plant is overwritten and the check passes for the wrong reason. The plant has to go into a
+  page the script only reads. The first run of that test gave a clean pass and was very nearly
+  believed.
+- **Pin an action by SHA and the tag beside it is a comment that can be wrong.** All five actions
+  were re-checked against `https://api.github.com/repos/<action>/tags` on the day, which is cheap
+  and is the only thing that makes the comment true. `upload-pages-artifact` and `deploy-pages` are
+  kept at the matched **v4** pair rather than each crate's newest tag, because those two are
+  published as a pair and a mixed one is not something a repository can test before it publishes.
+- **A number in a document needs a run behind it, even a boring number.**
+  `docs/GETTING_STARTED.md` said a clean-clone build took 22 minutes, which no file in `evidence/`
+  settled. The recorded figure is 27 m 34 s for 350 crates with `CARGO_BUILD_JOBS=2` on a four-core
+  i3 — slower, and true.
+- **`unstirred codes | head` ends in a panic**, which is std's own `SIGPIPE` behaviour and not this
+  project's. It loses no output and breaks no script. Written down rather than fixed, because
+  changing signal handling hours before a release buys less than it risks.
+
 ## Final audit part A: advertised services, the guides, the examples, rustdoc, 2026-10-26
 
 - **A config file's paths resolve against the config file, so a path that reads correctly from the
