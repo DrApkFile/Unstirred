@@ -5,3 +5,5 @@
 .env
 /site/
 video/**/music.mp3
+keys.toml
+node_modules/

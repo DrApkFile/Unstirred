@@ -147,6 +147,38 @@ rows for the two-source run, the `verify` wording constant and A33, the README t
 
 ## 2. What to do next, precisely
 
+**The build is finished.** Everything is committed and green at `c2751fd` (GATE: PASS, 132 tests,
+`evidence/2026-10-26-gate-final-audit.md`), the site is published and live, and **everything left
+is the owner's to do by hand**. Nothing in this repository is waiting on more code.
+
+**Done, and closed:** the five milestones, the demo video (§12), the final audit parts A (§13) and
+B (§14), the clean-clone audit of both README paths
+(`evidence/2026-10-26-clean-clone-audit.md`), and the published site —
+**https://drapkfile.github.io/Unstirred/**, deployed by `.github/workflows/pages.yml` on the push
+of `c2751fd`, with the Pages source switched to "GitHub Actions" and the social preview uploaded.
+Every page of it answers 200: the landing page, the five acts in both readings, the picker, the
+three guides and the API reference.
+
+**What is left, in order, all of it the owner's:**
+
+1. **`docs/RELEASING.md`, top to bottom.** Tag `v0.1.0` and push it (this is what makes the
+   download links in README and both guides resolve — they already name `v0.1.0`, not the earlier
+   `v0.1.0-rc.1`); wait for the three release build jobs; paste the release notes, which are
+   written out in full in that file; `gh release upload v0.1.0 video/out/unstirred-demo.mp4
+   --clobber` — or drag the file onto the release page, since `gh` is not installed on the build
+   machine; then `cargo publish` in dependency order: **core, prover, verifier, gate, unstirred**.
+2. **The video link.** Once the release carries the `.mp4`, put its URL into README's
+   "Watch the demo" placeholder, which carries an HTML comment saying it is the only place in the
+   repository that needs it. Commit and push; the site rebuilds itself.
+3. **A 1:30 re-cut of the walkthrough, with the real links in it** — the published site and the
+   release — replacing the 2:00 cut that had neither. `video/` is the project, `video/STORYBOARD.md`
+   its plan, and `video/tools/` its generators, which reproduce `index.html` byte for byte.
+
+The historical record of how it got here is below, oldest last. Deadline: last commit before
+**2026-10-27 08:00 UTC**.
+
+### How it got here
+
 **Everything built so far is committed and green** (`3d2bf57`, GATE: PASS, 104 tests,
 `evidence/2026-10-23-gate-release-prep.md`). **Next, in order:**
 
@@ -162,13 +194,13 @@ rows for the two-source run, the `verify` wording constant and A33, the README t
    and presentation mode, plus the room picker, into `site/` as static HTML, straight out of the
    gate's own page module, so an exported file is byte for byte what the gate serves — re-verified
    2026-10-26 against `video/assets/site/`, all eleven files identical. **Settled in part B
-   (§14):** the picker's room cards now open the first recorded act of each room (A51), the site
-   is built by `scripts/build-site.sh` and published by `.github/workflows/pages.yml`, and Pages
-   waits on one repository setting the owner switches. *(Part A turned out to be the simpler
+   (§14):** the picker's room cards now open the first recorded act of each room (A51), and the
+   site is built by `scripts/build-site.sh` and published by `.github/workflows/pages.yml`, which
+   deployed it on the push of `c2751fd`. *(Part A turned out to be the simpler
    knock, the guides, the examples and the rustdoc; part B the publish-ready pass.)*
 
 The release is prepared and not performed: the tag and the crates.io publish are still open, with
-the order and the exact commands in §11. Deadline: last commit before **2026-10-27 08:00 UTC**.
+the order and the exact commands in `docs/RELEASING.md` (§11 has the older, shorter version).
 
 **M2 is closed. Nothing in it is open.** Both steps are committed, and the two-source rule has
 now run for real: on 2026-10-20 the owner's zebrad 7.0.0-rc.0 had synced past the window, and
@@ -1319,4 +1351,10 @@ lines corrected; and the ~180-line rule's ten exceptions are listed with a reaso
 `CARGO_BUILD_JOBS=2 RUST_TEST_THREADS=1 ./scripts/gate.sh`, exit 0, **132 tests** (108 ordinary,
 24 doc tests), recorded in `evidence/2026-10-26-gate-final-audit.md`. The four GATED rows that
 follow from it — the audit itself, A49/A50, A51 and the documented public API — are in `CLAIMS.md`,
-which is now at **59 claims**. Nothing is committed, tagged, published or uploaded.
+which is now at **59 claims**.
+
+**Committed as `c2751fd` and pushed.** Both workflows passed on it, `gate` and `pages`, and the
+site went live at **https://drapkfile.github.io/Unstirred/** — every page checked for a 200: the
+landing page, the five acts in both readings, the room picker, the three guides, the API reference
+and the two icons. The two repository settings §14 asks the owner for are both done: the Pages
+source and the social preview. **Nothing is tagged or published**: that is step 1 of §2.
