@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>The crates as libraries</title>
+  </head>
+  <body>
+    <template>
+      <style>
+        #root {
+          position: absolute;
+          inset: 0;
+          background: var(--paper);
+        }
+
+        #s9-head {
+          position: absolute;
+          left: var(--term-x);
+          top: 130px;
+          font-size: 30px;
+          font-weight: 600;
+          color: var(--ink-dim);
+        }
+
+        #s9-term {
+          top: 190px;
+          height: 226px;
+        }
+
+        .code {
+          color: var(--ink);
+        }
+
+        .code-kw {
+          color: var(--accent);
+        }
+
+        #s9-prover {
+          position: absolute;
+          left: var(--term-x);
+          top: 500px;
+          width: var(--term-w);
+          display: flex;
+          flex-direction: column;
+          gap: var(--gap-2);
+        }
+
+        #s9-prover .title {
+          color: var(--ink);
+        }
+
+        #s9-prover p {
+          font-family: var(--mono);
+          font-size: 28px;
+          line-height: var(--leading-body);
+          color: var(--ink-dim);
+        }
+
+        #s9-prover p b {
+          color: var(--admit);
+          font-weight: 400;
+        }
+      </style>
+
+      <div id="root" data-composition-id="s9-library" data-width="1920" data-height="1080">
+        <span id="s9-head">Or skip the gate: both halves are crates.</span>
+        <div class="window" id="s9-term">
+          <div class="window-bar">
+            <div class="window-lamps"><i></i><i></i><i></i></div>
+            <div class="window-name" data-layout-ignore>a gate operator's own service</div>
+            <div class="window-prov" data-layout-ignore>how to use it · the public API in crates/unstirred-verifier/src/lib.rs</div>
+          </div>
+          <div class="term-body" data-layout-ignore>
+            <!-- prettier-ignore-start -->
+            <span class="line code"><span class="code-kw">use</span> unstirred_verifier::{verify_package, PinnedRoots, Verdict};</span>
+            <span class="line"> </span>
+            <span class="line code"><span class="code-kw">let</span> verdict = verify_package(&amp;manifest_json, &amp;package_json, &amp;roots, chain_tip, &amp;challenge);</span>
+            <span class="line code">assert_eq!(verdict, Verdict::Admitted);</span>
+            <!-- prettier-ignore-end -->
+          </div>
+        </div>
+        <div id="s9-prover">
+          <span class="title">A wallet embeds the other half.</span>
+          <p>
+            unstirred_prover::prove(ProofRequest { … }) → the package.
+            <b>Read-only; no transaction.</b>
+          </p>
+        </div>
+      </div>
+
+      <script>
+        (function () {
+          var tl = gsap.timeline({ paused: true });
+
+          tl.fromTo(
+            document.getElementById("s9-term"),
+            { opacity: 0, y: 16 },
+            { opacity: 1, y: 0, duration: 0.4, ease: "power2.out" },
+            0.2
+          );
+          tl.fromTo(
+            "#s9-term .line",
+            { opacity: 0, x: -14 },
+            { opacity: 1, x: 0, duration: 0.35, ease: "power2.out", stagger: 0.18 },
+            0.55
+          );
+
+          tl.fromTo(
+            document.getElementById("s9-head"),
+            { opacity: 0, y: 12 },
+            { opacity: 1, y: 0, duration: 0.4, ease: "power2.out" },
+            0
+          );
+          tl.fromTo(
+            "#s9-prover > *",
+            { opacity: 0, y: 18 },
+            { opacity: 1, y: 0, duration: 0.45, ease: "power2.out", stagger: 0.22 },
+            1.7
+          );
+
+          window.__timelines["s9-library"] = tl;
+        })();
+      </script>
+    </template>
+  </body>
+</html>

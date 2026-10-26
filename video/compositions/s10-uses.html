@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Where a door like this fits</title>
+  </head>
+  <body>
+    <template>
+      <style>
+        #root {
+          position: absolute;
+          inset: 0;
+          background: var(--paper);
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          gap: var(--gap-4);
+          padding: 0 var(--term-x) 120px;
+        }
+
+        #s10-stamp {
+          font-size: 28px;
+        }
+
+        #s10-title {
+          font-size: 58px;
+        }
+
+        .uses-head {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: var(--gap-3);
+        }
+
+        .uses-grid {
+          display: grid;
+          grid-template-columns: repeat(4, 1fr);
+          gap: var(--gap-3);
+          width: 1740px;
+        }
+
+        .uses-grid .card {
+          min-height: 430px;
+          padding: var(--gap-5) var(--gap-4);
+          display: flex;
+          flex-direction: column;
+          gap: var(--gap-2);
+        }
+
+        .uses-grid .card h3 {
+          font-size: 30px;
+        }
+
+        .uses-grid .card p {
+          font-size: 28px;
+        }
+      </style>
+
+      <div id="root" data-composition-id="s10-uses" data-width="1920" data-height="1080">
+        <div class="uses-head">
+          <span class="stamp" id="s10-stamp">uses · illustrative, not measured</span>
+          <span class="hero" id="s10-title">Where a door like this fits</span>
+        </div>
+        <div class="uses-grid">
+          <div class="card">
+            <h3>Holder-only communities and allowlists</h3>
+            <p>Entry for people who've held, without KYC.</p>
+          </div>
+          <div class="card">
+            <h3>Airdrops and faucets</h3>
+            <p>One claim per coins held since a date.</p>
+          </div>
+          <div class="card">
+            <h3>Polls and feedback</h3>
+            <p>Answers only from long-held stake, all anonymous.</p>
+          </div>
+          <div class="card">
+            <h3>Private markets</h3>
+            <p>Only funded, patient participants post. Nobody is named.</p>
+          </div>
+        </div>
+      </div>
+
+      <script>
+        (function () {
+          var tl = gsap.timeline({ paused: true });
+
+          gsap.set(document.getElementById("s10-stamp"), { opacity: 1, y: 0 });
+          tl.fromTo(
+            document.getElementById("s10-title"),
+            { opacity: 0, y: 26 },
+            { opacity: 1, y: 0, duration: 0.45, ease: "power3.out" },
+            0.15
+          );
+
+          /* Four cards as one beat: the whole arrival is inside half a second. */
+          tl.fromTo(
+            ".uses-grid .card",
+            { opacity: 0, y: 40, scale: 0.96 },
+            {
+              opacity: 1,
+              y: 0,
+              scale: 1,
+              duration: 0.5,
+              ease: "back.out(1.6)",
+              stagger: 0.11
+            },
+            0.6
+          );
+
+          window.__timelines["s10-uses"] = tl;
+        })();
+      </script>
+    </template>
+  </body>
+</html>

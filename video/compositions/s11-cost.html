@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>The cost of faking it</title>
+  </head>
+  <body>
+    <template>
+      <style>
+        #root {
+          position: absolute;
+          inset: 0;
+          background: var(--paper);
+          display: grid;
+          place-items: center;
+          padding-bottom: 120px;
+        }
+
+        .cost-card {
+          width: 1500px;
+          display: flex;
+          flex-direction: column;
+          gap: var(--gap-3);
+        }
+
+        .cost-title {
+          font-family: var(--sans);
+          font-size: 30px;
+          font-weight: 600;
+          letter-spacing: 0.08em;
+          text-transform: uppercase;
+          color: var(--ink-faint);
+        }
+
+        .cost-row {
+          display: flex;
+          align-items: baseline;
+          gap: var(--gap-3);
+          font-family: var(--sans);
+          font-size: 30px;
+          color: var(--ink-dim);
+        }
+
+        .cost-members {
+          display: inline-block;
+          min-width: 180px;
+          font-family: var(--mono);
+          font-size: 34px;
+          font-variant-numeric: tabular-nums;
+          color: var(--ink);
+        }
+
+        .cost-value {
+          display: block;
+          font-size: 132px;
+          line-height: 1.05;
+          font-weight: 650;
+          letter-spacing: -0.03em;
+          color: var(--refuse);
+          font-variant-numeric: tabular-nums;
+          transform-origin: 0% 50%;
+        }
+
+        /* Where the two numbers come from. The film labels every frame that carries a number,
+           and this one's are the manifest's rather than a run's. */
+        .cost-source {
+          font-family: var(--mono);
+          font-size: 22px;
+          color: var(--ink-faint);
+        }
+
+        .cost-note {
+          font-size: 30px;
+          line-height: var(--leading-body);
+          color: var(--ink-dim);
+          max-width: 1100px;
+        }
+      </style>
+
+      <div id="root" data-composition-id="s11-cost" data-width="1920" data-height="1080">
+        <div class="cost-card">
+          <span class="cost-title">What a bot army would cost</span>
+          <span class="cost-row"
+            ><span class="cost-members" id="s11-members">0</span> fake members</span
+          >
+          <span class="cost-value" id="s11-value">0 ZEC</span>
+          <span class="cost-note" id="s11-note-a"
+            >1,000 members at 0.125 ZEC each, held unmoved for 720 blocks …</span
+          >
+          <span class="cost-note" id="s11-note-b"
+            >Not staked, not locked: simply not spent.</span
+          >
+          <span class="cost-source" id="s11-source" data-layout-ignore
+            >the room's own manifest: 12,500,000 zatoshis is 0.125 ZEC, and h1 4,506,510 − h0
+            4,505,790 is 720 blocks</span
+          >
+        </div>
+      </div>
+
+      <script>
+        (function () {
+          var tl = gsap.timeline({ paused: true });
+
+          var members = document.getElementById("s11-members");
+          var value = document.getElementById("s11-value");
+
+          /* The threshold this gate published is 12,500,000 zatoshis, which is 0.125 ZEC, so a
+             thousand members is 125 ZEC that has to sit still for the whole window. The count and
+             the weight of the number grow together on one beat. */
+          var state = { members: 0 };
+          tl.to(
+            state,
+            {
+              members: 1000,
+              duration: 1.8,
+              ease: "power2.out",
+              onUpdate: function () {
+                var n = Math.round(state.members);
+                members.textContent = n.toLocaleString("en-US");
+                value.textContent = (n / 8).toLocaleString("en-US") + " ZEC";
+              }
+            },
+            0.25
+          );
+          tl.fromTo(value, { scale: 0.62 }, { scale: 1, duration: 1.8, ease: "power2.out" }, 0.25);
+
+          tl.fromTo(
+            ".cost-title",
+            { opacity: 0, y: 14 },
+            { opacity: 1, y: 0, duration: 0.35, ease: "power2.out" },
+            0
+          );
+          tl.fromTo(
+            document.getElementById("s11-note-a"),
+            { opacity: 0, y: 16 },
+            { opacity: 1, y: 0, duration: 0.45, ease: "power2.out" },
+            1.0
+          );
+          tl.fromTo(
+            document.getElementById("s11-note-b"),
+            { opacity: 0, y: 16 },
+            { opacity: 1, y: 0, duration: 0.45, ease: "power2.out" },
+            2.9
+          );
+
+          tl.fromTo(
+            document.getElementById("s11-source"),
+            { opacity: 0 },
+            { opacity: 1, duration: 0.4, ease: "power2.out" },
+            2.4
+          );
+
+          window.__timelines["s11-cost"] = tl;
+        })();
+      </script>
+    </template>
+  </body>
+</html>

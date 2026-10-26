@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>What the holder gave up</title>
+  </head>
+  <body>
+    <template>
+      <style>
+        #root {
+          position: absolute;
+          inset: 0;
+          background: var(--paper);
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          gap: var(--gap-4);
+          padding: 0 var(--term-x) 120px;
+        }
+
+        #s7c-term {
+          position: relative;
+          left: 0;
+          width: var(--term-w);
+        }
+
+        #s7c-term .term-body {
+          font-size: 27px;
+          line-height: 1.5;
+          color: var(--ink);
+          padding: var(--gap-5) var(--gap-4);
+        }
+
+        #s7c-term .line {
+          min-height: 41px;
+        }
+
+        #s7c-term .line + .line {
+          margin-top: var(--gap-3);
+        }
+
+        .gave-up {
+          align-self: flex-start;
+          padding-left: var(--gap-4);
+          font-size: 42px;
+          font-weight: 600;
+          color: var(--ink-dim);
+        }
+      </style>
+
+      <div id="root" data-composition-id="s7c-readonly" data-width="1920" data-height="1080">
+        <span class="gave-up" id="s7c-head">The last two lines of every knock in this film:</span>
+        <div class="window" id="s7c-term">
+          <div class="window-bar">
+            <div class="window-lamps"><i></i><i></i><i></i></div>
+            <div class="window-name" data-layout-ignore>the holder's terminal</div>
+            <div class="window-prov" data-layout-ignore>re-enactment of a recorded testnet run · evidence/2026-10-20-two-room-knock.txt</div>
+          </div>
+          <div class="term-body" data-layout-ignore>
+            <!-- prettier-ignore-start -->
+            <span class="line" data-at="0.9">the gate was sent one package proving 1 note(s) held unmoved across the window, and nothing else</span>
+            <span class="line" data-at="1.9">wallet …/wallet/data.sqlite was opened read-only; no transaction was created</span>
+            <!-- prettier-ignore-end -->
+          </div>
+        </div>
+      </div>
+
+      <script>
+        (function () {
+          var tl = gsap.timeline({ paused: true });
+
+          film.terminal(tl, document.getElementById("s7c-term"), 6);
+
+          tl.fromTo(
+            document.getElementById("s7c-head"),
+            { opacity: 0, y: 14 },
+            { opacity: 1, y: 0, duration: 0.4, ease: "power2.out" },
+            0.1
+          );
+          tl.fromTo(
+            document.getElementById("s7c-term"),
+            { opacity: 0, y: 20 },
+            { opacity: 1, y: 0, duration: 0.45, ease: "power3.out" },
+            0.5
+          );
+
+          window.__timelines["s7c-readonly"] = tl;
+        })();
+      </script>
+    </template>
+  </body>
+</html>

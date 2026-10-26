@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Alice again</title>
+  </head>
+  <body>
+    <template>
+      <style>
+        #root {
+          position: absolute;
+          inset: 0;
+          background: var(--paper);
+        }
+
+        #s5-term {
+          top: 197px;
+          height: 606px;
+        }
+
+        #s5-browser {
+          top: 8px;
+          height: 986px;
+        }
+
+      </style>
+
+      <div id="root" data-composition-id="s5-again" data-width="1920" data-height="1080">
+        <div class="window" id="s5-term">
+          <div class="window-bar">
+            <div class="window-lamps"><i></i><i></i><i></i></div>
+            <div class="window-name" data-layout-ignore>the holder's terminal</div>
+            <div class="window-prov" data-layout-ignore>re-enactment of a recorded testnet run · evidence/2026-10-20-two-room-knock.txt</div>
+          </div>
+          <div class="term-body" data-layout-ignore>
+            <!-- prettier-ignore-start -->
+            <span class="line line-cmd" data-at="0" data-type="1.5" data-cursor="1">$ $U knock --gate http://127.0.0.1:8080 --room holders-room --wallet "$W" \</span>
+            <span class="line line-cut" data-at="1.5" data-type="0.4" data-cursor="1">    …                                          the same flags, the same coins, the same room</span>
+            <span class="line line-key" data-at="2.0">gate          http://127.0.0.1:8080</span>
+            <span class="line line-key" data-at="2.1">room          holders-room</span>
+            <span class="line line-key" data-at="2.2">network       test</span>
+            <span class="line line-key" data-at="2.3">window        h0 4505790 through h1 4506510</span>
+            <span class="line line-key" data-at="2.4">threshold     12500000 zatoshis</span>
+            <span class="line line-key" data-at="2.6">challenge     issued by the gate, expires 2026-10-20T14:58:47Z</span>
+            <span class="line" data-at="2.9">proving now; this takes seconds and reveals nothing to the gate but the package</span>
+            <span class="line line-cut" data-at="3.4">                                                               — cut —</span>
+            <span class="line line-refuse" data-at="3.9" id="s5-verdict">REFUSED</span>
+            <span class="line line-code" data-at="4.35">  ALREADY_USED_IN_CONTEXT</span>
+            <span class="line" data-at="4.6">  These coins have already been used at this gate. Nothing was admitted.</span>
+            <span class="line line-key" data-at="4.9">  retryable: false</span>
+            <span class="line" data-at="5.2" data-cursor="1">$ </span>
+            <!-- prettier-ignore-end -->
+            <span class="cursor-block"></span>
+          </div>
+        </div>
+
+        <div class="browser" id="s5-browser">
+          <div class="window-bar">
+            <div class="window-lamps"><i></i><i></i><i></i></div>
+            <div class="url" data-layout-ignore>127.0.0.1:8080/room/holders-room?replay=act3-refused&amp;present=1</div>
+            <div class="window-prov" data-layout-ignore>re-enactment of a recorded testnet run · evidence/2026-10-20-two-room-knock.txt</div>
+          </div>
+          <div class="viewport">
+            <div class="viewport-world" id="s5-world">
+              <iframe class="page-frame" src="assets/site/act3-refused.present.html" title="Holders' Room, act 3"></iframe>
+            </div>
+            <div class="spotlight" id="s5-spot"></div>
+            <div class="pointer" id="s5-pointer">
+              <svg viewBox="0 0 26 26" aria-hidden="true">
+                <path
+                  d="M3 2 L3 20 L8 15.5 L11.2 23 L14.8 21.4 L11.7 14.2 L18.5 13.8 Z"
+                  fill="#edeff3"
+                  stroke="#0d0f13"
+                  stroke-width="1.4"
+                  stroke-linejoin="round"
+                />
+              </svg>
+              <div class="ripple"></div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <script>
+        (function () {
+          var tl = gsap.timeline({ paused: true });
+          var CUT = 5.8;
+
+          film.terminal(tl, document.getElementById("s5-term"), CUT);
+          film.camera(tl, document.getElementById("s5-world"), []);
+
+          var term = document.getElementById("s5-term");
+          var browser = document.getElementById("s5-browser");
+
+          gsap.set(browser, { opacity: 0 });
+
+          tl.fromTo(
+            document.getElementById("s5-verdict"),
+            { scale: 1.12, opacity: 0 },
+            { scale: 1, opacity: 1, duration: 0.34, ease: "back.out(2.2)", transformOrigin: "0% 50%" },
+            3.9
+          );
+
+          tl.to(term, { opacity: 0, duration: 0.35, ease: "power2.in" }, CUT - 0.35);
+          tl.fromTo(
+            browser,
+            { opacity: 0, scale: 0.985 },
+            { opacity: 1, scale: 1, duration: 0.5, ease: "power2.out" },
+            CUT
+          );
+
+          film.pointer(tl, document.getElementById("s5-pointer"), [
+            { at: CUT + 0.4, dur: 1.5, from: [1320, 790], to: [1050, 360] }
+          ]);
+
+          /* The log the refusal did not touch: five markers, one admission, and the page's own
+             line saying the refusal wrote nothing. */
+          film.spotlight(tl, document.getElementById("s5-spot"), [1285, 250, 290, 270], CUT + 2.1, 0.55);
+
+          window.__timelines["s5-again"] = tl;
+        })();
+      </script>
+    </template>
+  </body>
+</html>

@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Close</title>
+  </head>
+  <body>
+    <template>
+      <style>
+        #root {
+          position: absolute;
+          inset: 0;
+          background: var(--paper);
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          gap: var(--gap-4);
+          padding: 0 var(--term-x) 100px;
+        }
+
+        /* The lockup already carries the name and the mark, so the close shows it rather than
+           setting the word "unstirred" a second time. The wrapper crops the PNG's own margin;
+           its background is the design system's light --paper, the same surface the page uses. */
+        .close-logo {
+          width: 940px;
+          height: 272px;
+          overflow: hidden;
+          border-radius: var(--radius-2);
+        }
+
+        .close-logo img {
+          display: block;
+          width: 940px;
+          height: 470px;
+          margin-top: -95px;
+        }
+
+        .close-line {
+          display: block;
+          font-size: 62px;
+          line-height: 1.06;
+          font-weight: 650;
+          letter-spacing: -0.028em;
+          color: var(--ink);
+          text-align: center;
+        }
+
+        .close-line em {
+          font-style: normal;
+          color: var(--admit);
+        }
+
+        .close-facts {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: var(--gap-2);
+          font-size: 30px;
+          line-height: var(--leading-body);
+          color: var(--ink-dim);
+          text-align: center;
+        }
+
+        .close-facts b {
+          color: var(--ink);
+          font-weight: 600;
+        }
+
+        .close-links {
+          display: flex;
+          align-items: center;
+          gap: var(--gap-4);
+          font-family: var(--mono);
+          font-size: 30px;
+          color: var(--accent);
+        }
+
+        .close-placeholder {
+          font-family: var(--mono);
+          font-size: 28px;
+          color: var(--unknown);
+        }
+      </style>
+
+      <div id="root" data-composition-id="s12-close" data-width="1920" data-height="1080">
+        <div class="close-logo" id="s12-logo">
+          <img src="assets/icon.png" alt="unstirred" data-layout-allow-overflow />
+        </div>
+        <span class="close-line" id="s12-line"
+          >A private proof of how long you've <em>held</em>.</span
+        >
+        <div class="close-facts">
+          <span class="close-fact"
+            >Built on <b>Valar Group's</b> audited delegation circuit, reused unchanged.</span
+          >
+          <span class="close-fact"
+            >Zcash <b>testnet</b>, Ironwood pool. Window h0 4,505,790 through h1 4,506,510.</span
+          >
+        </div>
+        <div class="close-links">
+          <span class="close-fact">github.com/DrApkFile/Unstirred</span>
+        </div>
+        <span class="close-placeholder close-fact">replay site: — (not published yet)</span>
+      </div>
+
+      <script>
+        (function () {
+          var tl = gsap.timeline({ paused: true });
+
+          tl.fromTo(
+            document.getElementById("s12-logo"),
+            { opacity: 0, y: 24 },
+            { opacity: 1, y: 0, duration: 0.6, ease: "power3.out" },
+            0.1
+          );
+          tl.fromTo(
+            document.getElementById("s12-line"),
+            { opacity: 0, y: 28 },
+            { opacity: 1, y: 0, duration: 0.55, ease: "power3.out" },
+            0.9
+          );
+          tl.fromTo(
+            ".close-fact",
+            { opacity: 0, y: 20 },
+            { opacity: 1, y: 0, duration: 0.45, ease: "power2.out", stagger: 0.16 },
+            1.8
+          );
+
+          window.__timelines["s12-close"] = tl;
+        })();
+      </script>
+    </template>
+  </body>
+</html>

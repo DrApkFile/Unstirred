@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Check it yourself</title>
+  </head>
+  <body>
+    <template>
+      <style>
+        #root {
+          position: absolute;
+          inset: 0;
+          background: var(--paper);
+        }
+
+        #s8-term {
+          top: 147px;
+          height: 706px;
+        }
+
+        #s8-head {
+          position: absolute;
+          left: var(--term-x);
+          top: 40px;
+          font-size: 30px;
+          font-weight: 600;
+          color: var(--ink-dim);
+        }
+      </style>
+
+      <div id="root" data-composition-id="s8-verify" data-width="1920" data-height="1080">
+        <span id="s8-head">Anyone can check the recorded proof, with no wallet and no node.</span>
+        <div class="window" id="s8-term">
+          <div class="window-bar">
+            <div class="window-lamps"><i></i><i></i><i></i></div>
+            <div class="window-name" data-layout-ignore>a judge's terminal</div>
+            <div class="window-prov" data-layout-ignore>re-enactment of a recorded testnet run · evidence/2026-10-20-verify-two-source.txt</div>
+          </div>
+          <div class="term-body" data-layout-ignore>
+            <!-- prettier-ignore-start -->
+            <span class="line line-cmd" data-at="0" data-type="1.3" data-cursor="1">$ unstirred verify --package evidence/2026-10-17-first-proof.json \</span>
+            <span class="line line-cmd" data-at="1.4" data-type="0.6" data-cursor="1">    --manifest holders-room.json \</span>
+            <span class="line line-cmd" data-at="2.1" data-type="0.8" data-cursor="1">    --root-source lwd:https://testnet.zec.rocks:443 \</span>
+            <span class="line line-cmd" data-at="3.0" data-type="0.7" data-cursor="1">    --root-source zebra:http://127.0.0.1:18232 \</span>
+            <span class="line line-cmd" data-at="3.8" data-type="0.9" data-cursor="1">    --h1-root 8af0c16b82ff1c9170de5dc87b3c06ef3a7144befdba71fc40959effe9f5be26 \</span>
+            <span class="line line-cmd" data-at="4.8" data-type="0.9" data-cursor="1">    --challenge 17eeb99835dd5136c986f0204445ac8e8e0d556367752f73b3b22fdb8e1d4e57</span>
+            <span class="line line-key" data-at="5.9">verifying evidence/2026-10-17-first-proof.json against manifest context "holders-room", …</span>
+            <span class="line line-key" data-at="6.3">root sources for the h0 Ironwood note-commitment root (network test, h0 4505790):</span>
+            <span class="line" data-at="6.7">  lwd:https://testnet.zec.rocks:443  root a16809847bf51d60ac6d9bb3f71cbbf27483050868b94b242ca831fe14bf692d  tip 4521439</span>
+            <span class="line" data-at="7.3">  zebra:http://127.0.0.1:18232  root a16809847bf51d60ac6d9bb3f71cbbf27483050868b94b242ca831fe14bf692d  tip 4521439</span>
+            <span class="line" data-at="8.0" id="s8-agree">agreement: the sources agree on one h0 root a16809847bf51d60ac6d9bb3f71cbbf27483050868b94b242ca831fe14bf692d</span>
+            <span class="line line-key" data-at="8.6">chain tip for the window check: 4521439 (the lower of the answers)</span>
+            <span class="line line-key" data-at="8.9">h1 nullifier-set root    8af0c16b82ff1c9170de5dc87b3c06ef3a7144befdba71fc40959effe9f5be26</span>
+            <span class="line line-key" data-at="9.2">    pinned by the operator on the command line, labelled operator-pinned …</span>
+            <span class="line line-cut" data-at="9.9">                                    — cut — about 35 s of Halo2 verification</span>
+            <span class="line line-admit" data-at="10.9" id="s8-verdict">ADMITTED</span>
+            <span class="line line-key" data-at="11.7">markers not recorded (M2)</span>
+            <span class="line" data-at="12.0" data-cursor="1">$ </span>
+            <!-- prettier-ignore-end -->
+            <span class="cursor-block"></span>
+          </div>
+        </div>
+      </div>
+
+      <script>
+        (function () {
+          var tl = gsap.timeline({ paused: true });
+
+          film.terminal(tl, document.getElementById("s8-term"), 15);
+
+          tl.fromTo(
+            document.getElementById("s8-head"),
+            { opacity: 0, y: 12 },
+            { opacity: 1, y: 0, duration: 0.4, ease: "power2.out" },
+            0
+          );
+
+          /* Both sources answered the same root, so the agreement line is the beat the rest of
+             the run rests on: it turns the colour of an admission as it lands. */
+          tl.fromTo(
+            document.getElementById("s8-agree"),
+            { color: "#b2b9c6" },
+            { color: "#5ed39b", duration: 0.5, ease: "power2.out" },
+            8.0
+          );
+          tl.fromTo(
+            document.getElementById("s8-verdict"),
+            { scale: 1.12, opacity: 0 },
+            { scale: 1, opacity: 1, duration: 0.34, ease: "back.out(2.2)", transformOrigin: "0% 50%" },
+            10.9
+          );
+
+          window.__timelines["s8-verify"] = tl;
+        })();
+      </script>
+    </template>
+  </body>
+</html>

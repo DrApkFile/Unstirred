@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>How to install it</title>
+  </head>
+  <body>
+    <template>
+      <style>
+        #root {
+          position: absolute;
+          inset: 0;
+          background: var(--paper);
+        }
+
+        #s2-head {
+          position: absolute;
+          left: var(--term-x);
+          top: 166px;
+          font-size: 30px;
+          font-weight: 600;
+          color: var(--ink-dim);
+        }
+
+        #s2-term {
+          top: 236px;
+          height: 527px;
+        }
+
+        /* The one thing a judge has to know before they go to the releases page, said in the
+           colour this film uses for "not settled": README.md says the page is empty until the
+           tag exists, so the film says it too rather than implying a download that is there. */
+        /* A plain separator between the two paths. It is not a `line-cut`, which this film uses
+           only to mark a wait that was compressed out of a recorded run. */
+        .line-sep {
+          color: var(--ink-faint);
+          font-size: 18px;
+        }
+
+        #s2-version {
+          color: var(--admit);
+        }
+
+        #s2-caveat {
+          position: absolute;
+          left: var(--term-x);
+          top: 790px;
+          width: var(--term-w);
+          font-family: var(--mono);
+          font-size: 28px;
+          line-height: var(--leading-body);
+          color: var(--unknown);
+        }
+      </style>
+
+      <div id="root" data-composition-id="s2-install" data-width="1920" data-height="1080">
+        <span id="s2-head">Step one: get the binary.</span>
+        <div class="window" id="s2-term">
+          <div class="window-bar">
+            <div class="window-lamps"><i></i><i></i><i></i></div>
+            <div class="window-name" data-layout-ignore>a judge's terminal</div>
+            <div class="window-prov" data-layout-ignore>how to use it · README.md, .github/workflows/release.yml · output: unstirred --version</div>
+          </div>
+          <div class="term-body" data-layout-ignore>
+            <!-- prettier-ignore-start -->
+            <span class="line line-cmd" data-at="0" data-type="0.5" data-cursor="1">$ R=https://github.com/DrApkFile/Unstirred/releases/download/v0.1.0</span>
+            <span class="line line-cmd" data-at="0.6" data-type="0.4" data-cursor="1">$ T=unstirred-v0.1.0-x86_64-unknown-linux-gnu.tar.gz</span>
+            <span class="line line-cmd" data-at="1.1" data-type="0.9" data-cursor="1">$ curl -LO $R/$T  &amp;&amp;  curl -LO $R/$T.sha256</span>
+            <span class="line line-cmd" data-at="2.2" data-type="0.7" data-cursor="1">$ sha256sum -c $T.sha256</span>
+            <span class="line line-cmd" data-at="3.1" data-type="0.6" data-cursor="1">$ tar -xzf $T</span>
+            <span class="line line-sep" data-at="4.0">                              — or build it yourself —</span>
+            <span class="line line-cmd" data-at="5.0" data-type="1.0" data-cursor="1">$ git clone https://github.com/DrApkFile/Unstirred &amp;&amp; cd Unstirred</span>
+            <span class="line line-cmd" data-at="6.4" data-type="0.7" data-cursor="1">$ cargo build --release</span>
+            <span class="line line-cut" data-at="7.3">                              — cut — a cold release build is not quick (README.md)</span>
+            <span class="line line-cmd" data-at="8.6" data-type="0.6" data-cursor="1">$ unstirred --version</span>
+            <span class="line" data-at="9.6" id="s2-version">unstirred 0.1.0</span>
+            <span class="line" data-at="10.4" data-cursor="1">$ </span>
+            <!-- prettier-ignore-end -->
+            <span class="cursor-block"></span>
+          </div>
+        </div>
+        <span id="s2-caveat"
+          >the releases page is empty until v0.1.0 is tagged — until then, build from source
+          (README.md)</span
+        >
+      </div>
+
+      <script>
+        (function () {
+          var tl = gsap.timeline({ paused: true });
+
+          film.terminal(tl, document.getElementById("s2-term"), 14);
+
+          tl.fromTo(
+            document.getElementById("s2-head"),
+            { opacity: 0, y: 12 },
+            { opacity: 1, y: 0, duration: 0.4, ease: "power2.out" },
+            0
+          );
+
+          /* The version line is the only output in this scene, and it is the one thing the viewer
+             can check for themselves in a second: it lands with the weight of a verdict. */
+          tl.fromTo(
+            document.getElementById("s2-version"),
+            { scale: 1.1, opacity: 0 },
+            { scale: 1, opacity: 1, duration: 0.34, ease: "back.out(2.2)", transformOrigin: "0% 50%" },
+            9.6
+          );
+
+          tl.fromTo(
+            document.getElementById("s2-caveat"),
+            { opacity: 0, y: 14 },
+            { opacity: 1, y: 0, duration: 0.45, ease: "power2.out" },
+            2.2
+          );
+
+          window.__timelines["s2-install"] = tl;
+        })();
+      </script>
+    </template>
+  </body>
+</html>

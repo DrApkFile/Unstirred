@@ -3,3 +3,5 @@
 *.age
 /evidence/private/
 .env
+/site/
+video/**/music.mp3

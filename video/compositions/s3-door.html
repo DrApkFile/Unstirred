@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>The door</title>
+  </head>
+  <body>
+    <template>
+      <style>
+        #root {
+          position: absolute;
+          inset: 0;
+          background: var(--paper);
+        }
+
+        #s3-term {
+          top: 196px;
+          height: 606px;
+        }
+
+        #s3-toml {
+          color: var(--ink-dim);
+        }
+
+        #s3-browser {
+          top: 8px;
+          height: 986px;
+        }
+
+      </style>
+
+      <div id="root" data-composition-id="s3-door" data-width="1920" data-height="1080">
+        <div class="window" id="s3-term">
+          <div class="window-bar">
+            <div class="window-lamps"><i></i><i></i><i></i></div>
+            <div class="window-name" data-layout-ignore>the gate owner's terminal</div>
+            <div class="window-prov" data-layout-ignore>how to use it · README.md, "See the demo without running anything"</div>
+          </div>
+          <div class="term-body" data-layout-ignore>
+            <!-- prettier-ignore-start -->
+            <span class="line line-cmd" data-at="0" data-type="1.3" data-cursor="1">$ unstirred gate init --network test --context holders-room --h0 4505790 --h1 4506510 --out holders-room.json</span>
+            <span class="line line-cmd" data-at="1.5" data-type="1.1" data-cursor="1">$ unstirred gate init --network test --context second-room  --h0 4505790 --h1 4506510 --out second-room.json</span>
+            <span class="line line-cmd" data-at="2.8" data-type="0.5" data-cursor="1">$ cat gate.toml</span>
+            <span class="line" id="s3-toml" data-at="3.4">listen = "127.0.0.1:8080"</span>
+            <span class="line" data-at="3.5">database = "gate.sqlite"</span>
+            <span class="line" data-at="3.6">root_sources = ["lwd:https://testnet.zec.rocks:443", "zebra:http://127.0.0.1:18232"]</span>
+            <span class="line" data-at="3.7">h1_root = "8af0c16b82ff1c9170de5dc87b3c06ef3a7144befdba71fc40959effe9f5be26"</span>
+            <span class="line" data-at="3.8"> </span>
+            <span class="line" data-at="3.9">[[rooms]]</span>
+            <span class="line" data-at="4.0">manifest = "holders-room.json"</span>
+            <span class="line" data-at="4.1"> </span>
+            <span class="line" data-at="4.2">[[rooms]]</span>
+            <span class="line" data-at="4.3">manifest = "second-room.json"</span>
+            <span class="line line-cmd" data-at="4.9" data-type="0.7" data-cursor="1">$ unstirred gate serve --config gate.toml</span>
+            <span class="line" data-at="5.8" data-cursor="1">$ </span>
+            <!-- prettier-ignore-end -->
+            <span class="cursor-block"></span>
+          </div>
+        </div>
+
+        <div class="browser" id="s3-browser">
+          <div class="window-bar">
+            <div class="window-lamps"><i></i><i></i><i></i></div>
+            <div class="url" data-layout-ignore>127.0.0.1:8080/room/holders-room?replay=act1-rule&amp;present=1</div>
+            <div class="window-prov" data-layout-ignore>re-enactment of a recorded testnet run · evidence/2026-10-20-two-room-knock.txt</div>
+          </div>
+          <div class="viewport">
+            <div class="viewport-world" id="s3-world">
+              <iframe class="page-frame" src="assets/site/act1-rule.present.html" title="Holders' Room, act 1"></iframe>
+            </div>
+            <div class="pointer" id="s3-pointer">
+              <svg viewBox="0 0 26 26" aria-hidden="true">
+                <path
+                  d="M3 2 L3 20 L8 15.5 L11.2 23 L14.8 21.4 L11.7 14.2 L18.5 13.8 Z"
+                  fill="#edeff3"
+                  stroke="#0d0f13"
+                  stroke-width="1.4"
+                  stroke-linejoin="round"
+                />
+              </svg>
+              <div class="ripple"></div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <script>
+        (function () {
+          var tl = gsap.timeline({ paused: true });
+          var CUT = 6.6;
+
+          film.terminal(tl, document.getElementById("s3-term"), CUT);
+          film.camera(tl, document.getElementById("s3-world"), []);
+
+          var term = document.getElementById("s3-term");
+          var browser = document.getElementById("s3-browser");
+
+          gsap.set(browser, { opacity: 0 });
+
+          tl.fromTo(term, { opacity: 0, y: 18 }, { opacity: 1, y: 0, duration: 0.4, ease: "power2.out" }, 0);
+          tl.to(term, { opacity: 0, duration: 0.35, ease: "power2.in" }, CUT - 0.35);
+
+          tl.fromTo(
+            browser,
+            { opacity: 0, scale: 0.985 },
+            { opacity: 1, scale: 1, duration: 0.5, ease: "power2.out" },
+            CUT
+          );
+
+          /* The pointer enters from the lower right and comes to rest beside the rule, which is
+             the hero of this act: the door's one published sentence. */
+          film.pointer(tl, document.getElementById("s3-pointer"), [
+            { at: CUT + 0.3, dur: 1.5, from: [1360, 790], to: [520, 300] },
+            { at: CUT + 2.6, dur: 1.1, from: [520, 300], to: [455, 248], ease: "power1.inOut" }
+          ]);
+
+          window.__timelines["s3-door"] = tl;
+        })();
+      </script>
+    </template>
+  </body>
+</html>

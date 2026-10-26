@@ -1,0 +1,346 @@
+/* The film's design system. Every value is crates/unstirred-gate/ui/frame.md's, so the video and
+   the page a judge opens are one design: the film's own chrome uses that system's dark values and
+   the page inside the browser frame is the light one. Nothing is fetched — the type is the same
+   system stack the page uses, so a render needs no network and cannot differ by what a CDN has. */
+
+:root {
+  --paper: #0d0f13;
+  --panel: #171a20;
+  --panel-edge: #2e333c;
+  --ink: #edeff3;
+  --ink-dim: #b2b9c6;
+  --ink-faint: #868e9d;
+  --admit: #5ed39b;
+  --admit-wash: #10301f;
+  --admit-edge: #2b6b48;
+  --refuse: #ff8e9c;
+  --refuse-wash: #341319;
+  --refuse-edge: #7c333f;
+  --unknown: #e8bb6b;
+  --unknown-wash: #2f2512;
+  --unknown-edge: #6e5725;
+  --accent: #8fbcf2;
+  --accent-wash: #15263c;
+
+  --type-verdict: 104px;
+  --type-hero: 46px;
+  --type-title: 38px;
+  --type-head: 26px;
+  --type-body: 20px;
+  --type-small: 16px;
+  --type-mono: 18px;
+  --type-mono-small: 15px;
+
+  --leading-tight: 1.08;
+  --leading-body: 1.4;
+
+  --gap-1: 8px;
+  --gap-2: 14px;
+  --gap-3: 20px;
+  --gap-4: 32px;
+  --gap-5: 56px;
+  --radius-1: 10px;
+  --radius-2: 18px;
+  --edge: 1px;
+  --rail: 10px;
+
+  --sans: ui-sans-serif, system-ui, sans-serif;
+  --mono: ui-monospace, monospace;
+
+  /* The film's own geometry, held by every scene so cuts land on the same box. */
+  --window-w: 1680px;
+  --window-x: 120px;
+  /* The terminal gets a wider box than the browser does, because its longest recorded line is 117
+     characters and the type should not shrink to fit the frame the page happens to need. */
+  --term-w: 1740px;
+  --term-x: 90px;
+  --term-mono: 22px;
+  --term-leading: 1.52;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html,
+body {
+  width: 1920px;
+  height: 1080px;
+  overflow: hidden;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--sans);
+}
+
+/* A timed element is a layer over the frame, not a block in a column. */
+.clip {
+  position: absolute;
+  inset: 0;
+}
+
+/* Every scene fills the frame and nothing but a caption sits below y 964. */
+.scene {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background: var(--paper);
+}
+
+/* ---- the provenance label every re-enacted scene carries ---- */
+
+.window-prov {
+  margin-left: auto;
+  font-family: var(--mono);
+  font-size: 17px;
+  color: var(--ink-faint);
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+}
+
+/* ---- the terminal window ---- */
+
+.window {
+  position: absolute;
+  left: var(--term-x);
+  width: var(--term-w);
+  border: var(--edge) solid var(--panel-edge);
+  border-radius: var(--radius-2);
+  background: var(--panel);
+  overflow: hidden;
+}
+
+.window-bar {
+  display: flex;
+  align-items: center;
+  gap: var(--gap-3);
+  height: 40px;
+  padding: 0 var(--gap-3);
+  border-bottom: var(--edge) solid var(--panel-edge);
+  background: #12151a;
+}
+
+.window-lamps {
+  display: flex;
+  gap: var(--gap-1);
+}
+
+.window-lamps i {
+  display: block;
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  background: var(--panel-edge);
+}
+
+.window-name {
+  font-family: var(--mono);
+  font-size: var(--type-mono-small);
+  color: var(--ink-faint);
+}
+
+.term-body {
+  padding: var(--gap-4) var(--gap-4) var(--gap-3);
+  font-family: var(--mono);
+  font-size: var(--term-mono);
+  line-height: var(--term-leading);
+  color: var(--ink-dim);
+}
+
+/* One typed or printed line. The wrap keeps a fixed width so the right edge never jitters. */
+.line {
+  display: block;
+  min-height: calc(var(--term-mono) * var(--term-leading));
+  white-space: pre;
+}
+
+.line-prompt {
+  color: var(--accent);
+}
+
+.line-cmd {
+  color: var(--ink);
+}
+
+.line-key {
+  color: var(--ink-faint);
+}
+
+.line-admit {
+  color: var(--admit);
+  font-size: 36px;
+  line-height: 1.25;
+  letter-spacing: 0.08em;
+}
+
+.line-refuse {
+  color: var(--refuse);
+  font-size: 36px;
+  line-height: 1.25;
+  letter-spacing: 0.08em;
+}
+
+.line-code {
+  color: var(--refuse);
+}
+
+.line-demo {
+  color: var(--unknown);
+}
+
+/* A compression marker: the one place the film departs from the recorded timing, said so. */
+.line-cut {
+  color: var(--ink-faint);
+  font-size: 18px;
+}
+
+.cursor-block {
+  display: inline-block;
+  width: 11px;
+  height: 23px;
+  vertical-align: -4px;
+  background: var(--ink);
+}
+
+/* ---- the browser window, holding the real page at its own scale 1 ---- */
+
+.browser {
+  position: absolute;
+  left: var(--window-x);
+  width: var(--window-w);
+  border: var(--edge) solid var(--panel-edge);
+  border-radius: var(--radius-2);
+  background: var(--panel);
+  overflow: hidden;
+}
+
+.url {
+  flex: 1;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  padding: 0 var(--gap-2);
+  border-radius: 14px;
+  background: var(--paper);
+  border: var(--edge) solid var(--panel-edge);
+  font-family: var(--mono);
+  font-size: var(--type-mono-small);
+  color: var(--ink-dim);
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+/* The viewport the page is shown through: 1920x1080 of page, scaled down as one block, so the
+   layout inside is the page's own at scale 1 and not a reflow of it. */
+.viewport {
+  position: relative;
+  width: var(--window-w);
+  height: 945px;
+  overflow: hidden;
+}
+
+.viewport-world {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 1920px;
+  height: 1080px;
+  transform-origin: 0 0;
+  will-change: transform;
+}
+
+.page-frame {
+  display: block;
+  width: 1920px;
+  height: 1080px;
+  border: 0;
+}
+
+/* Dims the whole viewport except one rectangle of the page. The ring is the dim, so the clear
+   area is exactly the box and nothing has to be cut out of anything. */
+.spotlight {
+  position: absolute;
+  border-radius: var(--radius-1);
+  box-shadow: 0 0 0 2000px rgba(13, 15, 19, 0.56);
+  outline: 2px solid var(--accent);
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* ---- the pointer ---- */
+
+.pointer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 26px;
+  height: 26px;
+  pointer-events: none;
+}
+
+.pointer svg {
+  display: block;
+  width: 26px;
+  height: 26px;
+}
+
+.ripple {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 60px;
+  height: 60px;
+  margin: -30px 0 0 -30px;
+  border-radius: 50%;
+  border: 2px solid var(--accent);
+  opacity: 0;
+}
+
+/* ---- panels the film draws itself ---- */
+
+.card {
+  padding: var(--gap-4);
+  border: var(--edge) solid var(--panel-edge);
+  border-radius: var(--radius-2);
+  background: var(--panel);
+}
+
+.card h3 {
+  font-size: var(--type-head);
+  line-height: var(--leading-tight);
+  font-weight: 600;
+  color: var(--ink);
+  margin-bottom: var(--gap-2);
+}
+
+.card p {
+  font-size: var(--type-body);
+  line-height: var(--leading-body);
+  color: var(--ink-dim);
+}
+
+.stamp {
+  display: inline-block;
+  padding: 6px var(--gap-2);
+  border: var(--edge) solid var(--unknown-edge);
+  border-radius: var(--radius-1);
+  background: var(--unknown-wash);
+  color: var(--unknown);
+  font-family: var(--mono);
+  font-size: var(--type-small);
+  letter-spacing: 0.04em;
+}
+
+.hero {
+  font-size: var(--type-hero);
+  line-height: var(--leading-tight);
+  font-weight: 600;
+  letter-spacing: -0.015em;
+}
+
+.title {
+  font-size: var(--type-title);
+  line-height: var(--leading-tight);
+  font-weight: 600;
+}

@@ -3,6 +3,135 @@
 Things learned while building that the code and the other briefing files do not say. Decisions go
 to `DECISIONS.md`; recorded runs go to `evidence/`. This file is for the facts that cost time.
 
+## The video's generators, and two steps closed rather than deferred, 2026-10-26
+
+- **A generator that lives in a scratchpad is a generator that is already lost.** `video/index.html`
+  is written by `video/tools/build_index.py`, and the whole set was moved into the repo only at the
+  end of the session that used it. By the next session the previous scratchpad was gone, taking
+  `tts.sh`'s line table with it — the script still read `narration.json` from
+  `/tmp/claude-1000/…/<old-session-id>/scratchpad`. Two more scripts hard-coded this checkout's
+  absolute path. Nothing had noticed, because the file they produce was already on disk. **Move a
+  generator into the repo when you first run it, and derive every path from `__file__` or
+  `BASH_SOURCE`, not from where the session happens to be standing.**
+- **"The generators are committed" and "the generators reproduce the artefact" are two claims.**
+  The check that settles the second one is cheap and is the only one worth recording: copy the
+  artefact aside, re-run the generator from a *different* working directory, and diff. Here all
+  three runs — repo root, `tools/`, `/tmp` — reproduced `index.html` byte for byte, sha256
+  `3fcc55ed…0af926`, and the same method confirmed `scripts/export-replay-site.sh` reproduces all
+  eleven files of the exported replay site.
+- **A video's inputs do not all live under the video.** The browser scenes `<iframe>` the exported
+  replay pages, which are **gitignored** and written from the gate's own page module by
+  `scripts/export-replay-site.sh video/assets/site` at the repo root. A fresh clone renders those
+  scenes empty until that export runs. When one project's assets come out of another's build, the
+  dependency belongs in writing next to the generators — `video/tools/README.md` now names it.
+- **The transcription step is closed as not needed** (owner's decision). A caption that *is* the
+  exact string handed to the TTS engine, placed on the same `data-start` as the `.wav` that string
+  produced, is in sync **by construction**. Aligning a transcript against it could only re-measure
+  what the build already guarantees, so the whole class of work — `whisper-cpp`, the `parakeet`
+  model's npm `EALLOWSCRIPTS` failure, `transcript.json` — is not a blocked step but a step that was
+  never needed. Build the artefact so the check is unnecessary and you do not have to pass it.
+- **The HyperFrames CLI pin bump to 0.8.200 is declined** (owner's decision). The pin stays
+  0.8.186, the version the delivered render was recorded under. A pin the delivered file has not
+  been made under is not verified for delivery, and the rule is apply-then-verify: taking the bump
+  means re-rendering to re-earn a result that is already green. **Once a deliverable is recorded,
+  its toolchain pin stops being a maintenance question and becomes part of the record.**
+
+## The demo video rebuilt as a narrated 2:00 walkthrough, 2026-10-26
+
+- **`hyperframes tts` probes for `kokoro_onnx` with a ten-second `import`, and on a swapping
+  machine that is the whole problem.** `kokoro-onnx` is in `~/.venv`, not the system python, so
+  `HYPERFRAMES_PYTHON` has to point at it — but the override is only taken if
+  `<python> --version` answers inside five seconds *and* `import kokoro_onnx` answers inside ten,
+  and on failure the CLI silently falls back to `python3` and reports "the kokoro-onnx package is
+  not installed". A cold `import kokoro_onnx` here took **2 m 28 s of wall time for 2 s of CPU**;
+  warm it took 3.8 s. The fix is to import it in the same shell immediately before each `tts`
+  call, which keeps the pages resident. Two of thirty-two lines still lost the race and were
+  re-run. If that error appears and the package *is* installed, it is a timeout, not a missing
+  dependency.
+- **Kokoro `af_heart` speaks at about four words a second**, well above the 2.1 w/s that 250 words
+  over two minutes implies. Writing to a word budget and then measuring was the right order: the
+  voice covers 81.7 s of 120 s, which leaves the gaps the captions need. Plan the anchors, measure
+  the files, then place — never the other way round.
+- **Captions written as "the narration line, word for word, on the same `data-start`" cannot
+  drift.** `index.html` is generated from one table of (id, scene, anchor, text): the caption, the
+  `<audio>` and the music's duck window all come out of that one row, so a change to a line is one
+  edit, not three. The generator refuses to write a file if a line runs into the next one or past
+  its scene, which caught four anchors before anything was rendered.
+- **A music bed shorter than the film is two clips, not a loop flag.** `music.mp3` is 105.0 s
+  against 120 s and has its own fade-out, so clip B starts 45 s into the same file and is placed
+  so that ending lands on the last frame, crossfading with clip A over 1.5 s at 1:00 — under the
+  voice, where the join is inaudible. Two clips that overlap must be on two `data-track-index`
+  values or `lint` reports `duplicate_audio_track`.
+- **`film.terminal()` rewrites each line's `textContent`, so a line cannot carry markup.** The
+  Rust snippet needed a keyword colour, so that scene reveals its lines with a stagger instead of
+  typing them. Anything inside a `.line` that is not plain text is gone after the helper's first
+  paint.
+- **The browser is the floor under every visual check, and it has a thirty-second launch budget
+  that no flag raises.** `LAUNCH_TIMEOUT_MS` is a constant in the CLI; `snapshot --timeout` is the
+  runtime-init wait, not the launch. With 139-225 MiB free, Chrome took 60.9 s to start for
+  `check` and never started for `snapshot`. Lint is pure static analysis and runs regardless, so a
+  memory-starved machine can still prove the composition is well-formed — it just cannot prove
+  anything about what the frames look like, and the two must not be reported as one result.
+  **The failure is not deterministic, though**: once a 2.5 GiB browser extension process was gone,
+  the same `snapshot` and the same `check` succeeded at 130-276 MiB free, and the render ran to
+  completion. Treat a launch timeout as "this machine, this minute", and retry before recording it
+  as a blocked step.
+- **A render that falls back to `screenshot capture · software gpu` takes roughly ten times as
+  long, and says so.** The line is `BeginFrame did not run. Needs chrome-headless-shell and no
+  --resolution upscale.` This 120 s film took 30 m 41 s that way — 13 m 19 s capture plus
+  12 m 15 s encode — against minutes on the fast path. The frames are identical either way, so
+  this is a wall-clock fact about the machine and not a fault in the composition; record which
+  path a render took, or the next person reads the duration as a regression. Dropping
+  `--workers 3` to `--workers 2` is the trade to make when free memory is in the hundreds of MiB.
+- **Stills for evidence are cheaper and truer out of the rendered file than out of the browser.**
+  `ffmpeg -ss <t> -i out/film.mp4 -frames:v 1 out.png` costs nothing, needs no browser, and yields
+  a frame of the film that actually shipped — whereas `hyperframes snapshot` re-renders the moment
+  and pays the whole browser-launch cost per batch. Snapshot is for looking at a composition
+  *before* a render exists; once one does, cut the stills from it.
+- **The logo is a light-palette asset on a dark-palette stage.** `assets/icon.png` carries
+  `#f4f3ef` as its own background, which is the design system's light `--paper`, so it needs no
+  cut-out: a wrapper with `overflow: hidden` crops the PNG's generous margin and the result reads
+  as the page's own light surface on the film's dark one.
+
+## The demo video, 2026-10-23
+
+- **A timed element that is not absolutely positioned stacks in normal flow, and every later
+  scene renders off-canvas.** HyperFrames keys a clip's visibility off `data-start`; the
+  `position: absolute; inset: 0` that makes a clip a *layer* is the author's own CSS, and the
+  scaffold's `.clip` rule was not carried into our stylesheet. The first `hyperframes check` came
+  back with six `canvas_overflow` and six `container_overflow` findings spread over five scenes,
+  each of them really the same bug: scene 6's root was sitting a thousand pixels down the page
+  because scenes 1 to 5 were blocks above it. One `.clip { position: absolute; inset: 0 }` cleared
+  all twelve. A check finding that names a dozen elements in a dozen places is usually one
+  structural mistake, not a dozen layout mistakes.
+- **`white-space: pre` on a terminal's body renders the source's own indentation as blank lines.**
+  Each recorded line is its own `<span class="line">`, and the newline and leading spaces *between*
+  those spans in the HTML are text nodes. With `pre` on the container they are drawn, so every
+  terminal came out double-spaced and the long scenes clipped half their output. `pre` belongs on
+  the line, which is what has to preserve its own columns; the container must not have it.
+- **The page can be embedded as the page, not as a picture of it.** A browser scene holds an
+  `<iframe>` of `assets/site/<act>.present.html` sized at exactly 1920×1080 inside a viewport that
+  scales the whole block by 0.875. The act's own renderer then computes `--scale` as 1 and lays out
+  the page exactly as the gate serves it, so the frame is the real page rather than a redrawing of
+  it. It works because a replay page fetches nothing: its own CSP forbids it to connect anywhere,
+  so there is no load that can fail mid-render.
+- **The layout audit's 28 px reading floor and a verbatim terminal cannot both be satisfied.** The
+  longest recorded line in the film is 117 characters; at 28 px monospace that is 1,960 px, wider
+  than the frame. 22 px in a 1,740 px window is the largest that fits, so the terminal bodies carry
+  `data-layout-ignore` and the storyboard says why. The alternative was eliding words out of
+  recorded output to make the type bigger, which is the wrong trade for this repo.
+- **No recorded run holds a proving time, so the film does not claim one.** The instruction for the
+  video asked that long waits read `proving… (~60 s)`. Nothing in `evidence/` measures the wait, so
+  the terminal keeps the recorded line and the cut is marked `— cut —` with no number. The one
+  number in the film, "about 35 s of Halo2 verification" in act 8, is `README.md`'s, which recorded
+  it. A placeholder duration is a placeholder shown as real.
+- **`hyperframes skills update` fails closed when GitHub is unreachable**, and says so rather than
+  reporting success. The skills were already installed, so the build went ahead on them; the CLI
+  prints "Skills freshness unverified" and that is the honest state to report.
+- **Chromium takes longer than thirty seconds to open its debugging port on this machine**, and a
+  loop that starts several of them in one shell is killed. One screenshot per command works; the
+  measuring harness in `scripts/page-layout-check.mjs` has the same constraint written down.
+
 ## Release prep: the broken axis, the docs, crates.io, 2026-10-22 and 2026-10-23
 
 - **Four of a proof's five markers are the circuit's padding, and nothing said so.** A47 was

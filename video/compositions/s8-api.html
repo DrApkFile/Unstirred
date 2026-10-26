@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>The gate's HTTP API</title>
+  </head>
+  <body>
+    <template>
+      <style>
+        #root {
+          position: absolute;
+          inset: 0;
+          background: var(--paper);
+        }
+
+        #s8-head {
+          position: absolute;
+          left: var(--term-x);
+          top: 200px;
+          font-size: 30px;
+          font-weight: 600;
+          color: var(--ink-dim);
+        }
+
+        #s8-term {
+          top: 270px;
+          height: 460px;
+        }
+
+        /* The challenge response is the one block on screen with no recorded value behind it, so
+           it is drawn in the film's "not settled" colour with the reason on the line beside it,
+           rather than pasted together out of a hex from one run and an expiry from another. */
+        .line-shape {
+          color: var(--unknown);
+        }
+      </style>
+
+      <div id="root" data-composition-id="s8-api" data-width="1920" data-height="1080">
+        <span id="s8-head">A gate is plain HTTP: four calls, start to finish.</span>
+        <div class="window" id="s8-term">
+          <div class="window-bar">
+            <div class="window-lamps"><i></i><i></i><i></i></div>
+            <div class="window-name" data-layout-ignore>a developer's terminal</div>
+            <div class="window-prov" data-layout-ignore>how to use it · routes SPEC.md · /rooms evidence/2026-10-20-two-room-knock.txt · shapes PRD §3.3, §3.5</div>
+          </div>
+          <div class="term-body" data-layout-ignore>
+            <!-- prettier-ignore-start -->
+            <span class="line line-cmd" data-at="0" data-type="0.8" data-cursor="1">$ curl -s http://127.0.0.1:8080/rooms</span>
+            <span class="line" data-at="1.0">{"rooms":[{"context":"holders-room","h1_root":"8af0c16b…be26","h1_root_provenance":"operator-…</span>
+            <span class="line line-key" data-at="1.25">  "min_zatoshis":"12500000","network":"test","window":{"h0":4505790,"h1":4506510}}, …]}</span>
+            <span class="line line-cmd" data-at="2.0" data-type="0.9" data-cursor="1">$ curl -s -X POST http://127.0.0.1:8080/rooms/holders-room/challenge</span>
+            <span class="line line-shape" data-at="3.1">{ "challenge": "&lt;32 bytes hex&gt;", "expires_at": "&lt;RFC3339&gt;" }</span>
+            <span class="line line-cut" data-at="3.4">                     the shape (PRD §3.3) — no recorded value is pasted here</span>
+            <span class="line line-cmd" data-at="4.2" data-type="1.0" data-cursor="1">$ unstirred prove --wallet "$W" --manifest holders-room.json --lightwalletd … \</span>
+            <span class="line line-cmd" data-at="5.3" data-type="0.9" data-cursor="1">    --pir … --identity "$ID" --challenge &lt;32 bytes hex&gt; --out package.json</span>
+            <span class="line line-cmd" data-at="6.5" data-type="0.9" data-cursor="1">$ curl -s -X POST --data-binary @package.json \</span>
+            <span class="line line-cmd" data-at="7.5" data-type="0.6" data-cursor="1">    http://127.0.0.1:8080/rooms/holders-room/admit</span>
+            <span class="line" data-at="8.4" id="s8-verdict">{"verdict":"ADMITTED"}</span>
+            <span class="line" data-at="9.2" data-cursor="1">$ </span>
+            <!-- prettier-ignore-end -->
+            <span class="cursor-block"></span>
+          </div>
+        </div>
+      </div>
+
+      <script>
+        (function () {
+          var tl = gsap.timeline({ paused: true });
+
+          film.terminal(tl, document.getElementById("s8-term"), 10);
+
+          tl.fromTo(
+            document.getElementById("s8-head"),
+            { opacity: 0, y: 12 },
+            { opacity: 1, y: 0, duration: 0.4, ease: "power2.out" },
+            0
+          );
+
+          /* The verdict object is the end of the round trip and the only thing the gate gives
+             back, so it turns the colour of an admission as it lands. */
+          tl.fromTo(
+            document.getElementById("s8-verdict"),
+            { color: "#b2b9c6", scale: 1.06 },
+            { color: "#5ed39b", scale: 1, duration: 0.45, ease: "power2.out", transformOrigin: "0% 50%" },
+            8.4
+          );
+
+          window.__timelines["s8-api"] = tl;
+        })();
+      </script>
+    </template>
+  </body>
+</html>

@@ -1,6 +1,6 @@
 # HANDOFF
 
-State of Unstirred at commit `3d2bf57`, with a clean tree. **Act 4's visual fix, the docs and the
+State of Unstirred at commit `d2dfc12`, with the demo video built on top of it and uncommitted. **Act 4's visual fix, the docs and the
 release prep are committed** (§11: the broken axis, `SPEC.md`, the rebuilt README, LEAKS
 finalised, the release workflow and crates.io readiness). **M1, M2, M3 and M4 are closed** (M2's last open item, a real two-source root run, was recorded
 on 2026-10-20, §1; M3 step 1 is `6c2a288` and `34c3146`, §8; M3 step 2, the Holders' Room page, is
@@ -8,8 +8,15 @@ on 2026-10-20, §1; M3 step 1 is `6c2a288` and `34c3146`, §8; M3 step 2, the Ho
 recorded** (§10): the newcomer's wallet was refused by the room's own rule on 2026-10-22 with
 nothing sent, and its forced submission was refused by the gate itself, REFUSED / ROOT_MISMATCH,
 writing nothing — both against the real testnet, and `act4-newcomer` is generated from them. M4 is
-committed, `2e24559` and `527f871`. **What is next, in order: the demo video, then the audit.**
-Written 2026-10-20, revised 2026-10-21, 2026-10-22 and 2026-10-23,
+committed, `2e24559` and `527f871`. **The demo video is done** (§12): the 2:00 narrated walkthrough
+is rendered and delivered at `video/out/unstirred-demo.mp4` — 120.000000 s, 3,600 frames,
+1920x1080, h264 High + aac LC, 16,218,341 bytes, sha256
+`9d1d7acb820e2343119fa8d818f3859da78c976d3a92f3522f4a86c081522399` — with narration, captions, a
+ducked music bed, twelve stills cut out of the delivered file, and `npm run check` passing every
+pass against the delivered tree. Its generators are in `video/tools/` and reproduce `index.html`
+byte for byte from any working directory. Nothing about the video is open.
+**What is next: the final audit, parts A and B. That is the only thing left before the release.**
+Written 2026-10-20, revised 2026-10-21, 2026-10-22, 2026-10-23 and 2026-10-26,
 from the 2026-10-17 version. For the next session (agent or human).
 Read `briefing/CLAUDE.md` and `briefing/BUILD_CONTRACT.md` first; this file only says where the
 work stopped, what is next, and what the machine around the repo is holding.
@@ -143,14 +150,22 @@ rows for the two-source run, the `verify` wording constant and A33, the README t
 **Everything built so far is committed and green** (`3d2bf57`, GATE: PASS, 104 tests,
 `evidence/2026-10-23-gate-release-prep.md`). **Next, in order:**
 
-1. **The demo video**, built with HyperFrames. The five acts the gate serves are what it is cut
-   from: `?replay=<act>` with `&present=1`, rendered at exactly 1920x1080, where the stage is at
-   scale 1. `crates/unstirred-gate/ui/frame.md` is the design system the video shares with the
-   page, and a unit test fails if the two drift. PRD §9 is the script and its timings; act 7, the
-   chain itself, still has no run behind it.
-2. **The audit, with a GitHub Pages replay site.** The acts need no chain, no wallet and no
-   nf-server, so they can be served as static pages for an auditor to open without running
-   anything.
+1. ~~**The demo video**~~ — **done, rendered and delivered, 2026-10-26, and uncommitted** (§12).
+   `video/` is a HyperFrames project; `video/STORYBOARD.md` is its plan with the evidence file named
+   for every scene, and `video/out/unstirred-demo.mp4` is the delivered 2:00 narrated render with
+   narration, captions and a ducked music bed. `video/tools/` holds its generators and has been
+   verified to reproduce `index.html` byte for byte. Nothing about the video is open; do not
+   re-render it.
+2. **The final audit, parts A and B — the only thing left before the release.** The audit is the
+   pre-submit check in `briefing/PRD.md` §M6 ("pre-submit audit passes from a clean clone") plus the
+   GitHub Pages replay site. `scripts/export-replay-site.sh` writes the five acts, each in normal
+   and presentation mode, plus the room picker, into `site/` as static HTML, straight out of the
+   gate's own page module, so an exported file is byte for byte what the gate serves — re-verified
+   2026-10-26 against `video/assets/site/`, all eleven files identical. **Pages itself is not set
+   up**, by instruction. One thing to decide first: the picker's room cards link to
+   `/room/<context>`, which is a gate route and not a file in `site/`. *(The repo has never written
+   down which half is "A" and which is "B"; the reading used here is A = the clean-clone audit,
+   B = the replay site. Settle the labels at the start of that session.)*
 
 The release is prepared and not performed: the tag and the crates.io publish are still open, with
 the order and the exact commands in §11. Deadline: last commit before **2026-10-27 08:00 UTC**.
@@ -195,7 +210,7 @@ refused `ROOT_MISMATCH` while writing nothing
 is the fifth act the gate serves. **M4 is committed, `2e24559` and `527f871`, with this file and
 `briefing/BUILD_NOTES.md` brought up to date in `3f79c4e`.** **Next, in order:**
 
-All three are **done but uncommitted** — §11 has the detail, and the work is in the tree:
+All three are **done and committed as `3d2bf57`** — §11 has the detail:
 
 1. **Act 4's visual fix** — done. The newcomer is no longer a faded stub at the end of the axis:
    the rail is broken after h1 and the coins are marked past the break with the distance on the
@@ -847,7 +862,7 @@ is drawn as a stub off the right-hand end with "20,332 blocks after h1, never in
 under it: stretching the axis to reach it (which is what the page did at first) left the window
 three per cent of the rail with its caption wrapped into a column, 128px past the stage's 1080.
 
-All three of those are done in §11, uncommitted: act 4's visual fix is the broken axis, the docs
+All three of those are done in §11 and committed as `3d2bf57`: act 4's visual fix is the broken axis, the docs
 are `SPEC.md`, the rebuilt README and the finalised LEAKS, and the release is prepared as far as
 it can be without committing, tagging or publishing. PRD §9's act 7, the chain itself, still has
 no run behind it.
@@ -988,3 +1003,193 @@ what runs at once and nothing about what is asserted. **Neither of the two below
    check one tarball's `.sha256` before telling anyone the link. The README's "Watch the demo"
    block is a marked placeholder until the video exists; it is the only placeholder in the README
    and it says so in words.
+
+
+## 12. The demo video: a 2:27 silent cut, 2026-10-23, rebuilt and rendered as a 2:00 narrated walkthrough, 2026-10-26 — uncommitted
+
+`video/` is a HyperFrames project (CLI 0.8.186) that now renders **2:00** at 1920x1080, 30 fps —
+120.000 s, 3,600 frames — to `video/out/unstirred-demo.mp4`, with narration, captions and a music
+bed. It was a 2:27 silent cut until 2026-10-26. **The 2:00 cut is rendered**: the file on disk is
+that render, sha256 `9d1d7acb820e2343119fa8d818f3859da78c976d3a92f3522f4a86c081522399`, and
+`video/out/stills/` holds one still per scene cut out of it — see "what ran" below.
+
+**What the film is.** Twelve scenes of two kinds, each labelled on screen:
+
+- **Demo** scenes re-enact a recorded run and carry `re-enactment of a recorded testnet run ·
+  evidence/<file>` in the window's title bar: the five acts of the Holders' Room, and Alice's and
+  Bob's knocks behind them.
+- **How-to** scenes carry `how to use it` plus where their text came from: installing the binary
+  (release tarball and checksum, or clone and `cargo build --release`, then `unstirred --version`),
+  running a door (`gate init`, `gate.toml`, `gate serve`), the gate's HTTP API (the whole admit
+  round trip in four curl calls), and the two crates as libraries.
+
+The arc: hook → install → run a door → knock → refused → the newcomer → a second room → the API →
+the crates → uses → what faking it costs → close. `video/STORYBOARD.md` has the timings, the
+narration line and the caption for every scene, and a section naming the three beats of the 2:27
+cut that were dropped to pay for the four how-to beats. The two retired compositions are kept as
+`compositions/*.html.retired` rather than deleted.
+
+**The honesty rule the film is built under**, stated in `video/BRIEF.md` and `video/STORYBOARD.md`:
+every command and output line in a demo scene is copied verbatim from the file its label names.
+Two edits are made and both are visible: the owner's home path is elided to `…/`, and a line over
+about 120 characters is shortened with a `…`. A compressed wait is marked `— cut —` and **no
+invented duration appears anywhere**. A how-to scene never shows a value no run produced: the
+`/rooms` body is the recorded one, `unstirred 0.1.0` is this binary's own answer, and
+`{"verdict":"ADMITTED"}` is what `verdict_object` writes — while the challenge response, which no
+run recorded as a pair, is drawn as a *shape* in the film's "not settled" colour with that said on
+the line beside it. The four use cases are labelled `uses · illustrative, not measured`. No
+address, seed, key or note value is on screen anywhere.
+
+**The sound.** Narration is Kokoro-82M, voice **`af_heart`** at speed 1.0, run locally through
+`npx hyperframes tts` — 32 lines, 250 words, one `.wav` per line in `video/assets/vo/`, covering
+81.7 s of the 120 s. **Each caption is its narration line word for word and carries the same
+`data-start`**, so the words on screen and the words in the ear cannot drift; a caption holds
+until the next line speaks. The bed is the owner's `video/assets/music.mp3`, which is 105.0 s
+against a 120 s film, so it plays as two clips of the same file: clip A from its head, clip B from
+45 s in, crossfading over 1.5 s at 1:00 under the voice, positioned so the track's own ending lands
+on the last frame. Both carry a `data-automation` volume lane that holds the bed at 0.30 between
+lines and ducks it to 0.11 while the voice speaks; clip B's lane carries the final fade. The two
+clips are on track indices 12 and 13 because they overlap, which is what `duplicate_audio_track`
+asks for. `assets/icon.png` appears in the hook and the close and nowhere else.
+
+**What is in the repo and what is generated.** Committed: `video/BRIEF.md`,
+`video/STORYBOARD.md`, `video/index.html`, `video/compositions/*.html` (twelve scenes, plus two
+`.retired`), `video/assets/film.css`, `video/assets/film.js`, `video/assets/icon.png`,
+`video/assets/music.mp3`, `video/assets/vo/*.wav`, `video/hyperframes.json`, `video/package.json`,
+`video/.gitignore`. The narration `.wav` files are kept rather than gitignored **because
+`index.html` hardcodes each line's measured duration**: regenerating them would need `index.html`
+regenerated with it. Generated and gitignored: `video/node_modules/`, `video/out/`,
+`video/assets/site/` (written by `scripts/export-replay-site.sh video/assets/site`) and
+`video/assets/vo/narration-full.wav`. A fresh clone has to run that export before the browser
+scenes have anything to show.
+
+**The browser scenes show the real page**, unchanged from the 2:27 cut: each holds an `<iframe>`
+of `video/assets/site/<act>.present.html` at exactly 1920x1080 inside a viewport that scales the
+whole block by 0.875, so the act's own renderer computes `--scale` as 1 and lays out the page
+exactly as the gate serves it. It works because a replay page fetches nothing.
+
+**`scripts/export-replay-site.sh`** writes the acts and the picker as static HTML, default
+`site/`, via `crates/unstirred-gate/examples/export-replay-site.rs`, which calls the gate's own
+`room_document` and `picker_document`. Eleven files. The picker's room cards link to
+`/room/<context>`, a gate route with no file behind it in `site/`; that is the one thing to settle
+before the site is published.
+
+**What ran.** `evidence/2026-10-26-demo-video-walkthrough.md` records it.
+`npm run check` passes every pass against the delivered tree: Lint `0 error(s), 1 warning(s)`,
+Runtime `0/0`, Layout `0 issues across 9 sample(s)`, Motion `0/0`, Contrast
+`9/9 text checks pass WCAG AA`, Craft `0/0`. The one warning is `composition_file_too_large` on
+`index.html`, which is deliberate — the caption track and both sound tracks live there so the whole
+pass reads in one place. `film_silent` is gone, because the film now has sound.
+
+The render ran with `--workers 2` and exited 0 in **30 m 41.3 s**: 120.000000 s, 3,600 frames at
+`30/1`, 1920x1080, **two** streams where the 2:27 cut had one — h264 High at 873,680 b/s and aac LC
+48 kHz stereo at 200,486 b/s — 16,218,341 bytes. Two workers rather than three because free memory
+was 188 MiB at launch and 130 MiB during. The renderer fell back to `screenshot capture · software
+gpu` (`BeginFrame did not run. Needs chrome-headless-shell`), which is the whole reason it took half
+an hour; on a machine with memory to spare and that binary present the same project renders in
+minutes, and the frames are deterministic either way. **Do not read half an hour as a fault in the
+composition.**
+
+The twelve stills were cut out of the delivered `.mp4` with `ffmpeg -ss <t> … -frames:v 1` rather
+than captured separately, so each is a frame of the film that shipped. All twelve were looked at.
+The 2:27 cut's stills are kept at `out/stills/pre-render-review/`.
+
+**The transcription step is closed as not needed** — owner's decision, 2026-10-26. It is not an
+open item and no later session should pick it up. The captions never depended on it: each caption is
+the exact string handed to the TTS engine, on the same `data-start` as the `.wav` that string
+produced, so the words on screen and the words in the ear are **in sync by construction**, not by
+alignment, and a transcript could only re-measure what the build already guarantees. For the record
+of why it could not have run anyway: `hyperframes transcribe` reports `Captions skipped —
+whisper-cpp not found`, and `hyperframes models install parakeet` fails with npm `EALLOWSCRIPTS`,
+because the sherpa-onnx runtime needs install scripts that this npm refuses for a project-scoped
+install unless `allowScripts` is added to `package.json` or `.npmrc`. `video/transcript.json` does
+not exist and is not wanted. `video/tools/build_narration_track.py`, written to feed that pass, is
+kept only as a read-back of what the voice says and when; nothing in the film reads its output.
+
+**The CLI pin stays 0.8.186 and the bump to 0.8.200 is declined** — owner's decision, 2026-10-26,
+and closed, not deferred. The delivered render stays on the version it was recorded under: a pin the
+delivered `.mp4` has not been made under is not verified for delivery, and taking the bump would
+mean re-rendering to re-earn what is already green. `video/package.json` and
+`video/tools/tts.sh` both name `hyperframes@0.8.186`.
+
+**Not done, by instruction:** nothing is committed and GitHub Pages is not set up. Nothing was run
+against either wallet.
+
+### Session note — 2026-10-26, end of session
+
+Everything below is **uncommitted**. `git log` still ends at `d2dfc12`.
+
+**What changed this session**
+
+- `video/` rebuilt from the 2:27 silent cut into the 2:00 narrated walkthrough: twelve scenes
+  (`compositions/s1-hook` … `s12-close`), two retired as `*.html.retired`. New this session:
+  `s2-install`, `s8-api`, `s9-library`. The rest were renamed and retimed.
+- `video/index.html` regenerated; `video/STORYBOARD.md` and `video/BRIEF.md` rewritten.
+- **Rendered.** `video/out/unstirred-demo.mp4` — 120.000000 s, 3,600 frames, 1920x1080, h264 High +
+  aac LC, 16,218,341 bytes, sha256 `9d1d7acb820e2343119fa8d818f3859da78c976d3a92f3522f4a86c081522399`.
+- `npm run check` passes every pass on the delivered tree (Contrast 9/9 WCAG AA, Craft 0/0). Seven
+  findings were fixed before the render; the evidence file lists them with their codes.
+- `video/out/stills/` — twelve stills, one per scene, cut out of the delivered `.mp4`. The earlier
+  review stills moved to `out/stills/pre-render-review/`.
+- `evidence/2026-10-26-demo-video-walkthrough.md` rewritten as the render record; `CLAIMS.md` row
+  replaced with the measured numbers; `README.md` status table regenerated (50 claims, checker
+  passes); three bullets added to `briefing/BUILD_NOTES.md`.
+- `video/tools/` added — `index.html` is **generated** from `narration.json` plus the `ANCHOR`
+  table in `build_index.py`, and those generators had been living outside the repo. Do not
+  hand-edit the caption, audio or music clips in `index.html`; `video/tools/README.md` says how to
+  regenerate.
+
+**Machine caveat.** The render took 30 m 41 s because it fell back to `screenshot capture ·
+software gpu` at ~150 MiB free. Frames are deterministic; the wall clock is this machine. Do not
+read it as a regression.
+
+### Session note — 2026-10-26, the generators verified and two decisions closed
+
+Still **uncommitted**; `git log` still ends at `d2dfc12`. Nothing was re-rendered and the delivered
+`.mp4` is untouched (sha256 still `9d1d7acb…22399`).
+
+**`video/tools/` is complete and reproduces the film's `index.html` byte for byte.** The directory
+holds `build_index.py`, `narration.json`, `tts.sh`, `build_narration_track.py` and `README.md` —
+everything `index.html` is built from. Run from the repo root, from `tools/` and from `/tmp`, the
+regenerated `index.html` is identical to the delivered file, sha256
+`3fcc55ede0cc6d58be6f77545742bdbce61c5f2b16716ef2a17fd467380af926`, with no change to the video.
+
+Three path faults were found and fixed; they would all have bitten the next session:
+
+- `tts.sh` read its line table from **the previous session's scratchpad**
+  (`/tmp/claude-1000/…/32342fdd-…/scratchpad/narration.json`), a directory that no longer exists.
+  It now reads `tools/narration.json` and uses a `mktemp` for the table. It also called the
+  `hyperframes` CLI through a hard-coded `~/.npm/_npx` cache path; it now calls
+  `hyperframes@0.8.186`, the same pin as `video/package.json`, overridable with `HYPERFRAMES_PIN`.
+  `HYPERFRAMES_PYTHON` keeps its recorded default and stays overridable. Re-run as a check: all 32
+  lines skipped, nothing regenerated.
+- `build_index.py` and `build_narration_track.py` each hard-coded the absolute path of this
+  checkout. Both now derive the project root from `__file__`, so they run from any working
+  directory and survive a move or a fresh clone.
+
+No scratchpad or absolute repo path is left anywhere in `video/tools/`, or in the compositions,
+`film.js` or `film.css`.
+
+**One generator `index.html` needs is outside `video/tools/`, by design:** the browser scenes hold
+an `<iframe>` of `video/assets/site/<act>.present.html`, and `assets/site/` is **gitignored** and
+written by `scripts/export-replay-site.sh video/assets/site` at the repo root, via
+`crates/unstirred-gate/examples/export-replay-site.rs`. A fresh clone must run that export before
+the browser scenes have anything to show. Re-exported to a scratch directory and diffed this
+session: **all eleven files identical.** `video/tools/README.md` now names this dependency.
+
+**Two decisions from the owner, both closed rather than deferred:**
+
+1. **The transcription step is closed as not needed.** Captions are synced by construction — each
+   is the exact string handed to the TTS engine, on the same `data-start` as the `.wav` it
+   produced. No later session should pick it up.
+2. **The HyperFrames CLI pin bump to 0.8.200 is declined.** The delivered render stays on the
+   version it was recorded under, 0.8.186.
+
+**Open, in the order they matter**
+
+1. Nothing is committed, by instruction.
+2. The picker's room cards link to `/room/<context>`, a gate route with no file behind it in the
+   exported static site. Settle before publishing.
+3. GitHub Pages not set up; the film's close says `replay site: — (not published yet)`.
+
+**The video is done.** The next step is **the final audit, parts A and B** (§2 item 2).

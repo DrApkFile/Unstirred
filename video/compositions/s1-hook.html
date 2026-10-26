@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Hook</title>
+  </head>
+  <body>
+    <template>
+      <style>
+        #root {
+          position: absolute;
+          inset: 0;
+          display: grid;
+          place-items: center;
+          background: var(--paper);
+        }
+
+        .hook-stack {
+          position: relative;
+          width: 1500px;
+          height: 360px;
+        }
+
+        /* The lockup is drawn on the design system's light --paper (#f4f3ef), which is exactly
+           what assets/icon.png carries as its own background, so the plate is the page's light
+           surface rather than a cut-out pasted on the dark stage. The wrapper crops the PNG's
+           generous margin instead of editing the file. */
+        .hook-logo {
+          position: absolute;
+          left: 50%;
+          top: -210px;
+          width: 700px;
+          height: 202px;
+          margin-left: -350px;
+          overflow: hidden;
+          border-radius: var(--radius-2);
+        }
+
+        .hook-logo img {
+          display: block;
+          width: 700px;
+          height: 350px;
+          margin-top: -71px;
+        }
+
+        .hook-beat {
+          position: absolute;
+          inset: 0;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          gap: var(--gap-3);
+        }
+
+        .hook-line {
+          display: block;
+          font-size: 86px;
+          line-height: 1.05;
+          font-weight: 650;
+          letter-spacing: -0.028em;
+          color: var(--ink);
+          text-align: center;
+        }
+
+        .hook-line em {
+          font-style: normal;
+          color: var(--admit);
+        }
+
+        .hook-line.dim {
+          color: var(--ink-faint);
+        }
+
+        .hook-word {
+          display: inline-block;
+        }
+      </style>
+
+      <div id="root" data-composition-id="s1-hook" data-width="1920" data-height="1080">
+        <div class="hook-stack">
+          <div class="hook-logo" id="hook-logo">
+            <img src="assets/icon.png" alt="unstirred" data-layout-allow-overflow />
+          </div>
+          <div class="hook-beat" id="hook-beat-1">
+            <span class="hook-line dim" id="hook-1a"></span>
+            <span class="hook-line" id="hook-1b"></span>
+          </div>
+          <div class="hook-beat" id="hook-beat-2">
+            <span class="hook-line" id="hook-2a"></span>
+            <span class="hook-line dim" id="hook-2b"></span>
+          </div>
+        </div>
+      </div>
+
+      <script>
+        (function () {
+          var tl = gsap.timeline({ paused: true });
+
+          /* Each line arrives word by word (waterfall-entry): the words whip up in sequence and
+             the whole phrase is composed within half a second, so it reads as one arrival. */
+          function words(element, text, accent) {
+            var parts = text.split(" ");
+            var nodes = parts.map(function (word) {
+              var span = document.createElement("span");
+              span.className = "hook-word";
+              if (accent && word.replace(/[^A-Za-z']/g, "").toLowerCase() === accent) {
+                var mark = document.createElement("em");
+                mark.textContent = word;
+                span.appendChild(mark);
+              } else {
+                span.textContent = word;
+              }
+              element.appendChild(span);
+              element.appendChild(document.createTextNode(" "));
+              return span;
+            });
+            return nodes;
+          }
+
+          function arrive(nodes, at) {
+            tl.fromTo(
+              nodes,
+              { y: 54, opacity: 0 },
+              {
+                y: 0,
+                opacity: 1,
+                duration: 0.46,
+                ease: "power3.out",
+                stagger: Math.min(0.08, 0.45 / nodes.length)
+              },
+              at
+            );
+          }
+
+          var oneA = words(document.getElementById("hook-1a"), "Fake accounts are free.");
+          var oneB = words(document.getElementById("hook-1b"), "History isn't.", "history");
+          var twoA = words(document.getElementById("hook-2a"), "Prove you held.", "held");
+          var twoB = words(document.getElementById("hook-2b"), "Not who you are.");
+
+          var logo = document.getElementById("hook-logo");
+          gsap.set(logo, { opacity: 0 });
+          tl.to(logo, { opacity: 1, duration: 0.5, ease: "power2.out" }, 0);
+
+          var beatOne = document.getElementById("hook-beat-1");
+          var beatTwo = document.getElementById("hook-beat-2");
+          gsap.set(beatTwo, { opacity: 0 });
+
+          /* The first line is already composed at frame 0: frame 0 is the thumbnail. */
+          gsap.set(oneA, { y: 0, opacity: 1 });
+          arrive(oneB, 1.15);
+          /* The second line lands on its own beat, a shade over size, and settles. */
+          tl.fromTo(
+            document.getElementById("hook-1b"),
+            { scale: 1.07 },
+            { scale: 1, duration: 0.4, ease: "power3.out" },
+            1.15
+          );
+
+          tl.to(beatOne, { opacity: 0, duration: 0.3, ease: "power2.in" }, 2.8);
+          tl.to(logo, { opacity: 0, duration: 0.3, ease: "power2.in" }, 2.8);
+          tl.to(beatTwo, { opacity: 1, duration: 0.01 }, 3.15);
+          arrive(twoA, 3.2);
+          arrive(twoB, 3.85);
+
+          window.__timelines["s1-hook"] = tl;
+        })();
+      </script>
+    </template>
+  </body>
+</html>
