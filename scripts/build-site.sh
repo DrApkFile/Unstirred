@@ -4,9 +4,15 @@
 #
 # Everything here is produced from this repository by this script, so the site a workflow
 # publishes and the site you can build locally are the same site. Nothing is fetched from anywhere
-# at build time but the crates the workspace already pins, and no page the site serves asks any
-# other origin for anything (LEAKS L10): the stylesheet, the icons and the acts are all files in
-# the output.
+# at build time but the crates the workspace already pins.
+#
+# At view time the site is in two halves. The five recorded act pages and the room picker are the
+# gate's own bytes and ask no other origin for anything (LEAKS L10, A02c) — that is what lets an
+# act be opened from a file with nothing behind it. The pages this repository writes around them —
+# the landing page, Start here, the three guides, the API index and the index of acts — fetch
+# fonts from three services and the landing's background video from one bucket, five origins in
+# all. That is a deliberate choice, recorded in DECISIONS.md, and scripts/site-pages.py fails the
+# build if any page reaches an origin outside the list or if an act page reaches one at all.
 #
 #     scripts/build-site.sh [directory]        (default: site)
 #     SKIP_API=1 scripts/build-site.sh         (everything but cargo doc, which is the slow part)
@@ -36,11 +42,39 @@ scripts/render-md.py SPEC.md "$out/guides/spec.html" \
     --title "The protocol" --source-path SPEC.md \
     --description "What is proved, why it holds, the wire formats, and every limit."
 
-echo "== the design tokens the gate's pages use, plus the site's own layout"
-cat crates/unstirred-gate/ui/tokens.css scripts/site/site.css > "$out/styles.css"
+echo "== the site's own stylesheet"
+# The gate's tokens.css is deliberately NOT concatenated here any more. It is the light theme of
+# the product UI, and the act pages carry it inside themselves; the site around them is its own
+# dark design, and mixing the two left every variable defined twice.
+cp scripts/site/site.css "$out/styles.css"
+
+echo "== the display font, if it is in the tree"
+# The fallback display face. BubbledotICG-FinePos is hosted; this is the local face named after it
+# in the stack, and it is optional: no file, no @font-face rule, and the stack falls through to
+# monospace rather than the page asking for a font that is not there.
+if [ -f assets/fonts/GeistPixel-Circle.woff2 ]; then
+    mkdir -p "$out/fonts"
+    cp assets/fonts/GeistPixel-Circle.woff2 "$out/fonts/GeistPixel-Circle.woff2"
+    cat >> "$out/styles.css" <<'FONT'
+
+@font-face {
+  font-family: "Geist Pixel Circle";
+  src: url("fonts/GeistPixel-Circle.woff2") format("woff2");
+  font-weight: 400;
+  font-display: swap;
+}
+FONT
+    echo "   fonts/GeistPixel-Circle.woff2"
+else
+    echo "   assets/fonts/GeistPixel-Circle.woff2 is not in the tree: no @font-face written"
+fi
 
 echo "== the icons"
 cp assets/icon.png "$out/icon.png"
+# The header's mark is the emblem on its own, cropped out of the wordmark so the two cannot drift.
+# Regenerate with:
+#   ffmpeg -y -i assets/icon.png -vf "crop=216:216:172:189" assets/icon-mark.png
+cp assets/icon-mark.png "$out/icon-mark.png"
 # python3 rather than base64(1), whose decode flag is spelled differently on macOS, and which is
 # the one dependency the gate already has beyond the toolchain.
 python3 -I -c 'import base64,pathlib,sys; pathlib.Path(sys.argv[2]).write_bytes(base64.b64decode(pathlib.Path(sys.argv[1]).read_text()))' \
@@ -48,80 +82,20 @@ python3 -I -c 'import base64,pathlib,sys; pathlib.Path(sys.argv[2]).write_bytes(
 
 if [ "${SKIP_API:-}" = "1" ]; then
     echo "== the API reference: skipped (SKIP_API=1)"
-    mkdir -p "$out/api/unstirred_core"
-    printf '<!doctype html><title>Not built</title><p>cargo doc was skipped for this build.\n' \
-        > "$out/api/unstirred_core/index.html"
+    # One stub per library, because the API index names all four and a skipped build must still
+    # be a site whose links resolve.
+    for crate in unstirred_core unstirred_prover unstirred_verifier unstirred_gate; do
+        mkdir -p "$out/api/$crate"
+        printf '<!doctype html><title>Not built</title><p>cargo doc was skipped for this build.\n' \
+            > "$out/api/$crate/index.html"
+    done
 else
     echo "== the API reference"
     cargo doc --no-deps --workspace --all-features --quiet
     cp -R target/doc "$out/api"
 fi
 
-# Rustdoc writes one directory per crate and no page above them, so the four libraries get a page
-# that names them. Without it /api is a directory listing or a 404.
-cat > "$out/api/index.html" <<'HTML'
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>API reference — Unstirred</title>
-    <link rel="icon" type="image/png" href="../favicon.png" />
-    <link rel="stylesheet" href="../styles.css" />
-  </head>
-  <body>
-    <header class="masthead">
-      <a class="wordmark" href="../index.html"><img src="../icon.png" alt="Unstirred" /></a>
-      <nav>
-        <a href="../replay/index.html">Demo</a>
-        <a href="../guides/getting-started.html">Getting started</a>
-        <a href="../guides/integration.html">Integration</a>
-        <a href="../guides/spec.html">Spec</a>
-      </nav>
-    </header>
-    <main>
-      <section class="hero">
-        <h1>API reference</h1>
-        <p>Four libraries. The command line is a binary and has no page here.</p>
-      </section>
-      <section class="cards">
-        <article class="card">
-          <h2>unstirred-core</h2>
-          <p>The shared contract: the manifest, the window and context rules, the package schema,
-            the binding message, and the closed set of verdict codes.</p>
-          <a class="more" href="unstirred_core/index.html">unstirred_core →</a>
-        </article>
-        <article class="card">
-          <h2>unstirred-prover</h2>
-          <p>The holder's half: read-only wallet access, selection, witnesses at h0, the private
-            nullifier lookup at h1, the proof and its binding signature.</p>
-          <a class="more" href="unstirred_prover/index.html">unstirred_prover →</a>
-        </article>
-        <article class="card">
-          <h2>unstirred-verifier</h2>
-          <p>The gate's half: the engine over roots it establishes itself, and the store that
-            admits one set of coins per context exactly once.</p>
-          <a class="more" href="unstirred_verifier/index.html">unstirred_verifier →</a>
-        </article>
-        <article class="card">
-          <h2>unstirred-gate</h2>
-          <p>The HTTP service, the client the command line knocks with, and the page the gate
-            serves itself.</p>
-          <a class="more" href="unstirred_gate/index.html">unstirred_gate →</a>
-        </article>
-      </section>
-    </main>
-    <footer>
-      <p>
-        <a href="https://github.com/DrApkFile/Unstirred">The repository</a> · MIT OR Apache-2.0 ·
-        Zcash <strong>testnet</strong> only; nothing here has been exercised against mainnet.
-      </p>
-    </footer>
-  </body>
-</html>
-HTML
-
-echo "== the landing page and the index of acts"
+echo "== the landing page, Start here, the index of acts and the API index"
 scripts/site-pages.py "$out" ${VIDEO_URL:+--video-url "$VIDEO_URL"}
 
 # GitHub Pages serves the artifact as-is, but a .nojekyll costs nothing and keeps rustdoc's

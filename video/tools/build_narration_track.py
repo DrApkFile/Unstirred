@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Lays the 32 narration files onto one 120 s track at their film times.
+"""Lays the narration files onto one track the length of the film, at their film times.
 
 Only for the transcript: the film itself plays the lines as separate <audio> clips, so this file
 is a read-back of what the voice says and when, not an input to the render.
@@ -18,7 +18,7 @@ rate = subprocess.run(["ffprobe", "-v", "error", "-show_entries", "stream=sample
                       capture_output=True, text=True).stdout.strip()
 
 args = ["ffmpeg", "-hide_banner", "-nostats", "-y",
-        "-f", "lavfi", "-t", "120", "-i", f"anullsrc=r={rate}:cl=mono"]
+        "-f", "lavfi", "-t", f"{b.TOTAL:g}", "-i", f"anullsrc=r={rate}:cl=mono"]
 parts, labels = [], ["[0]"]
 for i, (key, at) in enumerate(rows, start=1):
     args += ["-i", str(ROOT / "assets/vo" / f"{key}.wav")]

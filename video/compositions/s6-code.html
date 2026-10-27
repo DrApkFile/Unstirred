@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>In your code</title>
+  </head>
+  <body>
+    <template>
+      <style>
+        #root {
+          position: absolute;
+          inset: 0;
+          background: var(--paper);
+        }
+
+        #s6-head-http,
+        #s6-head-rust {
+          position: absolute;
+          left: var(--term-x);
+          top: 180px;
+          font-size: 30px;
+          font-weight: 600;
+          color: var(--ink-dim);
+        }
+
+        #s6-term {
+          top: 250px;
+          height: 500px;
+        }
+
+        #s6-code {
+          top: 250px;
+          height: 346px;
+        }
+
+        /* The challenge response is the one block on screen with no recorded value behind it, so
+           it is drawn in the film's "not settled" colour with the reason on the line beside it,
+           rather than pasted together out of a hex from one run and an expiry from another. */
+        .line-shape {
+          color: var(--unknown);
+        }
+
+        .line-sep {
+          color: var(--ink-faint);
+          font-size: 18px;
+        }
+
+        .code {
+          color: var(--ink);
+        }
+
+        .code-kw {
+          color: var(--accent);
+        }
+
+        #s6-tail {
+          position: absolute;
+          left: var(--term-x);
+          top: 650px;
+          width: var(--term-w);
+          display: flex;
+          flex-direction: column;
+          gap: var(--gap-2);
+        }
+
+        #s6-tail p {
+          font-family: var(--mono);
+          font-size: 28px;
+          line-height: var(--leading-body);
+          color: var(--ink-dim);
+        }
+
+        #s6-tail p b {
+          color: var(--admit);
+          font-weight: 400;
+        }
+
+        #s6-tail .s6-link {
+          font-family: var(--mono);
+          font-size: 30px;
+          color: var(--accent);
+        }
+      </style>
+
+      <div data-hf-id="hf-p9g4" id="root" data-composition-id="s6-code" data-width="1920" data-height="1080">
+        <span data-hf-id="hf-yiaq" id="s6-head-http">A gate is plain HTTP: four calls, start to finish.</span>
+        <div data-hf-id="hf-o89s" class="window" id="s6-term">
+          <div data-hf-id="hf-85t8" class="window-bar">
+            <div data-hf-id="hf-03re" class="window-lamps"><i data-hf-id="hf-wt6k"></i><i data-hf-id="hf-zeb8"></i><i data-hf-id="hf-y7e5"></i></div>
+            <div data-hf-id="hf-5e5g" class="window-name" data-layout-ignore>a developer's terminal</div>
+            <div data-hf-id="hf-j6y9" class="window-prov" data-layout-ignore>how to use it · routes SPEC.md · /rooms evidence/2026-10-20-two-room-knock.txt · shapes PRD §3.3, §3.5</div>
+          </div>
+          <div data-hf-id="hf-8752" class="term-body" data-layout-ignore>
+            <!-- prettier-ignore-start -->
+            <span data-hf-id="hf-wscy" class="line line-cmd" data-at="0" data-type="0.55" data-cursor="1">$ curl -s http://127.0.0.1:8080/rooms</span>
+            <span data-hf-id="hf-7swd" class="line" data-at="0.65">{"rooms":[{"context":"holders-room","h1_root":"8af0c16b…be26","h1_root_provenance":"operator-…</span>
+            <span data-hf-id="hf-of5i" class="line line-key" data-at="0.85">  "min_zatoshis":"12500000","network":"test","window":{"h0":4505790,"h1":4506510}}, …]}</span>
+            <span data-hf-id="hf-j3u6" class="line line-cmd" data-at="1.3" data-type="0.65" data-cursor="1">$ curl -s -X POST http://127.0.0.1:8080/rooms/holders-room/challenge</span>
+            <span data-hf-id="hf-vqzw" class="line line-shape" data-at="2.05">{ "challenge": "&lt;32 bytes hex&gt;", "expires_at": "&lt;RFC3339&gt;" }</span>
+            <span data-hf-id="hf-jdpf" class="line line-cut" data-at="2.3">                     the shape (PRD §3.3) — no recorded value is pasted here</span>
+            <span data-hf-id="hf-dkpp" class="line line-cmd" data-at="2.8" data-type="0.75" data-cursor="1">$ unstirred prove --wallet "$W" --manifest holders-room.json --lightwalletd … \</span>
+            <span data-hf-id="hf-h7k0" class="line line-cmd" data-at="3.6" data-type="0.65" data-cursor="1">    --pir … --identity "$ID" --challenge &lt;32 bytes hex&gt; --out package.json</span>
+            <span data-hf-id="hf-1dw1" class="line line-cmd" data-at="4.35" data-type="0.55" data-cursor="1">$ curl -s -X POST --data-binary @package.json \</span>
+            <span data-hf-id="hf-u4la" class="line line-cmd" data-at="4.95" data-type="0.35" data-cursor="1">    http://127.0.0.1:8080/rooms/holders-room/admit</span>
+            <span data-hf-id="hf-0dxj" class="line" data-at="5.4" id="s6-verdict">{"verdict":"ADMITTED"}</span>
+            <span data-hf-id="hf-kp6c" class="line" data-at="5.8" data-cursor="1">$ </span>
+            <!-- prettier-ignore-end -->
+            <span data-hf-id="hf-7o7f" class="cursor-block"></span>
+          </div>
+        </div>
+
+        <span data-hf-id="hf-ppot" id="s6-head-rust">Or skip the gate: add the crate and check a package yourself.</span>
+        <div data-hf-id="hf-85zx" class="window" id="s6-code">
+          <div data-hf-id="hf-ws90" class="window-bar">
+            <div data-hf-id="hf-xjgu" class="window-lamps"><i data-hf-id="hf-ylp6"></i><i data-hf-id="hf-0l8b"></i><i data-hf-id="hf-0zjc"></i></div>
+            <div data-hf-id="hf-6bec" class="window-name" data-layout-ignore>a gate operator's own service</div>
+            <div data-hf-id="hf-lrv8" class="window-prov" data-layout-ignore>how to use it · the public API in crates/unstirred-verifier/src/lib.rs · crates.io 0.1.0</div>
+          </div>
+          <div data-hf-id="hf-1dbe" class="term-body" data-layout-ignore>
+            <!-- prettier-ignore-start -->
+            <span data-hf-id="hf-hbom" class="line line-cmd">$ cargo add unstirred-verifier</span>
+            <span data-hf-id="hf-vpp8" class="line line-sep">                              — then, in your own service —</span>
+            <span data-hf-id="hf-rzna" class="line code"><span data-hf-id="hf-ogkw" class="code-kw">use</span> unstirred_verifier::{verify_package, PinnedRoots, Verdict};</span>
+            <span data-hf-id="hf-6c9z" class="line"> </span>
+            <span data-hf-id="hf-xwca" class="line code"><span data-hf-id="hf-gzku" class="code-kw">let</span> verdict = verify_package(&amp;manifest_json, &amp;package_json, &amp;roots, chain_tip, &amp;challenge);</span>
+            <span data-hf-id="hf-dwve" class="line code">assert_eq!(verdict, Verdict::Admitted);</span>
+            <!-- prettier-ignore-end -->
+          </div>
+        </div>
+        <div data-hf-id="hf-29th" id="s6-tail">
+          <p data-hf-id="hf-mrqh">
+            unstirred_prover::prove(ProofRequest { … }) → the package.
+            <b data-hf-id="hf-9bxk">Read-only; no transaction.</b>
+          </p>
+          <span data-hf-id="hf-5n1m" class="s6-link">drapkfile.github.io/Unstirred/api/index.html</span>
+        </div>
+      </div>
+
+      <script>
+        (function () {
+          var tl = gsap.timeline({ paused: true });
+
+          /* Two of the 2:00 cut's scenes in one 12 s shot: the round trip a client makes, then
+             the same decision taken in-process. The second half adds `cargo add`, which the
+             published 0.1.0 makes a real command, and the API reference's own URL. */
+          var CUT = 6.2;
+
+          film.terminal(tl, document.getElementById("s6-term"), CUT);
+
+          var headHttp = document.getElementById("s6-head-http");
+          var headRust = document.getElementById("s6-head-rust");
+          var term = document.getElementById("s6-term");
+          var code = document.getElementById("s6-code");
+          var tail = document.getElementById("s6-tail");
+
+          gsap.set([headRust, code, tail], { opacity: 0 });
+
+          tl.fromTo(headHttp, { opacity: 0, y: 12 }, { opacity: 1, y: 0, duration: 0.4, ease: "power2.out" }, 0);
+
+          /* The verdict object is the end of the round trip and the only thing the gate gives
+             back, so it turns the colour of an admission as it lands. */
+          tl.fromTo(
+            document.getElementById("s6-verdict"),
+            { color: "#b2b9c6", scale: 1.06 },
+            { color: "#5ed39b", scale: 1, duration: 0.45, ease: "power2.out", transformOrigin: "0% 50%" },
+            5.4
+          );
+
+          tl.to([headHttp, term], { opacity: 0, duration: 0.3, ease: "power2.in" }, CUT - 0.3);
+          tl.to(headRust, { opacity: 1, duration: 0.35, ease: "power2.out" }, CUT);
+          tl.fromTo(code, { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 0.4, ease: "power2.out" }, CUT);
+          tl.fromTo(
+            "#s6-code .line",
+            { opacity: 0, x: -14 },
+            { opacity: 1, x: 0, duration: 0.3, ease: "power2.out", stagger: 0.14 },
+            CUT + 0.3
+          );
+          tl.to(tail, { opacity: 1, duration: 0.01 }, CUT + 1.5);
+          tl.fromTo(
+            "#s6-tail > *",
+            { opacity: 0, y: 18 },
+            { opacity: 1, y: 0, duration: 0.45, ease: "power2.out", stagger: 0.25 },
+            CUT + 1.5
+          );
+
+          window.__timelines["s6-code"] = tl;
+        })();
+      </script>
+    </template>
+  </body>
+</html>

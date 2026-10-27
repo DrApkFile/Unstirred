@@ -27,9 +27,6 @@
           height: 527px;
         }
 
-        /* The one thing a judge has to know before they go to the releases page, said in the
-           colour this film uses for "not settled": README.md says the page is empty until the
-           tag exists, so the film says it too rather than implying a download that is there. */
         /* A plain separator between the two paths. It is not a `line-cut`, which this film uses
            only to mark a wait that was compressed out of a recorded run. */
         .line-sep {
@@ -41,7 +38,9 @@
           color: var(--admit);
         }
 
-        #s2-caveat {
+        /* v0.1.0 is tagged and the crates are published, so this line states what is there
+           rather than warning that it is not. Both halves were checked the day of this cut. */
+        #s2-note {
           position: absolute;
           left: var(--term-x);
           top: 790px;
@@ -49,39 +48,43 @@
           font-family: var(--mono);
           font-size: 28px;
           line-height: var(--leading-body);
-          color: var(--unknown);
+          color: var(--ink-dim);
+        }
+
+        #s2-note b {
+          color: var(--admit);
+          font-weight: 400;
         }
       </style>
 
-      <div id="root" data-composition-id="s2-install" data-width="1920" data-height="1080">
-        <span id="s2-head">Step one: get the binary.</span>
-        <div class="window" id="s2-term">
-          <div class="window-bar">
-            <div class="window-lamps"><i></i><i></i><i></i></div>
-            <div class="window-name" data-layout-ignore>a judge's terminal</div>
-            <div class="window-prov" data-layout-ignore>how to use it · README.md, .github/workflows/release.yml · output: unstirred --version</div>
+      <div data-hf-id="hf-yr9s" id="root" data-composition-id="s2-install" data-width="1920" data-height="1080">
+        <span data-hf-id="hf-wtja" id="s2-head">Step one: get the binary.</span>
+        <div data-hf-id="hf-tlfw" class="window" id="s2-term">
+          <div data-hf-id="hf-85t8" class="window-bar">
+            <div data-hf-id="hf-03re" class="window-lamps"><i data-hf-id="hf-wt6k"></i><i data-hf-id="hf-zeb8"></i><i data-hf-id="hf-y7e5"></i></div>
+            <div data-hf-id="hf-kdxr" class="window-name" data-layout-ignore>a judge's terminal</div>
+            <div data-hf-id="hf-i0uy" class="window-prov" data-layout-ignore>how to use it · README.md, .github/workflows/release.yml, crates.io/crates/unstirred · output: unstirred --version</div>
           </div>
-          <div class="term-body" data-layout-ignore>
+          <div data-hf-id="hf-8752" class="term-body" data-layout-ignore>
             <!-- prettier-ignore-start -->
-            <span class="line line-cmd" data-at="0" data-type="0.5" data-cursor="1">$ R=https://github.com/DrApkFile/Unstirred/releases/download/v0.1.0</span>
-            <span class="line line-cmd" data-at="0.6" data-type="0.4" data-cursor="1">$ T=unstirred-v0.1.0-x86_64-unknown-linux-gnu.tar.gz</span>
-            <span class="line line-cmd" data-at="1.1" data-type="0.9" data-cursor="1">$ curl -LO $R/$T  &amp;&amp;  curl -LO $R/$T.sha256</span>
-            <span class="line line-cmd" data-at="2.2" data-type="0.7" data-cursor="1">$ sha256sum -c $T.sha256</span>
-            <span class="line line-cmd" data-at="3.1" data-type="0.6" data-cursor="1">$ tar -xzf $T</span>
-            <span class="line line-sep" data-at="4.0">                              — or build it yourself —</span>
-            <span class="line line-cmd" data-at="5.0" data-type="1.0" data-cursor="1">$ git clone https://github.com/DrApkFile/Unstirred &amp;&amp; cd Unstirred</span>
-            <span class="line line-cmd" data-at="6.4" data-type="0.7" data-cursor="1">$ cargo build --release</span>
-            <span class="line line-cut" data-at="7.3">                              — cut — a cold release build is not quick (README.md)</span>
-            <span class="line line-cmd" data-at="8.6" data-type="0.6" data-cursor="1">$ unstirred --version</span>
-            <span class="line" data-at="9.6" id="s2-version">unstirred 0.1.0</span>
-            <span class="line" data-at="10.4" data-cursor="1">$ </span>
+            <span data-hf-id="hf-j7dd" class="line line-cmd" data-at="0" data-type="0.5" data-cursor="1">$ R=https://github.com/DrApkFile/Unstirred/releases/download/v0.1.0</span>
+            <span data-hf-id="hf-4zde" class="line line-cmd" data-at="0.6" data-type="0.4" data-cursor="1">$ T=unstirred-v0.1.0-x86_64-unknown-linux-gnu.tar.gz</span>
+            <span data-hf-id="hf-0lqg" class="line line-cmd" data-at="1.1" data-type="0.9" data-cursor="1">$ curl -LO $R/$T  &amp;&amp;  curl -LO $R/$T.sha256</span>
+            <span data-hf-id="hf-73ty" class="line line-cmd" data-at="2.2" data-type="0.7" data-cursor="1">$ sha256sum -c $T.sha256</span>
+            <span data-hf-id="hf-nryb" class="line line-cmd" data-at="3.1" data-type="0.5" data-cursor="1">$ tar -xzf $T</span>
+            <span data-hf-id="hf-5soa" class="line line-sep" data-at="3.9">                              — or from crates.io —</span>
+            <span data-hf-id="hf-b6o3" class="line line-cmd" data-at="4.8" data-type="0.8" data-cursor="1">$ cargo install unstirred</span>
+            <span data-hf-id="hf-udrx" class="line line-cut" data-at="5.9">                              — cut — a cold release build is not quick (README.md)</span>
+            <span data-hf-id="hf-428h" class="line line-cmd" data-at="7.0" data-type="0.6" data-cursor="1">$ unstirred --version</span>
+            <span data-hf-id="hf-eki3" class="line" data-at="8.0" id="s2-version">unstirred 0.1.0</span>
+            <span data-hf-id="hf-nvc7" class="line" data-at="8.8" data-cursor="1">$ </span>
             <!-- prettier-ignore-end -->
-            <span class="cursor-block"></span>
+            <span data-hf-id="hf-7o7f" class="cursor-block"></span>
           </div>
         </div>
-        <span id="s2-caveat"
-          >the releases page is empty until v0.1.0 is tagged — until then, build from source
-          (README.md)</span
+        <span data-hf-id="hf-vuj2" id="s2-note"
+          >v0.1.0 is tagged: <b data-hf-id="hf-ugaf">three platform tarballs, each with its .sha256</b> — and all five
+          crates are on crates.io at 0.1.0.</span
         >
       </div>
 
@@ -89,7 +92,7 @@
         (function () {
           var tl = gsap.timeline({ paused: true });
 
-          film.terminal(tl, document.getElementById("s2-term"), 14);
+          film.terminal(tl, document.getElementById("s2-term"), 10);
 
           tl.fromTo(
             document.getElementById("s2-head"),
@@ -104,11 +107,11 @@
             document.getElementById("s2-version"),
             { scale: 1.1, opacity: 0 },
             { scale: 1, opacity: 1, duration: 0.34, ease: "back.out(2.2)", transformOrigin: "0% 50%" },
-            9.6
+            8.0
           );
 
           tl.fromTo(
-            document.getElementById("s2-caveat"),
+            document.getElementById("s2-note"),
             { opacity: 0, y: 14 },
             { opacity: 1, y: 0, duration: 0.45, ease: "power2.out" },
             2.2

@@ -109,6 +109,85 @@ to `DECISIONS.md`; recorded runs go to `evidence/`. This file is for the facts t
   means re-rendering to re-earn a result that is already green. **Once a deliverable is recorded,
   its toolchain pin stops being a maintenance question and becomes part of the record.**
 
+## The demo video re-cut to 1:30, 2026-10-27
+
+- **`hyperframes tts` without `--json` eats the loop's input.** A `while IFS= read … done < lines`
+  loop calling it plain processed exactly one line and the other twenty-two vanished with no
+  error; the same loop calling it with `--json` processed all twenty-three. The CLI's interactive
+  output takes stdin, which is the loop's list. `tools/tts.sh` already passes `--json` — that is
+  not decoration, it is what makes the loop work. Anything else in a loop needs
+  `< /dev/null` on the call.
+- **A film shorter than the music bed is one clip, and the 2:00 cut's two-clip rule inverts.**
+  105.0 s of track against 90 s of film needs a single clip with `data-media-start` 15.038, so the
+  track's own ending still lands on the last frame — no second clip, no crossfade, no second
+  `data-track-index` to dodge `duplicate_audio_track`. The rule is "cover the film with as few
+  clips as the track allows", not "always two".
+- **`curl -sI https://crates.io/crates/<name>` answers 403 whether the crate exists or not.** It is
+  a bot check, not a verdict on the crate. `https://crates.io/api/v1/crates/<name>` with an
+  identifying user agent is the authoritative read, and `0.1.0/…` adds `bin_names`, which is how
+  you know `cargo install <crate>` is real before putting it on screen. Spoofing a browser user
+  agent to get past the check is not a link check and should not be done.
+- **The craft floor for a closing line is 0.5 s plus 0.3 s a word, and at least 2 s before the end
+  — which a five-second close cannot buy at the end.** A 14-word line had 3.17 s against a 3.53 s
+  floor. There is no room after it, so the fix is upstream: bring the whole settling block in
+  earlier and tighten its stagger. Shortening the line is the other option and costs a fact.
+- **Eliding a whole line needs a different marker from eliding part of one.** The 2:00 cut only
+  ever shortened a long line with a visible `…` inside it. A shorter cut has to drop lines, and a
+  bare `…` would not say how many or from where. The idiom this cut settled on is one `…` line
+  that states the count and names the file: `…   five recorded lines: the room's own refusal, the
+  root it proved against, the challenge`. Count the lines in the evidence file before writing the
+  number.
+- **Take the CLI bump against the old tree, not the new one.** `upgrade --project .` then a full
+  `check` on the project exactly as it was isolates the bump: a failure is the version's fault and
+  nothing else. Bumping in the middle of an edit means a failing check has two possible causes and
+  you cannot tell which. The verification is also narrower than it looks — a passing check says
+  the compositions still validate, never that frames are identical to the old pin.
+- **Plan the anchors, measure the files, then place — again.** Written to a 191-word budget for
+  90 s, `af_heart` came out at 62.2 s of voice, and `build_index.py` accepted all twenty-three
+  anchors on the first run. The budget that worked: about 2.1 words a second of *film*, which
+  leaves the gaps the captions and the music lane need.
+- **Re-run the index generator after a Studio preview session.** `index.html` changed once
+  between two generator runs in this session with a `preview --background` session in between; the
+  generator itself is deterministic back to back. The Studio writes a project's edits to disk, so
+  it is the candidate, but the cause was not isolated. Cheap habit: `python3 tools/build_index.py`
+  immediately before a render, and hash the file.
+- **Move the old render out of the delivery path before you re-cut.** `out/unstirred-demo.mp4`
+  left in place while the composition is a different film is the most expensive kind of stale
+  artifact: it looks exactly like success. Rename it to the cut it belongs to, and let the
+  delivery path be missing until a render fills it.
+- **An `<iframe>` in a composition picks the slow render path, and no binary changes that.** The
+  renderer auto-selected `screenshot` capture with `reasonCodes: ["iframe"]`, so `BeginFrame`
+  never ran and capture took 13 m 35.6 s at ~3.3 fps for 2,700 frames. Installing
+  `chrome-headless-shell` had been written down here as the thing that would buy the fast path;
+  that was wrong, and the wrongness is the note. The cause is the DOM, not the environment. If a
+  film mounts real pages in iframes, budget the slow path every single time — and pay it, because
+  the alternative is a drawing of the site instead of the site.
+- **A CDN `<script>` is a render-time single point of failure that fails silently.** The compiler
+  warned `Failed to download CDN script: gsap@3.14.2 (TypeError: fetch failed)` and the render
+  succeeded anyway — a transient blip; the URL answers 200 and the browser got it. But the failure
+  mode if it had not is the dangerous one: GSAP missing means every timeline is a no-op, which
+  means 2,700 identical static frames and **exit 0**. A deterministic pipeline that reaches the
+  network mid-render is not deterministic. Vendor the script into `assets/`.
+- **Check the delivered frames, not the exit code.** The cheap version is a contact sheet of the
+  per-scene stills cut out of the `.mp4`, read once: it catches the static-frame failure above,
+  caption drift, and a missing provenance label in one look. `ffmpeg … xstack=inputs=9` builds it
+  in a second.
+- **Hash the output after the process exits, not when the file appears.** The file was complete
+  and probeable while the `assemble` stage was still running. Here the hash matched before and
+  after, but the habit is to take it from the finished process — a mux that rewrites the moov
+  atom for faststart changes the bytes after the file first looks done.
+- **A low-memory render is worth attempting once the owner has decided.** The rule here is to hand
+  over the command under ~3 GiB free; told to render anyway at 404 MiB free, it worked — the
+  renderer has its own low-memory profile (`totalMemMb` vs `thresholdMb: 8192`), switched to it,
+  skipped worker calibration, and finished 2,700 of 2,700 frames clean. The floor is a sensible
+  default, not a law of physics. Say what the risk is, then do what you are told.
+- **Narrow the render monitor before capture starts.** A `tail -f | grep` that matches the word
+  `capture` matches all 2,700 per-frame progress lines; the watch got rate-limited and suppressed
+  events. Filter the progress bar and `@hf-progress` out, and match only stage transitions and
+  failure words. Estimating from the first few frames is also useless — the first estimate here
+  was 0.5 fps and the truth was 3.3, a ninety-minute guess for a fifteen-minute job. Use the
+  renderer's own heartbeat (`framesCompleted` against `stageElapsedMs`) instead.
+
 ## The demo video rebuilt as a narrated 2:00 walkthrough, 2026-10-26
 
 - **`hyperframes tts` probes for `kokoro_onnx` with a ten-second `import`, and on a swapping

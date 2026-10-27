@@ -4,7 +4,7 @@ flow: automation
 storyboard: yes
 format: 1920x1080
 fps: 30
-length: 2m00s
+length: 1m30s
 message: "A door can learn that you held, long enough, without learning who you are — and here is how to run one."
 audience: "Zcathon judges, and anyone deciding whether to trust a holder-only door"
 destination: "repository README, submission page"
@@ -15,7 +15,7 @@ audio: narration (local Kokoro, af_heart) + music bed (assets/music.mp3)
 
 A motion-design walkthrough of how Unstirred is used: designed terminal scenes where the real
 commands type themselves and their real output appears, and designed browser scenes of the real
-Holders' Room page. Two minutes, narrated, with captions that are the narration word for word and
+Holders' Room page. Ninety seconds, narrated, with captions that are the narration word for word and
 a music bed under it.
 
 **Two kinds of scene, each labelled on screen.** *Demo* scenes re-enact a recorded run and carry
@@ -53,8 +53,8 @@ and the cut is marked `— cut —` with no invented number.
 - `assets/icon.png` — the lockup, in the hook and the close only. Its own background is the
   design system's light `--paper` (`#f4f3ef`), so it sits on the dark stage as a light plate.
 - `assets/music.mp3` — the owner's bed, ducked under the voice and faded out at the end.
-- `assets/vo/*.wav` — 32 narration lines, Kokoro-82M (`af_heart`, speed 1.0), generated locally by
-  `npx hyperframes tts`. Generated; not carried in the repo.
+- `assets/vo/*.wav` — 23 narration lines, Kokoro-82M (`af_heart`, speed 1.0), generated locally by
+  `npx hyperframes tts`. Committed, because `index.html` hardcodes each line's measured length.
 - `assets/site/*.html` — the recorded acts as static pages, written by
   `scripts/export-replay-site.sh video/assets/site` from the gate's own page module. The browser
   scenes embed these files in an iframe at exactly 1920×1080, so the page inside the browser frame
@@ -70,7 +70,7 @@ the light page inside a browser frame, so both palettes on screen are the page's
 ## Customizations
 
 - One designed terminal component and one designed browser-frame component, reused by every scene.
-- One caption track and two sound tracks in `index.html`, so the voice and the words on screen can
-  be read against each other in one file.
+- One caption track, one voice track and one music track in `index.html`, so the voice and the
+  words on screen can be read against each other in one file.
 - An animated cursor in the browser scenes.
 - All motion on one paused GSAP timeline per composition, seekable, nothing timer-driven.

@@ -9,43 +9,39 @@ import json, subprocess, pathlib, html, sys
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent   # the video/ project root
 VO = ROOT / "assets/vo"
-TOTAL = 120.0
+TOTAL = 90.0
 
 SCENES = [
-    ("s1-hook",        0.0,   6.0),
-    ("s2-install",     6.0,  14.0),
-    ("s3-door",       20.0,  12.0),
-    ("s4-admitted",   32.0,  16.0),
-    ("s5-again",      48.0,  12.0),
-    ("s6-newcomer",   60.0,  18.0),
-    ("s7-second-room",78.0,   8.0),
-    ("s8-api",        86.0,  10.0),
-    ("s9-library",    96.0,   6.0),
-    ("s10-uses",     102.0,   5.0),
-    ("s11-cost",     107.0,   5.0),
-    ("s12-close",    112.0,   8.0),
+    ("s1-hook",       0.0,   5.0),
+    ("s2-install",    5.0,  10.0),
+    ("s3-door",      15.0,  10.0),
+    ("s4-knock",     25.0,  22.0),
+    ("s5-newcomer",  47.0,  11.0),
+    ("s6-code",      58.0,  12.0),
+    ("s7-uses",      70.0,   7.0),
+    ("s8-tryit",     77.0,   8.0),
+    ("s9-close",     85.0,   5.0),
 ]
 
 ANCHOR = {
-    "n01":  0.3, "n02":  3.1,
-    "n03":  6.4, "n04":  8.2, "n05": 11.9, "n06": 15.2,
-    "n07": 20.4, "n08": 24.8, "n09": 28.2,
-    "n10": 32.4, "n11": 36.6, "n12": 39.3, "n13": 41.6, "n14": 45.4,
-    "n15": 48.4, "n16": 51.8, "n17": 55.6,
-    "n18": 60.4, "n19": 64.6, "n20": 68.8, "n21": 73.2,
-    "n22": 78.4, "n23": 83.0,
-    "n24": 86.4, "n25": 89.0, "n26": 94.0,
-    "n27": 96.8, "n28": 99.9,
-    "n29": 102.6,
-    "n30": 107.3,
-    "n31": 112.8, "n32": 115.6,
+    "n01":  0.25, "n02":  2.75,
+    "n03":  5.5, "n04":  8.4, "n05": 12.0,
+    "n06": 15.5, "n07": 20.0,
+    "n08": 25.4, "n09": 30.4, "n10": 32.0, "n11": 34.8,
+    "n12": 37.8, "n13": 41.6, "n14": 43.9,
+    "n15": 48.0, "n16": 53.6,
+    "n17": 58.5, "n18": 64.6,
+    "n19": 70.6,
+    "n20": 77.5, "n21": 81.6,
+    "n22": 85.3, "n23": 87.6,
 }
 
 MUSIC_BED = 0.30      # between lines
 MUSIC_DUCK = 0.11     # while the voice speaks
 RAMP = 0.2            # seconds each side of a duck
-JOIN = 60.0           # where the two music clips cross
-XFADE = 1.5
+MUSIC_LEN = 105.038   # assets/music.mp3, as ffprobe reads it
+FADE_IN = 1.5
+FADE_OUT = 3.0        # the tail the bed fades over
 
 
 def wav_duration(path):
@@ -127,10 +123,11 @@ def main():
             out.append((t, v))
         return out
 
-    a_dur = round(JOIN + XFADE, 3)
-    b_start, b_dur, b_media = JOIN, round(TOTAL - JOIN, 3), 45.0
-    lane_a = bed_points(0.0, a_dur, 1.5, a_dur - XFADE, a_dur)
-    lane_b = bed_points(b_start, b_dur, XFADE, b_dur - 3.0, b_dur)
+    # The track is 105.0 s and the film is 90 s, so one clip covers it: it is positioned so the
+    # track's own ending lands on the film's last frame, and the 2:00 cut's crossfade is gone
+    # with the second clip it existed to join.
+    media_start = round(MUSIC_LEN - TOTAL, 3)
+    lane_points = lane(bed_points(0.0, TOTAL, FADE_IN, TOTAL - FADE_OUT, TOTAL))
 
     scene_html = "\n".join(f'''      <div
         class="clip"
@@ -154,21 +151,13 @@ def main():
         for r in rows)
 
     music_html = f'''      <audio
-        id="music-a"
+        id="music"
         src="assets/music.mp3"
         data-start="0"
-        data-duration="{a_dur:g}"
+        data-duration="{TOTAL:g}"
+        data-media-start="{media_start:g}"
         data-track-index="12"
-        data-automation='{lane(lane_a)}'
-      ></audio>
-      <audio
-        id="music-b"
-        src="assets/music.mp3"
-        data-start="{b_start:g}"
-        data-duration="{b_dur:g}"
-        data-media-start="{b_media:g}"
-        data-track-index="13"
-        data-automation='{lane(lane_b)}'
+        data-automation='{lane_points}'
       ></audio>'''
 
     doc = TEMPLATE.format(total=f"{TOTAL:g}", scenes=scene_html, captions=caption_html,
@@ -246,12 +235,10 @@ TEMPLATE = '''<!doctype html>
            file per line, placed at the second its caption appears. -->
 {voice}
 
-      <!-- The bed. assets/music.mp3 is 105.0 s and the film is 120 s, so the track plays twice
-           over: clip A runs from its head, clip B starts 45 s into the same file and is placed so
-           the track's own ending lands on the last frame. They cross over 1.5 s at 1:00, under
-           the voice. Both lanes hold the bed at 0.30 between lines and duck it to 0.11 while the
-           voice speaks; clip B's lane carries the final fade. They are on two tracks because they
-           overlap for that crossfade. -->
+      <!-- The bed. assets/music.mp3 is 105.0 s and the film is 90 s, so one clip covers the
+           whole film: it starts 15.038 s into the file so the track's own ending lands on the
+           last frame. The lane holds the bed at 0.30 between lines and ducks it to 0.11 while
+           the voice speaks, with 0.2 s ramps, and fades out over the closing 3 s. -->
 {music}
     </div>
     <script>

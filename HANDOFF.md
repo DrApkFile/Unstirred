@@ -8,12 +8,13 @@ on 2026-10-20, §1; M3 step 1 is `6c2a288` and `34c3146`, §8; M3 step 2, the Ho
 recorded** (§10): the newcomer's wallet was refused by the room's own rule on 2026-10-22 with
 nothing sent, and its forced submission was refused by the gate itself, REFUSED / ROOT_MISMATCH,
 writing nothing — both against the real testnet, and `act4-newcomer` is generated from them. M4 is
-committed, `2e24559` and `527f871`. **The demo video is done** (§12): the 2:00 narrated walkthrough
-is rendered and delivered at `video/out/unstirred-demo.mp4` — 120.000000 s, 3,600 frames,
-1920x1080, h264 High + aac LC, 16,218,341 bytes, sha256
-`9d1d7acb820e2343119fa8d818f3859da78c976d3a92f3522f4a86c081522399` — with narration, captions, a
-ducked music bed, twelve stills cut out of the delivered file, and `npm run check` passing every
-pass against the delivered tree. Its generators are in `video/tools/` and reproduce `index.html`
+committed, `2e24559` and `527f871`. **The demo video is done** (§15): it was re-cut to **1:30** on
+2026-10-27 and that cut is rendered and delivered at `video/out/unstirred-demo.mp4` — 90.000000 s,
+2,700 frames, 1920x1080, h264 High + aac LC, 14,691,674 bytes, sha256
+`d705acee834b300102bd8062610750e5da385ea452245c3927ff36d9c700836c` — with narration, captions, a
+ducked music bed, nine stills cut out of the delivered file, and `npm run check` passing every
+pass with no warnings at all. The 2:00 cut it replaces (§12) is kept beside it as
+`video/out/unstirred-demo-2min.mp4`, sha256 unchanged. Its generators are in `video/tools/` and reproduce `index.html`
 byte for byte from any working directory. Nothing about the video is open.
 **What is next: the final audit, parts A and B. That is the only thing left before the release.**
 Written 2026-10-20, revised 2026-10-21, 2026-10-22, 2026-10-23 and 2026-10-26,
@@ -1358,3 +1359,115 @@ site went live at **https://drapkfile.github.io/Unstirred/** — every page chec
 landing page, the five acts in both readings, the room picker, the three guides, the API reference
 and the two icons. The two repository settings §14 asks the owner for are both done: the Pages
 source and the social preview. **Nothing is tagged or published**: that is step 1 of §2.
+
+## 15. The demo video re-cut to 1:30, 2026-10-27 — built, checked and **rendered**
+
+`video/` now renders **1:30** at 1920x1080, 30 fps — 90.000 s, 2,700 frames — with narration,
+captions and a music bed. It was a 2:00 narrated walkthrough until today, and a 2:27 silent cut
+before that. The whole cut is done: planned, built, checked, rendered, and recorded in
+`evidence/2026-10-27-demo-video-90s.md`.
+
+**The delivered file is `video/out/unstirred-demo.mp4`:**
+
+| | |
+| --- | --- |
+| duration | 90.000000 s |
+| video | h264 High, 1920x1080, yuv420p, 30/1 fps |
+| frames | 2,700 declared, 2,700 counted |
+| audio | aac LC, 48 kHz, stereo |
+| size | 14,691,674 bytes |
+| sha256 | `d705acee834b300102bd8062610750e5da385ea452245c3927ff36d9c700836c` |
+| render time | 15 m 4.5 s (16 m 43 s wall), HyperFrames 0.8.206, `--workers 2` |
+| log | `video/out/render-90s.log` |
+
+The 2:00 render that used to hold that name is `video/out/unstirred-demo-2min.mp4` (log:
+`render-2min.log`, stills: `out/stills/2min-cut/`), sha256 unchanged. Nine stills in
+`video/out/stills/` are cut out of the delivered file, one per scene.
+
+### Two things about the render worth knowing before you re-run it
+
+**It takes the slow path, and always will.** The renderer auto-selected `screenshot` capture —
+`reasonCodes: ["iframe"]` — because five scenes mount real pages from `assets/site-pages/` in
+`<iframe>`s, so `BeginFrame` never runs. Having `chrome-headless-shell` installed does not change
+this; the expectation written here before the render that it would was wrong. Capture ran at about
+3.3 fps for 13 m 35.6 s. That is the cost of the browser frames being the real site rather than a
+drawing of it, and it is worth paying.
+
+**It was run under the memory floor, deliberately.** 404 MiB free and 2,270 MiB available at
+start, against this machine's ~3 GiB rule; the owner was told and said to render anyway. The
+renderer detected it too and switched itself to a low-memory profile (`totalMemMb: 7730,
+thresholdMb: 8192`), skipping worker calibration. It completed 2,700 of 2,700 frames with nothing
+dropped and exited 0.
+
+### One thing left, and it is not blocking
+
+`video/index.html` loads GSAP from `cdn.jsdelivr.net` at render time. During this render the
+compiler's pre-download of it failed (`TypeError: fetch failed`) and the render went on to succeed
+— the URL answers 200 from here and the browser got it, which the delivered frames confirm, since
+the motion in them only exists if GSAP ran. But a longer blip would have produced 2,700 static
+frames and reported success. **Vendor `gsap.min.js` into `video/assets/` and point `index.html` at
+it.** It was not done here because editing `index.html` mid-render would have invalidated the hash
+recorded in the evidence file.
+
+To re-render after any change:
+
+```
+cd video
+python3 tools/build_index.py                         # index.html is generated; regenerate it first
+npx hyperframes@0.8.206 render --output out/unstirred-demo.mp4 --fps 30 --quality delivery \
+    --workers 2 --skill general-video
+```
+
+Then re-cut the nine stills out of the new file
+(`ffmpeg -ss <t> -i out/unstirred-demo.mp4 -frames:v 1`, at the times in `out/stills/`'s own file
+names) and update the render section of `evidence/2026-10-27-demo-video-90s.md`, the `CLAIMS.md`
+row that points at it, and the README's "Watch the demo" paragraph.
+
+### What changed, and what did not
+
+Unchanged: the design system, both window components (`assets/film.css`), the four motion helpers
+(`assets/film.js`), the Kokoro `af_heart` voice, the caption style, the provenance labels and the
+honesty rules. Neither `film.css` nor `film.js` was touched.
+
+Nine scenes where there were twelve. Three scenes became one (`s4-knock`: the admission, the second
+knock and the second room), two became one (`s6-code`: the HTTP round trip and the verifier crate),
+`s11-cost` was dropped, and `s8-tryit` is new — the published site in the browser frame, then the
+README's 60-second check with its recorded output. `video/STORYBOARD.md` gives every decision with
+its reason. Absorbed and dropped compositions are kept as `compositions/*.html.retired`.
+
+**The CLI pin moved, 0.8.186 → 0.8.206**, applied and verified with a full `check` against the
+unmodified 2:00 project *before* any re-cut work, which is the rule for taking a bump. `check` on
+the delivered 1:30 tree passes with **no warnings at all** — the first cut of this film to carry
+none.
+
+**`assets/vo/` is now 23 files, not 32.** `n01` and `n02` are the 2:00 cut's files unchanged
+(same text); the other 21 were regenerated; `n24`–`n32` were deleted because no line mounts them.
+They are in git at `c86ba4c` if the 2:00 cut ever has to be rebuilt.
+
+**`assets/site-pages/` is new and gitignored.** Scene 8's browser frames hold the published site's
+own pages, copied out of `site/` (landing, one replay act, one guide, the API index, plus
+`styles.css`, `icon.png`, `favicon.png`). A fresh clone must run `scripts/build-site.sh` and copy
+them again before scene 8 has anything to show, the same way `assets/site/` needs
+`scripts/export-replay-site.sh`.
+
+### A correction to §2 and §14 of this file
+
+**The release is performed.** §2 step 1 and the end of §14 say "nothing is tagged or published".
+That was true when they were written and is not true now. Checked 2026-10-27:
+
+- `api.github.com/repos/DrApkFile/Unstirred/releases` lists **v0.1.0**, not a draft and not a
+  prerelease, with `unstirred-v0.1.0-{x86_64-unknown-linux-gnu,x86_64-apple-darwin,aarch64-apple-darwin}.tar.gz`
+  and a `.sha256` beside each. `v0.1.0-rc.1` is still there too.
+- All five crates are on crates.io at **0.1.0**, published 2026-10-26 between 22:53 and 22:57 UTC,
+  and all five answer 200 on `docs.rs`. `unstirred` reports `bin_names: ["unstirred"]`, so
+  `cargo install unstirred` works — which is why the film now shows it.
+
+Two hedges came out of the film because of this: the install scene no longer says the releases page
+is empty, and the close no longer carries `replay site: — (not published yet)`. The README's
+"Watch the demo" paragraph was rewritten for the same reason — it described a 2:00 render that is
+no longer what `video/` produces.
+
+**One caveat about checking crates.io:** `curl -sI https://crates.io/crates/<name>` answers **403**
+for every crate, published or not. That is crates.io refusing a non-browser request. Use
+`https://crates.io/api/v1/crates/<name>` with an identifying user agent; it answers 200 with the
+crate's versions. Do not spoof a browser user agent to get past the bot check.

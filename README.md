@@ -4,6 +4,15 @@
 
 <p align="center"><strong>Proof your coins stayed put. Nothing else.</strong></p>
 
+> **For judges — start here.**
+> **[The site](https://drapkfile.github.io/Unstirred/)** · **[Start here, four steps](https://drapkfile.github.io/Unstirred/start/)**
+> 1. The walkthrough video is rendered (`video/out/unstirred-demo.mp4`, 1:30) but **not published
+>    yet**, so there is no link to it here rather than one that does not work.
+> 2. **[Click the five demo acts in order](https://drapkfile.github.io/Unstirred/replay/index.html)** —
+>    the rule, admitted, refused, too new, a second room. Each replays a real testnet run.
+> 3. **[Verify a real proof in 60 seconds](#check-it-yourself-in-60-seconds)** — two commands
+>    against the live testnet, on your machine.
+
 Unstirred lets a Zcash holder prove to a gate — a community, an allowlist, a faucet — that they
 held at least 0.125 ZEC in the Ironwood pool, unmoved, from one block to another, without
 revealing their address, their balance, which coins, or anything they have ever spent. Each gate
@@ -18,8 +27,15 @@ the soundness argument for the split height, and every limit.
 
 **[drapkfile.github.io/Unstirred](https://drapkfile.github.io/Unstirred/)** — the five recorded
 runs as pages you can click through, the three guides, and the API reference. Every page there is
-built from this repository by `scripts/build-site.sh`, and none of them asks any other origin for
-anything: no analytics, no fonts, no scripts, no beacons.
+built from this repository by `scripts/build-site.sh`.
+
+No page of it carries analytics, a beacon or a tracker. The **five recorded act pages and the room
+picker** ask no other origin for anything at all: they are the gate's own bytes, and each one
+opens from a file with nothing behind it. The pages built around them — the landing page, Start
+here, the three guides, the API index and the index of acts — do fetch from five named origins:
+fonts from `fonts.googleapis.com`, `fonts.gstatic.com` and `db.onlinewebfonts.com`, an icon set
+from `cdnjs.cloudflare.com`, and the landing page's background video from `d8j0ntlcm91z4.cloudfront.net`.
+That list is enforced by the build ([the decision](DECISIONS.md)).
 
 - [**The demo**](https://drapkfile.github.io/Unstirred/replay/index.html) — five real testnet runs,
   each rendered by the gate's own page code, with no chain, wallet or gate behind them
@@ -35,12 +51,16 @@ anything: no analytics, no fonts, no scripts, no beacons.
 <!-- PLACEHOLDER: replace the line below with the video link once it is uploaded. It is the only
      place in this repository that needs the URL. -->
 
-> **The two-minute walkthrough is recorded but not uploaded yet, so there is no link here — a
-> placeholder, not a dead link.** It is rendered from `video/`: 2:00, 1920x1080, thirty-two
-> narrated lines, sha256 `9d1d7acb820e2343119fa8d818f3859da78c976d3a92f3522f4a86c081522399`
-> ([the render](evidence/2026-10-26-demo-video-walkthrough.md)). Every page it is cut from is one
-> of the acts on [the demo site](https://drapkfile.github.io/Unstirred/replay/index.html), which
-> you can open today.
+> **The walkthrough is rendered: `video/out/unstirred-demo.mp4`, 1:30 on the nose.** There is no
+> hosted link here yet — a placeholder for the URL, not a dead link — but the file exists and is
+> measured: 90.000000 s, 1920x1080 h264 at 30 fps, 2,700 frames, stereo AAC, 14.0 MB, sha256
+> `d705acee…0836c`, from twenty-three narrated lines, with every composition check passing with no
+> warnings ([the re-cut](evidence/2026-10-27-demo-video-90s.md), which carries the full render
+> record and the nine stills). The 2:00 cut it replaces is kept beside it as
+> `out/unstirred-demo-2min.mp4` ([its run](evidence/2026-10-26-demo-video-walkthrough.md)). Every
+> page the film is cut from is one of the acts on
+> [the demo site](https://drapkfile.github.io/Unstirred/replay/index.html), which you can open
+> today.
 
 ## Check it yourself in 60 seconds
 
@@ -181,9 +201,11 @@ Nothing is claimed here that does not link to a file in `evidence/`. This table 
 | **MEASURED** | All five crates pack into the tarballs crates.io would receive and compile from them, in dependency order — core, prover, verifier, gate, unstirred — with every internal dependency carrying a version beside its path, and no file from `evidence/`, `briefing/` or any test directory in any of them. Nothing was uploaded and no token was used | [publish dry run](evidence/2026-10-23-publish-dry-run.md) |
 | **MEASURED** | Every recorded act, in normal and in presentation mode, and the room picker, export to static HTML that opens with no gate, no chain, no wallet and no nf-server: eleven pages, written by the gate's own `room_document` and `picker_document` rather than by a second renderer | [the export and the render](evidence/2026-10-23-demo-video-render.md) |
 | **MEASURED** | The 2:27 silent cut of the demo video was a recorded render, not a description of one: 2:27.0 at 1920x1080 and 30 fps, 4,410 frames, 12.1 MB, no audio stream, produced by HyperFrames 0.8.186 from `video/` as it stood on 2026-10-23. `video/` has since been rebuilt as a 2:00 narrated walkthrough, so that render is the record of a film this project no longer produces | [the export and the render](evidence/2026-10-23-demo-video-render.md) |
-| **MEASURED** | The 2:00 narrated walkthrough is a recorded render, not a description of one: 120.000000 s at 1920x1080 and 30 fps, 3,600 frames, two streams (h264 High and aac LC 48 kHz stereo), 16,218,341 bytes, sha256 `9d1d7acb820e2343119fa8d818f3859da78c976d3a92f3522f4a86c081522399`, produced by HyperFrames 0.8.186 from `video/` in 30 m 41.3 s. Twelve scenes planned in `video/STORYBOARD.md` before they were built; thirty-two narration lines generated locally by `hyperframes tts` with Kokoro-82M `af_heart`, covering 81.7 s of the 120 s, each caption the exact string handed to the engine on the same `data-start` (no `transcript.json`: no transcription backend is installed and the npm install of one is refused by this project's script policy); `npm run check` passes every pass, including `9/9 text checks pass WCAG AA`, with the old `film_silent` warning gone; twelve stills in `video/out/stills/`, one per scene, cut out of the delivered file itself | [the rebuild and the render](evidence/2026-10-26-demo-video-walkthrough.md) |
+| **MEASURED** | The 2:00 narrated walkthrough is a recorded render, not a description of one: 120.000000 s at 1920x1080 and 30 fps, 3,600 frames, two streams (h264 High and aac LC 48 kHz stereo), 16,218,341 bytes, sha256 `9d1d7acb820e2343119fa8d818f3859da78c976d3a92f3522f4a86c081522399`, produced by HyperFrames 0.8.186 from `video/` in 30 m 41.3 s. Twelve scenes planned in `video/STORYBOARD.md` before they were built; thirty-two narration lines generated locally by `hyperframes tts` with Kokoro-82M `af_heart`, covering 81.7 s of the 120 s, each caption the exact string handed to the engine on the same `data-start` (no `transcript.json`: no transcription backend is installed and the npm install of one is refused by this project's script policy); `npm run check` passes every pass, including `9/9 text checks pass WCAG AA`, with the old `film_silent` warning gone; twelve stills cut out of the delivered file itself. `video/` has since been re-cut to 1:30, so that render is the record of a film this project no longer produces: the file is kept at `video/out/unstirred-demo-2min.mp4` and its stills at `video/out/stills/2min-cut/` | [the rebuild and the render](evidence/2026-10-26-demo-video-walkthrough.md) |
+| **MEASURED** | The 1:30 re-cut is a built composition that passes every check, with a recorded narration run, every on-screen link verified, and **a rendered, measured delivery file**: `video/out/unstirred-demo.mp4`, **90.000000 s** exactly, h264 High 1920x1080 yuv420p at 30/1 fps with **2,700 frames declared and 2,700 counted**, aac LC 48 kHz stereo, 14,691,674 bytes, sha256 `d705acee834b300102bd8062610750e5da385ea452245c3927ff36d9c700836c`; produced by HyperFrames 0.8.206 in **15 m 4.5 s** (16 m 43 s wall) on the **screenshot capture path**, which the renderer auto-selected because five scenes mount real site pages in `<iframe>`s, under its own low-memory profile (404 MiB free, 2,270 MiB available at start) — run against this machine's ~3 GiB render floor on the operator's explicit instruction; nine scenes planned in `video/STORYBOARD.md` before they were built, twenty-three narration lines (191 words, 62.208 s of voice) generated locally by `hyperframes tts` with Kokoro-82M `af_heart`, each caption the exact string handed to the engine on the same `data-start`; `npm run check` passes **with no warnings at all** — lint, runtime, motion, craft and audio 0/0, layout 0 issues across 9 samples, contrast 6/6 WCAG AA; nine stills in `video/out/stills/`, one per scene, now cut **out of the delivered `.mp4`**. Every URL the film shows was requested and answers, including all five crates at 0.1.0 on crates.io | [the re-cut](evidence/2026-10-27-demo-video-90s.md) |
 | **MEASURED** | A clean tree of this repository — 342 files, 6.6 MB, exactly what a clone holds — builds `unstirred 0.1.0` with `cargo build --release --locked`: 350 crates in 27 m 34 s with two jobs on a four-core 2.40 GHz i3, with no edit to `Cargo.lock`. The audit found the release tarball carried neither file README's 60-second path names as an argument, which `.github/workflows/release.yml` now fixes | [clean-clone audit](evidence/2026-10-26-clean-clone-audit.md) |
-| **MEASURED** | The published site is built from this repository by one script and asks no other origin for anything: 869 files, 556 pages, 17 MB, of which 17 are the site's own and the rest are rustdoc's. Every local link in those 17 resolves inside the site, and no page fetches a file that is not beside it — both confirmed against six planted faults, a third-party stylesheet and a tracking pixel among them, each one failing the build and naming the page. An act described in `scripts/site/acts.json` that the gate does not serve fails it too | [the site build](evidence/2026-10-26-site-build.md) |
+| **MEASURED** | The published site is built from this repository by one script: 899 files, 557 pages, 18 MB, of which 18 are the site's own and the rest are rustdoc's. Every local link in those 18 resolves inside the site. **The five recorded act pages, their five presentation readings and the room picker ask no other origin for anything**; the pages this repository writes around them — landing, Start here, three guides, API index, index of acts — reach exactly five named origins for fonts, an icon set and the landing page's background video ([the decision](DECISIONS.md)), and any other origin on any page, or any off-origin fetch from an act page, fails the build. No page of either half carries analytics, a beacon or a tracker. An act described in `scripts/site/acts.json` that the gate does not serve fails the build too, as does a Start here page whose two commands are not character-identical to README's 60-second path | [the redesign](evidence/2026-10-27-site-redesign.md), [the previous build](evidence/2026-10-26-site-build.md) |
+| **MEASURED** | Every run of text on the four page kinds of the redesigned site clears WCAG AA at both 1920x1080 and 390x844 in headless Chromium — worst case **6.33:1** against a 4.5:1 floor — measured against the brightest background pixel actually painted behind each line box, across **twelve real frames of the landing page's background video**, which averages 90 of 255 and peaks at 249 and so is near-white rather than dark. The check proves the frames painted by differencing each against an empty backdrop, because headless Chromium decodes no H.264 and a black rectangle passes every contrast test for the wrong reason. The same run confirms every link on every page resolves, that Start here's five act links open the five acts in order, and that both copy buttons carry their command verbatim | [the redesign](evidence/2026-10-27-site-redesign.md) |
 | **GATED** | M1 step 1 (read-only wallet, held notes, selection) passed the gate | [evidence/2026-10-16-gate-m1-step1.md](evidence/2026-10-16-gate-m1-step1.md) |
 | **GATED** | M1 step 2 (h0 tree state, historical witnesses) passed the gate | [evidence/2026-10-16-gate-m1-step2.md](evidence/2026-10-16-gate-m1-step2.md) |
 | **GATED** | M1 step 3 (private nullifier lookup) passed the gate | [evidence/2026-10-16-gate-m1-step3.md](evidence/2026-10-16-gate-m1-step3.md) |
@@ -217,7 +239,7 @@ Nothing is claimed here that does not link to a file in `evidence/`. This table 
 | **SYNTHETIC** | Two proofs of the same coins at the same gate carry a different `rk`, session key and `van_comm`, because `alpha` and the value-commitment blinding are drawn fresh per proof; exactly one marker per real note repeats, which is the collision single use rests on, and the other markers in a proof are the circuit's own padding nullifiers (A47) | [gate log](evidence/2026-10-23-gate-release-prep.md) |
 | **NOT BUILT** | The h1 nullifier-set root checked by the verifier itself (nf-server `verify-root`) | — |
 
-59 claims: 17 PROVEN, 10 MEASURED, 24 GATED, 7 SYNTHETIC, 1 NOT BUILT. **PROVEN** — a recorded run against the real Zcash testnet; **MEASURED** — a recorded run of a named tool, against something this repo serves; **GATED** — settled by a recorded `scripts/gate.sh` run: fmt, clippy and the whole suite; **SYNTHETIC** — true of a wallet, nullifier set or root built inside the test process; **NOT BUILT** — named here so it cannot be read as working.
+61 claims: 17 PROVEN, 12 MEASURED, 24 GATED, 7 SYNTHETIC, 1 NOT BUILT. **PROVEN** — a recorded run against the real Zcash testnet; **MEASURED** — a recorded run of a named tool, against something this repo serves; **GATED** — settled by a recorded `scripts/gate.sh` run: fmt, clippy and the whole suite; **SYNTHETIC** — true of a wallet, nullifier set or root built inside the test process; **NOT BUILT** — named here so it cannot be read as working.
 
 <!-- end status table -->
 

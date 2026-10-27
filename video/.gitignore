@@ -3,3 +3,7 @@ out/
 assets/site/
 .hyperframes/
 assets/vo/narration-full.wav
+assets/site-pages/
+.thumbnails/
+.waveform-cache/
+tools/__pycache__/

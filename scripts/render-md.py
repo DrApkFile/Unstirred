@@ -203,38 +203,37 @@ def render(markdown, depth):
     return "\n".join(out), contents
 
 
+# The chrome — the fonts, the header, the footer and the menu — is loaded from site-pages.py
+# rather than written again here, so a guide cannot drift into a second design. The file's name
+# has a hyphen in it, so it is loaded by path rather than imported by name.
+def _shell():
+    import importlib.util
+
+    spec = importlib.util.spec_from_file_location(
+        "site_pages", pathlib.Path(__file__).resolve().parent / "site-pages.py"
+    )
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+SHELL = _shell()
+
 PAGE = """<!doctype html>
 <html lang="en">
   <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="referrer" content="no-referrer" />
-    <meta name="description" content="{description}" />
-    <title>{title} — Unstirred</title>
-    <link rel="icon" type="image/png" href="{up}favicon.png" />
-    <link rel="stylesheet" href="{up}styles.css" />
+{head}
   </head>
-  <body>
-    <header class="masthead">
-      <a class="wordmark" href="{up}index.html"><img src="{up}icon.png" alt="Unstirred" /></a>
-      <nav>
-        <a href="{up}guides/getting-started.html">Getting started</a>
-        <a href="{up}guides/integration.html">Integration</a>
-        <a href="{up}guides/spec.html">Spec</a>
-        <a href="{up}replay/index.html">Demo</a>
-        <a href="{up}api/unstirred_core/index.html">API</a>
-      </nav>
-    </header>
-    <main class="prose">
+  <body class="doc">
+{header}
+    <main>
+      <article class="prose">
 {contents}
 {body}
+      </article>
     </main>
-    <footer>
-      <p>
-        <a href="https://github.com/DrApkFile/Unstirred/blob/master/{source}">This page's source</a>
-        in the repository. MIT OR Apache-2.0.
-      </p>
-    </footer>
+{footer}
+{menu_js}
   </body>
 </html>
 """
@@ -266,14 +265,22 @@ def main():
 
     out = pathlib.Path(args.out)
     out.parent.mkdir(parents=True, exist_ok=True)
+    source_link = args.source_path or args.source
+    footer = f"""      <footer>
+        <p>
+          <a href="{SHELL.BLOB}{source_link}">This page\'s source</a> in the repository ·
+          MIT OR Apache-2.0 ·
+          Zcash <strong>testnet</strong> only; nothing here has been exercised against mainnet.
+        </p>
+      </footer>"""
     out.write_text(
         PAGE.format(
-            title=html.escape(args.title),
-            description=html.escape(args.description or args.title),
+            head=SHELL.head(f"{args.title} — Unstirred", args.description or args.title, up),
+            header=SHELL.header("Docs", up),
             body=body,
             contents=nav,
-            up=up,
-            source=args.source_path or args.source,
+            footer=footer,
+            menu_js=SHELL.MENU_JS,
         )
     )
     print(f"{args.source} -> {args.out} ({len(body)} bytes of body, {len(contents)} sections)")

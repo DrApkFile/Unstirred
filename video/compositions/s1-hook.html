@@ -77,18 +77,18 @@
         }
       </style>
 
-      <div id="root" data-composition-id="s1-hook" data-width="1920" data-height="1080">
-        <div class="hook-stack">
-          <div class="hook-logo" id="hook-logo">
-            <img src="assets/icon.png" alt="unstirred" data-layout-allow-overflow />
+      <div data-hf-id="hf-hv3x" id="root" data-composition-id="s1-hook" data-width="1920" data-height="1080">
+        <div data-hf-id="hf-6wai" class="hook-stack">
+          <div data-hf-id="hf-1ryw" class="hook-logo" id="hook-logo">
+            <img data-hf-id="hf-ijcd" src="assets/icon.png" alt="unstirred" data-layout-allow-overflow />
           </div>
-          <div class="hook-beat" id="hook-beat-1">
-            <span class="hook-line dim" id="hook-1a"></span>
-            <span class="hook-line" id="hook-1b"></span>
+          <div data-hf-id="hf-xl34" class="hook-beat" id="hook-beat-1">
+            <span data-hf-id="hf-fbdx" class="hook-line dim" id="hook-1a"></span>
+            <span data-hf-id="hf-wjz8" class="hook-line" id="hook-1b"></span>
           </div>
-          <div class="hook-beat" id="hook-beat-2">
-            <span class="hook-line" id="hook-2a"></span>
-            <span class="hook-line dim" id="hook-2b"></span>
+          <div data-hf-id="hf-8gkr" class="hook-beat" id="hook-beat-2">
+            <span data-hf-id="hf-hgk2" class="hook-line" id="hook-2a"></span>
+            <span data-hf-id="hf-3bkf" class="hook-line dim" id="hook-2b"></span>
           </div>
         </div>
       </div>
@@ -148,20 +148,20 @@
 
           /* The first line is already composed at frame 0: frame 0 is the thumbnail. */
           gsap.set(oneA, { y: 0, opacity: 1 });
-          arrive(oneB, 1.15);
+          arrive(oneB, 0.95);
           /* The second line lands on its own beat, a shade over size, and settles. */
           tl.fromTo(
             document.getElementById("hook-1b"),
             { scale: 1.07 },
             { scale: 1, duration: 0.4, ease: "power3.out" },
-            1.15
+            0.95
           );
 
-          tl.to(beatOne, { opacity: 0, duration: 0.3, ease: "power2.in" }, 2.8);
-          tl.to(logo, { opacity: 0, duration: 0.3, ease: "power2.in" }, 2.8);
-          tl.to(beatTwo, { opacity: 1, duration: 0.01 }, 3.15);
-          arrive(twoA, 3.2);
-          arrive(twoB, 3.85);
+          tl.to(beatOne, { opacity: 0, duration: 0.3, ease: "power2.in" }, 2.35);
+          tl.to(logo, { opacity: 0, duration: 0.3, ease: "power2.in" }, 2.35);
+          tl.to(beatTwo, { opacity: 1, duration: 0.01 }, 2.68);
+          arrive(twoA, 2.72);
+          arrive(twoB, 3.3);
 
           window.__timelines["s1-hook"] = tl;
         })();

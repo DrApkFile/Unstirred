@@ -7,3 +7,6 @@
 video/**/music.mp3
 keys.toml
 node_modules/
+
+# render-md.py loads site-pages.py as a module to share the page chrome
+__pycache__/

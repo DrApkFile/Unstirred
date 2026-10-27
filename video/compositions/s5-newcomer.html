@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Bob, the newcomer</title>
+  </head>
+  <body>
+    <template>
+      <style>
+        #root {
+          position: absolute;
+          inset: 0;
+          background: var(--paper);
+        }
+
+        #s5-term-a {
+          top: 197px;
+          height: 606px;
+        }
+
+        /* The forced attempt's block is shorter than the ordinary knock's, so its window is
+           sized to what it holds rather than padded out to match. */
+        #s5-term-b {
+          top: 265px;
+          height: 470px;
+        }
+
+        #s5-browser {
+          top: 8px;
+          height: 986px;
+        }
+      </style>
+
+      <div data-hf-id="hf-zo4u" id="root" data-composition-id="s5-newcomer" data-width="1920" data-height="1080">
+        <div data-hf-id="hf-wann" class="window" id="s5-term-a">
+          <div data-hf-id="hf-85t8" class="window-bar">
+            <div data-hf-id="hf-03re" class="window-lamps"><i data-hf-id="hf-wt6k"></i><i data-hf-id="hf-zeb8"></i><i data-hf-id="hf-y7e5"></i></div>
+            <div data-hf-id="hf-yovu" class="window-name" data-layout-ignore>the newcomer's terminal</div>
+            <div data-hf-id="hf-u8ld" class="window-prov" data-layout-ignore>re-enactment of a recorded testnet run · evidence/2026-10-22-bob-knock.txt</div>
+          </div>
+          <div data-hf-id="hf-8752" class="term-body" data-layout-ignore>
+            <!-- prettier-ignore-start -->
+            <span data-hf-id="hf-b80c" class="line line-cmd" data-at="0" data-type="0.8" data-cursor="1">$ $U knock --gate http://127.0.0.1:8080 --room holders-room --wallet "$B" \</span>
+            <span data-hf-id="hf-nnd3" class="line line-cmd" data-at="0.9" data-type="0.65" data-cursor="1">    --pir http://localhost:3000 --lightwalletd https://testnet.zec.rocks:443 \</span>
+            <span data-hf-id="hf-91wq" class="line line-cmd" data-at="1.6" data-type="0.4" data-cursor="1">    --identity "$ID" --expected-h1-root "$H1"</span>
+            <span data-hf-id="hf-xycv" class="line line-key" data-at="2.1">gate          http://127.0.0.1:8080</span>
+            <span data-hf-id="hf-8zsp" class="line line-key" data-at="2.18">room          holders-room</span>
+            <span data-hf-id="hf-k5yi" class="line line-key" data-at="2.26">network       test</span>
+            <span data-hf-id="hf-yu0u" class="line line-key" data-at="2.34">window        h0 4505790 through h1 4506510</span>
+            <span data-hf-id="hf-sg3k" class="line line-key" data-at="2.42">threshold     12500000 zatoshis</span>
+            <span data-hf-id="hf-75u9" class="line line-refuse" data-at="2.6" id="s5-verdict-a">REFUSED  COINS_TOO_NEW</span>
+            <span data-hf-id="hf-dp3t" class="line" data-at="2.95">  the account held no unspent Ironwood note at h0</span>
+            <span data-hf-id="hf-obg7" class="line line-key" data-at="3.15">  why:  None of the wallet's eligible coins existed at h0. No proof was made.</span>
+            <span data-hf-id="hf-24ku" class="line line-key" data-at="3.35">  next: Only coins held since h0 qualify for this gate.</span>
+            <span data-hf-id="hf-51p4" class="line" data-at="3.65" id="s5-nothing-sent">nothing was sent to the gate</span>
+            <span data-hf-id="hf-ueq7" class="line" data-at="4.0" id="s5-no-record">no challenge was asked for, so this gate has no record of this attempt</span>
+            <span data-hf-id="hf-quh3" class="line" data-at="4.35" data-cursor="1">$ </span>
+            <!-- prettier-ignore-end -->
+            <span data-hf-id="hf-7o7f" class="cursor-block"></span>
+          </div>
+        </div>
+
+        <div data-hf-id="hf-nmrs" class="window" id="s5-term-b">
+          <div data-hf-id="hf-ws90" class="window-bar">
+            <div data-hf-id="hf-xjgu" class="window-lamps"><i data-hf-id="hf-ylp6"></i><i data-hf-id="hf-0l8b"></i><i data-hf-id="hf-0zjc"></i></div>
+            <div data-hf-id="hf-kusn" class="window-name" data-layout-ignore>the newcomer's terminal — forced, as a demonstration</div>
+            <div data-hf-id="hf-aoan" class="window-prov" data-layout-ignore>re-enactment of a recorded testnet run · evidence/2026-10-22-bob-forced-knock.txt</div>
+          </div>
+          <div data-hf-id="hf-1dbe" class="term-body" data-layout-ignore>
+            <!-- prettier-ignore-start -->
+            <span data-hf-id="hf-p6pm" class="line line-cmd" data-at="4.7" data-type="0.7" data-cursor="1">$ $U knock --gate http://127.0.0.1:8080 --room holders-room --wallet "$B" \</span>
+            <span data-hf-id="hf-4rtw" class="line line-cmd" data-at="5.45" data-type="0.3" data-cursor="1">    …                                                      --force-unqualified-demo</span>
+            <span data-hf-id="hf-c5wf" class="line line-demo" data-at="5.85">DEMO: submitting a proof that does not meet this room's rule</span>
+            <span data-hf-id="hf-gg3q" class="line line-cut" data-at="6.1">    …          five recorded lines: the room's own refusal, the root it proved against, the challenge</span>
+            <span data-hf-id="hf-obot" class="line line-key" data-at="6.5">  expect the gate to refuse this with ROOT_MISMATCH: it decides from the roots it pinned, …</span>
+            <span data-hf-id="hf-utww" class="line line-cut" data-at="7.0">                                                               — cut —</span>
+            <span data-hf-id="hf-yzj6" class="line line-refuse" data-at="7.5" id="s5-verdict-b">REFUSED</span>
+            <span data-hf-id="hf-9tj0" class="line line-code" data-at="7.95">  ROOT_MISMATCH</span>
+            <span data-hf-id="hf-y5j9" class="line" data-at="8.2">  The proof does not match this gate's window: the coins were not held unmoved from h0 through h1.</span>
+            <span data-hf-id="hf-7ny1" class="line line-key" data-at="8.45" data-cursor="1">  retryable: false</span>
+            <!-- prettier-ignore-end -->
+            <span data-hf-id="hf-amqz" class="cursor-block"></span>
+          </div>
+        </div>
+
+        <div data-hf-id="hf-sscd" class="browser" id="s5-browser">
+          <div data-hf-id="hf-vlbx" class="window-bar">
+            <div data-hf-id="hf-xxrv" class="window-lamps"><i data-hf-id="hf-zsm9"></i><i data-hf-id="hf-06xa"></i><i data-hf-id="hf-26gf"></i></div>
+            <div data-hf-id="hf-mogo" class="url" data-layout-ignore>127.0.0.1:8080/room/holders-room?replay=act4-newcomer&amp;present=1</div>
+            <div data-hf-id="hf-k5mn" class="window-prov" data-layout-ignore>re-enactment of a recorded testnet run · evidence/2026-10-22-bob-forced-knock.txt</div>
+          </div>
+          <div data-hf-id="hf-rhem" class="viewport">
+            <div data-hf-id="hf-m6co" class="viewport-world" id="s5-world">
+              <iframe data-hf-id="hf-ppt2" class="page-frame" src="assets/site/act4-newcomer.present.html" title="Holders' Room, act 4"></iframe>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <script>
+        (function () {
+          var tl = gsap.timeline({ paused: true });
+
+          /* 18 s in the 2:00 cut, 11 s here. The ordinary knock keeps every recorded line; the
+             forced attempt elides five of its diagnostic lines behind one visible marker, which
+             says how many and where they are, and keeps the line that carries the point. */
+          var CUT_B = 4.7;
+          var CUT_PAGE = 8.8;
+
+          var termA = document.getElementById("s5-term-a");
+          var termB = document.getElementById("s5-term-b");
+          var browser = document.getElementById("s5-browser");
+
+          film.terminal(tl, termA, CUT_B);
+          film.terminal(tl, termB, CUT_PAGE);
+          /* The camera opens on the whole page, then eases in on the break in the rail. */
+          film.camera(tl, document.getElementById("s5-world"), [
+            { at: CUT_PAGE + 0.3, dur: 1.7, zoom: 2.18, px: 440, py: 783, ease: "power2.inOut" }
+          ]);
+
+          gsap.set([termB, browser], { opacity: 0 });
+
+          /* The two lines this run exists to show: the refusal happened on the holder's side. */
+          tl.fromTo(
+            [document.getElementById("s5-nothing-sent"), document.getElementById("s5-no-record")],
+            { x: -16, opacity: 0 },
+            { x: 0, opacity: 1, duration: 0.35, ease: "power3.out", stagger: 0.3 },
+            3.65
+          );
+          tl.fromTo(
+            document.getElementById("s5-verdict-a"),
+            { scale: 1.1, opacity: 0 },
+            { scale: 1, opacity: 1, duration: 0.34, ease: "back.out(2.2)", transformOrigin: "0% 50%" },
+            2.6
+          );
+
+          tl.to(termA, { opacity: 0, duration: 0.3, ease: "power2.in" }, CUT_B - 0.35);
+          tl.fromTo(termB, { opacity: 0, y: 14 }, { opacity: 1, y: 0, duration: 0.35, ease: "power2.out" }, CUT_B);
+          tl.fromTo(
+            document.getElementById("s5-verdict-b"),
+            { scale: 1.1, opacity: 0 },
+            { scale: 1, opacity: 1, duration: 0.34, ease: "back.out(2.2)", transformOrigin: "0% 50%" },
+            7.5
+          );
+
+          tl.to(termB, { opacity: 0, duration: 0.3, ease: "power2.in" }, CUT_PAGE - 0.3);
+          tl.fromTo(
+            browser,
+            { opacity: 0, scale: 0.985 },
+            { opacity: 1, scale: 1, duration: 0.45, ease: "power2.out" },
+            CUT_PAGE
+          );
+
+          window.__timelines["s5-newcomer"] = tl;
+        })();
+      </script>
+    </template>
+  </body>
+</html>

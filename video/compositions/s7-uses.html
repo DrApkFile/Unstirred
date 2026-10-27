@@ -19,11 +19,11 @@
           padding: 0 var(--term-x) 120px;
         }
 
-        #s10-stamp {
+        #s7-stamp {
           font-size: 28px;
         }
 
-        #s10-title {
+        #s7-title {
           font-size: 58px;
         }
 
@@ -58,27 +58,27 @@
         }
       </style>
 
-      <div id="root" data-composition-id="s10-uses" data-width="1920" data-height="1080">
-        <div class="uses-head">
-          <span class="stamp" id="s10-stamp">uses · illustrative, not measured</span>
-          <span class="hero" id="s10-title">Where a door like this fits</span>
+      <div data-hf-id="hf-cevs" id="root" data-composition-id="s7-uses" data-width="1920" data-height="1080">
+        <div data-hf-id="hf-0v3z" class="uses-head">
+          <span data-hf-id="hf-g7l2" class="stamp" id="s7-stamp">uses · illustrative, not measured</span>
+          <span data-hf-id="hf-qdw3" class="hero" id="s7-title">Where a door like this fits</span>
         </div>
-        <div class="uses-grid">
-          <div class="card">
-            <h3>Holder-only communities and allowlists</h3>
-            <p>Entry for people who've held, without KYC.</p>
+        <div data-hf-id="hf-5sq9" class="uses-grid">
+          <div data-hf-id="hf-vn2y" class="card">
+            <h3 data-hf-id="hf-79vn">Holder-only communities and allowlists</h3>
+            <p data-hf-id="hf-yp4b">Entry for people who've held, without KYC.</p>
           </div>
-          <div class="card">
-            <h3>Airdrops and faucets</h3>
-            <p>One claim per coins held since a date.</p>
+          <div data-hf-id="hf-i08u" class="card">
+            <h3 data-hf-id="hf-79cq">Airdrops and faucets</h3>
+            <p data-hf-id="hf-fx6g">One claim per coins held since a date.</p>
           </div>
-          <div class="card">
-            <h3>Polls and feedback</h3>
-            <p>Answers only from long-held stake, all anonymous.</p>
+          <div data-hf-id="hf-iejv" class="card">
+            <h3 data-hf-id="hf-x0fy">Polls and feedback</h3>
+            <p data-hf-id="hf-q74w">Answers only from long-held stake, all anonymous.</p>
           </div>
-          <div class="card">
-            <h3>Private markets</h3>
-            <p>Only funded, patient participants post. Nobody is named.</p>
+          <div data-hf-id="hf-isuw" class="card">
+            <h3 data-hf-id="hf-zjfi">Private markets</h3>
+            <p data-hf-id="hf-v8we">Only funded, patient participants post. Nobody is named.</p>
           </div>
         </div>
       </div>
@@ -87,9 +87,9 @@
         (function () {
           var tl = gsap.timeline({ paused: true });
 
-          gsap.set(document.getElementById("s10-stamp"), { opacity: 1, y: 0 });
+          gsap.set(document.getElementById("s7-stamp"), { opacity: 1, y: 0 });
           tl.fromTo(
-            document.getElementById("s10-title"),
+            document.getElementById("s7-title"),
             { opacity: 0, y: 26 },
             { opacity: 1, y: 0, duration: 0.45, ease: "power3.out" },
             0.15
@@ -110,7 +110,7 @@
             0.6
           );
 
-          window.__timelines["s10-uses"] = tl;
+          window.__timelines["s7-uses"] = tl;
         })();
       </script>
     </template>

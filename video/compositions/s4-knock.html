@@ -1,0 +1,240 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>The knock</title>
+  </head>
+  <body>
+    <template>
+      <style>
+        #root {
+          position: absolute;
+          inset: 0;
+          background: var(--paper);
+        }
+
+        /* One box for the first terminal, so the admission and the page cut land on the same
+           geometry the 2:00 cut used. The second terminal is shorter because its recorded block
+           is shorter; it is centred on the same axis. */
+        #s4-term-a {
+          top: 197px;
+          height: 606px;
+        }
+
+        #s4-term-b {
+          top: 282px;
+          height: 440px;
+        }
+
+        #s4-browser-a,
+        #s4-browser-b,
+        #s4-browser-c {
+          top: 8px;
+          height: 986px;
+        }
+      </style>
+
+      <div data-hf-id="hf-ct8x" id="root" data-composition-id="s4-knock" data-width="1920" data-height="1080">
+        <div data-hf-id="hf-87p4" class="window" id="s4-term-a">
+          <div data-hf-id="hf-85t8" class="window-bar">
+            <div data-hf-id="hf-03re" class="window-lamps"><i data-hf-id="hf-wt6k"></i><i data-hf-id="hf-zeb8"></i><i data-hf-id="hf-y7e5"></i></div>
+            <div data-hf-id="hf-7394" class="window-name" data-layout-ignore>the holder's terminal</div>
+            <div data-hf-id="hf-jmdg" class="window-prov" data-layout-ignore>re-enactment of a recorded testnet run · evidence/2026-10-20-two-room-knock.txt</div>
+          </div>
+          <div data-hf-id="hf-8752" class="term-body" data-layout-ignore>
+            <!-- prettier-ignore-start -->
+            <span data-hf-id="hf-yf5z" class="line line-cmd" data-at="0" data-type="1.3" data-cursor="1">$ $U knock --gate http://127.0.0.1:8080 --room holders-room --wallet "$W" \</span>
+            <span data-hf-id="hf-kqqy" class="line line-cmd" data-at="1.4" data-type="1.1" data-cursor="1">    --pir http://localhost:3000 --lightwalletd https://testnet.zec.rocks:443 \</span>
+            <span data-hf-id="hf-rvt3" class="line line-cmd" data-at="2.6" data-type="0.8" data-cursor="1">    --identity "$ID" --expected-h1-root "$H1"</span>
+            <span data-hf-id="hf-z63w" class="line line-key" data-at="3.5">gate          http://127.0.0.1:8080</span>
+            <span data-hf-id="hf-3ntl" class="line line-key" data-at="3.6">room          holders-room</span>
+            <span data-hf-id="hf-gmlg" class="line line-key" data-at="3.7">network       test</span>
+            <span data-hf-id="hf-04o6" class="line line-key" data-at="3.8">window        h0 4505790 through h1 4506510</span>
+            <span data-hf-id="hf-ljru" class="line line-key" data-at="3.9">threshold     12500000 zatoshis</span>
+            <span data-hf-id="hf-w9jc" class="line line-key" data-at="4.1">challenge     issued by the gate, expires 2026-10-20T14:41:14Z</span>
+            <span data-hf-id="hf-lb0o" class="line" data-at="4.4">proving now; this takes seconds and reveals nothing to the gate but the package</span>
+            <span data-hf-id="hf-e0z6" class="line line-cut" data-at="5.0">                                                               — cut —</span>
+            <span data-hf-id="hf-lwj1" class="line line-admit" data-at="5.45" id="s4-verdict-a">ADMITTED</span>
+            <span data-hf-id="hf-npae" class="line" data-at="6.1">the gate was sent one package proving 1 note(s) held unmoved across the window, and nothing else</span>
+            <span data-hf-id="hf-29y5" class="line" data-at="6.5">wallet …/wallet/data.sqlite was opened read-only; no transaction was created</span>
+            <span data-hf-id="hf-ovv5" class="line" data-at="7.1" data-cursor="1">$ </span>
+            <!-- prettier-ignore-end -->
+            <span data-hf-id="hf-7o7f" class="cursor-block"></span>
+          </div>
+        </div>
+
+        <div data-hf-id="hf-qtvi" class="browser" id="s4-browser-a">
+          <div data-hf-id="hf-ws90" class="window-bar">
+            <div data-hf-id="hf-xjgu" class="window-lamps"><i data-hf-id="hf-ylp6"></i><i data-hf-id="hf-0l8b"></i><i data-hf-id="hf-0zjc"></i></div>
+            <div data-hf-id="hf-ftoo" class="url" data-layout-ignore>127.0.0.1:8080/room/holders-room?replay=act2-admitted&amp;present=1</div>
+            <div data-hf-id="hf-la9o" class="window-prov" data-layout-ignore>re-enactment of a recorded testnet run · evidence/2026-10-20-two-room-knock.txt</div>
+          </div>
+          <div data-hf-id="hf-rhem" class="viewport">
+            <div data-hf-id="hf-y66v" class="viewport-world" id="s4-world-a">
+              <iframe data-hf-id="hf-geow" class="page-frame" src="assets/site/act2-admitted.present.html" title="Holders' Room, act 2"></iframe>
+            </div>
+            <div data-hf-id="hf-68re" class="spotlight" id="s4-spot-a"></div>
+            <div data-hf-id="hf-ewde" class="pointer" id="s4-pointer-a">
+              <svg data-hf-id="hf-bbis" viewBox="0 0 26 26" aria-hidden="true">
+                <path data-hf-id="hf-fxia"
+                  d="M3 2 L3 20 L8 15.5 L11.2 23 L14.8 21.4 L11.7 14.2 L18.5 13.8 Z"
+                  fill="#edeff3"
+                  stroke="#0d0f13"
+                  stroke-width="1.4"
+                  stroke-linejoin="round"
+                />
+              </svg>
+              <div data-hf-id="hf-2qfi" class="ripple"></div>
+            </div>
+          </div>
+        </div>
+
+        <div data-hf-id="hf-j36r" class="window" id="s4-term-b">
+          <div data-hf-id="hf-vlbx" class="window-bar">
+            <div data-hf-id="hf-xxrv" class="window-lamps"><i data-hf-id="hf-zsm9"></i><i data-hf-id="hf-06xa"></i><i data-hf-id="hf-26gf"></i></div>
+            <div data-hf-id="hf-5f9x" class="window-name" data-layout-ignore>the holder's terminal — the same coins, the same room</div>
+            <div data-hf-id="hf-k3cl" class="window-prov" data-layout-ignore>re-enactment of a recorded testnet run · evidence/2026-10-20-two-room-knock.txt</div>
+          </div>
+          <div data-hf-id="hf-1dbe" class="term-body" data-layout-ignore>
+            <!-- prettier-ignore-start -->
+            <span data-hf-id="hf-v26q" class="line line-cmd" data-at="12.9" data-type="1.0" data-cursor="1">$ $U knock --gate http://127.0.0.1:8080 --room holders-room --wallet "$W" \</span>
+            <span data-hf-id="hf-9wnr" class="line line-cut" data-at="14.0" data-type="0.3" data-cursor="1">    …                                          the same flags, the same coins, the same room</span>
+            <span data-hf-id="hf-sbic" class="line line-key" data-at="14.4">challenge     issued by the gate, expires 2026-10-20T14:58:47Z</span>
+            <span data-hf-id="hf-pop3" class="line" data-at="14.6">proving now; this takes seconds and reveals nothing to the gate but the package</span>
+            <span data-hf-id="hf-49bl" class="line line-cut" data-at="14.9">                                                               — cut —</span>
+            <span data-hf-id="hf-dlfa" class="line line-refuse" data-at="15.3" id="s4-verdict-b">REFUSED</span>
+            <span data-hf-id="hf-xz6h" class="line line-code" data-at="15.7">  ALREADY_USED_IN_CONTEXT</span>
+            <span data-hf-id="hf-y9vq" class="line" data-at="15.95">  These coins have already been used at this gate. Nothing was admitted.</span>
+            <span data-hf-id="hf-kzgn" class="line line-key" data-at="16.2" data-cursor="1">  retryable: false</span>
+            <!-- prettier-ignore-end -->
+            <span data-hf-id="hf-amqz" class="cursor-block"></span>
+          </div>
+        </div>
+
+        <div data-hf-id="hf-mvrh" class="browser" id="s4-browser-b">
+          <div data-hf-id="hf-vzmy" class="window-bar">
+            <div data-hf-id="hf-yc2w" class="window-lamps"><i data-hf-id="hf-2krg"></i><i data-hf-id="hf-oz7w"></i><i data-hf-id="hf-okwv"></i></div>
+            <div data-hf-id="hf-v21v" class="url" data-layout-ignore>127.0.0.1:8080/room/holders-room?replay=act3-refused&amp;present=1</div>
+            <div data-hf-id="hf-khnm" class="window-prov" data-layout-ignore>re-enactment of a recorded testnet run · evidence/2026-10-20-two-room-knock.txt</div>
+          </div>
+          <div data-hf-id="hf-2n5u" class="viewport">
+            <div data-hf-id="hf-pib0" class="viewport-world" id="s4-world-b">
+              <iframe data-hf-id="hf-lhke" class="page-frame" src="assets/site/act3-refused.present.html" title="Holders' Room, act 3"></iframe>
+            </div>
+            <div data-hf-id="hf-031l" class="spotlight" id="s4-spot-b"></div>
+          </div>
+        </div>
+
+        <div data-hf-id="hf-m43o" class="browser" id="s4-browser-c">
+          <div data-hf-id="hf-xz63" class="window-bar">
+            <div data-hf-id="hf-vjxp" class="window-lamps"><i data-hf-id="hf-o6lu"></i><i data-hf-id="hf-jqbp"></i><i data-hf-id="hf-qkg0"></i></div>
+            <div data-hf-id="hf-052g" class="url" data-layout-ignore>127.0.0.1:8080/room/second-room?replay=act5-second-room&amp;present=1</div>
+            <div data-hf-id="hf-mh6r" class="window-prov" data-layout-ignore>re-enactment of a recorded testnet run · evidence/2026-10-20-two-room-knock.txt</div>
+          </div>
+          <div data-hf-id="hf-31gv" class="viewport">
+            <div data-hf-id="hf-q9yt" class="viewport-world" id="s4-world-c">
+              <iframe data-hf-id="hf-g03u" class="page-frame" src="assets/site/act5-second-room.present.html" title="Holders' Room, act 5"></iframe>
+            </div>
+            <div data-hf-id="hf-zbds" class="spotlight" id="s4-spot-c"></div>
+            <div data-hf-id="hf-a6lk" class="pointer" id="s4-pointer-c">
+              <svg data-hf-id="hf-c7cc" viewBox="0 0 26 26" aria-hidden="true">
+                <path data-hf-id="hf-ffie"
+                  d="M3 2 L3 20 L8 15.5 L11.2 23 L14.8 21.4 L11.7 14.2 L18.5 13.8 Z"
+                  fill="#edeff3"
+                  stroke="#0d0f13"
+                  stroke-width="1.4"
+                  stroke-linejoin="round"
+                />
+              </svg>
+              <div data-hf-id="hf-t7bm" class="ripple"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <script>
+        (function () {
+          var tl = gsap.timeline({ paused: true });
+
+          /* Three of the 2:00 cut's scenes in one 22 s shot. Every recorded line is kept; what
+             goes is hold time after the last line has landed, and the second knock's repeat of
+             the room's own rule, which the first knock already read out in full. */
+          var CUT_A = 8.4;   /* the admitted page */
+          var CUT_TERM_B = 12.4;
+          var CUT_B = 16.4;  /* the refused page */
+          var CUT_C = 18.8;  /* the second room */
+
+          var termA = document.getElementById("s4-term-a");
+          var termB = document.getElementById("s4-term-b");
+          var browserA = document.getElementById("s4-browser-a");
+          var browserB = document.getElementById("s4-browser-b");
+          var browserC = document.getElementById("s4-browser-c");
+
+          film.terminal(tl, termA, CUT_A);
+          film.terminal(tl, termB, CUT_B);
+          film.camera(tl, document.getElementById("s4-world-a"), []);
+          film.camera(tl, document.getElementById("s4-world-b"), []);
+          film.camera(tl, document.getElementById("s4-world-c"), []);
+
+          gsap.set([browserA, termB, browserB, browserC], { opacity: 0 });
+
+          /* Each verdict is the beat of its half: it lands a shade over size and settles. */
+          function verdict(element, at) {
+            tl.fromTo(
+              element,
+              { scale: 1.12, opacity: 0 },
+              { scale: 1, opacity: 1, duration: 0.34, ease: "back.out(2.2)", transformOrigin: "0% 50%" },
+              at
+            );
+          }
+          verdict(document.getElementById("s4-verdict-a"), 5.45);
+          verdict(document.getElementById("s4-verdict-b"), 15.3);
+
+          /* ---- the admitted page ---- */
+          tl.to(termA, { opacity: 0, duration: 0.35, ease: "power2.in" }, CUT_A - 0.35);
+          tl.fromTo(
+            browserA,
+            { opacity: 0, scale: 0.985 },
+            { opacity: 1, scale: 1, duration: 0.45, ease: "power2.out" },
+            CUT_A
+          );
+          film.pointer(tl, document.getElementById("s4-pointer-a"), [
+            { at: CUT_A + 0.3, dur: 1.2, from: [1330, 800], to: [1328, 281] }
+          ]);
+          /* What the door never saw is the point of the act, so everything else dims around it. */
+          film.spotlight(tl, document.getElementById("s4-spot-a"), [1565, 240, 330, 245], 9.9, 0.5);
+
+          /* ---- the same coins again ---- */
+          tl.to(browserA, { opacity: 0, duration: 0.3, ease: "power2.in" }, CUT_TERM_B - 0.3);
+          tl.fromTo(termB, { opacity: 0, y: 14 }, { opacity: 1, y: 0, duration: 0.4, ease: "power2.out" }, CUT_TERM_B);
+
+          /* ---- the refused page: the log the refusal did not touch ---- */
+          tl.to(termB, { opacity: 0, duration: 0.3, ease: "power2.in" }, CUT_B - 0.3);
+          tl.fromTo(
+            browserB,
+            { opacity: 0, scale: 0.985 },
+            { opacity: 1, scale: 1, duration: 0.4, ease: "power2.out" },
+            CUT_B
+          );
+          film.spotlight(tl, document.getElementById("s4-spot-b"), [1285, 250, 290, 270], CUT_B + 0.5, 0.45);
+
+          /* ---- a second door, the same coins ---- */
+          tl.to(browserB, { opacity: 0, duration: 0.3, ease: "power2.in" }, CUT_C - 0.3);
+          tl.fromTo(
+            browserC,
+            { opacity: 0, scale: 0.985 },
+            { opacity: 1, scale: 1, duration: 0.4, ease: "power2.out" },
+            CUT_C
+          );
+          film.pointer(tl, document.getElementById("s4-pointer-c"), [
+            { at: CUT_C + 0.3, dur: 1.1, from: [1340, 800], to: [703, 699] }
+          ]);
+          /* Two marker sets and the page's own line counting what they share. */
+          film.spotlight(tl, document.getElementById("s4-spot-c"), [660, 640, 700, 290], CUT_C + 1.6, 0.5);
+
+          window.__timelines["s4-knock"] = tl;
+        })();
+      </script>
+    </template>
+  </body>
+</html>
