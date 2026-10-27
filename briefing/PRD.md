@@ -16,7 +16,7 @@ Version 1, 2026-10-15. Single source of truth. When evidence contradicts this fi
 - Any statement about holdings after H1.
 - Network-level anonymity of the prover (stated non-defence).
 - Mobile wallets. v1 is CLI plus a web page for the gate.
-- Mainnet production use. The demo runs on testnet (see `EVENT.md`: NU7 lands on mainnet during judging).
+- Mainnet production use. The demo runs on testnet; NU7 lands on mainnet after this work (targeted 2026-11-05).
 - New circuits. We reuse Valar's audited delegation circuit unchanged.
 
 ## 2. Hook, loop, boundary

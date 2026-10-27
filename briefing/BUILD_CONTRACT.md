@@ -43,8 +43,26 @@ Never send, shield or self-send from the holder's demo wallet. Read-only access 
 ## Commits and deadline
 First commit inside the event window. Last commit before 2026-10-27 08:00 UTC. Nothing pushed after submission.
 
+## Shared contract
+Only `unstirred-core` defines the closed code set, the manifest schema and the binding message. The
+other crates import them; none adds a code of its own. One owner per session for that crate; the
+other tracks consume it.
+
 ## Code bar
-See `CLAUDE.md` conventions. Planning quality does not excuse code quality.
+Planning quality does not excuse code quality.
+- Names, not comments. Rename or split instead of commenting. No commented-out code.
+- Split files past ~180 lines.
+- Errors are typed and map to the closed code set in `unstirred-core`; every code has `message`,
+  `retryable`, `next_action`.
+- Pure core: `unstirred-core` has no network, no clock, no randomness except injected.
+- Tests named as behaviour, with acceptance IDs in the title, e.g.
+  `a05_refuses_same_coins_twice_at_one_gate_and_writes_nothing`.
+- Adversarial tests live in `tests/adversarial/`.
+- Never pipe test output through `tail` or `grep` in a way that can hide a failure. Report the full
+  result line.
+- Run `./scripts/gate.sh` from a clean clone before claiming anything works.
+- Exact version pins; commit `Cargo.lock`.
+- New ideas go to `ROADMAP.md`.
 
 ## Gate (one command from a clean clone)
 `./scripts/gate.sh`: `cargo fmt --check`, `cargo clippy --all-targets -- -D warnings`, `cargo test --release` (unit + adversarial), leak scanner (A02), claims check (every README claim links to an `evidence/` file).

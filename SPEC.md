@@ -127,8 +127,8 @@ the verifier's to carry:
 - A note held across the window is admitted: A01, recorded on the real testnet in
   [evidence/2026-10-17-verify-first-proof.txt](evidence/2026-10-17-verify-first-proof.txt).
 - **Not tested, and not claimed:** that the argument above is complete. It has had no external
-  review. `briefing/knowledge/HOLDING_DURATION_PAPER_CHECK.md` is the working note it comes from,
-  and it is marked "not yet reviewed by a cryptographer" there too.
+  review, by a cryptographer or by anyone at Valar, and §3 above is the whole of it: there is no
+  longer version of this argument held anywhere else.
 
 ---
 

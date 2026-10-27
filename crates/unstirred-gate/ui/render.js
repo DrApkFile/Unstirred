@@ -17,8 +17,8 @@
   var STAGE_W = 1920;
   var STAGE_H = 1080;
   var MEMBERS_INPUT = "members";
-  /* Testnet's NU7 block target, which briefing/CLAUDE.md records as 25 s (observed ~27 s). It is a
-     property of the chain, not of this gate, so every line that uses it says "about" and names it. */
+  /* Testnet's NU7 block target is 25 s, observed at about 27 s. It is a property of the chain,
+     not of this gate, so every line that uses it says "about" and names it. */
   var SECONDS_PER_BLOCK = 25;
   /* How much of the timeline sits outside the window, so h0 and h1 are points on an axis rather
      than its ends, and a holder line can run past either of them. */

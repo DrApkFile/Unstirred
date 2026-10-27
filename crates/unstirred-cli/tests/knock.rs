@@ -4,7 +4,7 @@
 //!
 //! The wallet here is one the command cannot read: the synthetic wallet's keys are for a regtest
 //! network and a gate manifest can only say `test` or `main`, so no wallet a test can build is
-//! one this binary will open (see `briefing/BUILD_NOTES.md`). That is enough for what these
+//! one this binary will open. That is enough for what these
 //! tests are about — the wallet is read, and the room's rule applied, before a challenge is ever
 //! requested, so the step that fails is the local one either way. The rule's own refusals are the
 //! prover's tests (A03, A17, A18) and the guard on the forced flag is a unit test beside it.

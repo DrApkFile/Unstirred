@@ -2,7 +2,7 @@ name: release
 
 # Builds the binaries for a tag that already exists and attaches them to its release. It creates
 # no tag and publishes nothing to crates.io: both of those are deliberate acts, done by hand from
-# the tagged commit (HANDOFF.md, "the release").
+# the tagged commit (docs/RELEASING.md, "the release").
 on:
   push:
     tags: ["v*"]
