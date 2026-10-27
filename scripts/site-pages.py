@@ -32,18 +32,59 @@ VIDEO_URL = (
     "https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/"
     "hf_20260809_012548_ef22562c-c0ae-4816-ad9d-f8922af4e6a7.mp4"
 )
-ALLOWED_ORIGINS = (
-    "fonts.googleapis.com",
-    "fonts.gstatic.com",
-    "db.onlinewebfonts.com",
-    "cdnjs.cloudflare.com",
-    "d8j0ntlcm91z4.cloudfront.net",
-)
+# The walkthrough, on YouTube. The embed is the privacy-enhanced domain, which sets no cookie
+# until the viewer presses play, and the iframe is only put into the page when it is opened.
+YOUTUBE_ID = "J3R-K1KfnpQ"
+YOUTUBE_URL = f"https://youtu.be/{YOUTUBE_ID}"
+YOUTUBE_EMBED = f"https://www.youtube-nocookie.com/embed/{YOUTUBE_ID}"
+
+# Which pages may reach which origin. Per origin rather than one flat list, because they are not
+# all alike: the fonts dress every page this repository writes, the background video belongs to
+# the landing page alone, and the YouTube frame belongs to the two pages that show the film.
+# Everything else — the five acts, their presentation readings, the room picker, rustdoc's own
+# pages — reaches nothing at all.
+def _dressed(where):
+    return (
+        where in ("index.html", "start/index.html", "api/index.html", "replay/index.html")
+        or where.startswith("guides/")
+    )
+
+
+ORIGIN_RULES = {
+    "fonts.googleapis.com": ("the pages this repository writes", _dressed),
+    "fonts.gstatic.com": ("the pages this repository writes", _dressed),
+    "db.onlinewebfonts.com": ("the pages this repository writes", _dressed),
+    "cdnjs.cloudflare.com": ("the pages this repository writes", _dressed),
+    "d8j0ntlcm91z4.cloudfront.net": ("the landing page", lambda w: w == "index.html"),
+    "www.youtube-nocookie.com": (
+        "the landing page and Start here",
+        lambda w: w in ("index.html", "start/index.html"),
+    ),
+}
+ALLOWED_ORIGINS = tuple(ORIGIN_RULES)
 
 FONT_AWESOME = (
     "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css",
     "sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==",
 )
+
+# Every page here sends `referrer: no-referrer`, and a YouTube player given no referrer refuses
+# to start: it renders "Video player configuration error — Error 153" instead of the film. The
+# player, and only the player, is therefore allowed to send the bare origin. That is strictly
+# less than a normal embed sends — no path, no query — and it is the minimum the player accepts.
+REFERRER_POLICY = "strict-origin-when-cross-origin"
+
+
+def embed(extra_class=""):
+    """The walkthrough, in a 16:9 box that keeps its shape at any width."""
+    return (
+        f'<div class="embed{(" " + extra_class) if extra_class else ""}">'
+        f'<iframe src="{YOUTUBE_EMBED}" title="Unstirred demo" loading="lazy" '
+        f'referrerpolicy="{REFERRER_POLICY}" '
+        f'allow="accelerometer; clipboard-write; encrypted-media; picture-in-picture" '
+        f'allowfullscreen></iframe></div>'
+    )
+
 
 NAV = (
     ("Home", "index.html"),
@@ -281,13 +322,61 @@ COUNTUP_JS = """    <script>
     </script>"""
 
 
+LIGHTBOX_JS = """    <script>
+      (function () {
+        var open = document.getElementById("watch-demo");
+        var box = document.getElementById("lightbox");
+        if (!open || !box) return;
+        var frame = box.querySelector(".lightbox-frame");
+        var close = box.querySelector(".lightbox-close");
+        var EMBED = "__EMBED__";
+
+        // The iframe is built when the film is opened and thrown away when it is closed, so
+        // nothing is requested from YouTube until a visitor asks for it, and closing the box
+        // actually stops the film rather than hiding it while it plays on.
+        function show() {
+          var iframe = document.createElement("iframe");
+          iframe.src = EMBED;
+          iframe.title = "Unstirred demo";
+          iframe.loading = "lazy";
+          iframe.referrerPolicy = "__REFERRER__";
+          iframe.allow = "accelerometer; autoplay; clipboard-write; encrypted-media; picture-in-picture";
+          iframe.setAttribute("allowfullscreen", "");
+          frame.appendChild(iframe);
+          box.hidden = false;
+          document.body.classList.add("lightbox-open");
+          close.focus();
+        }
+        function hide() {
+          box.hidden = true;
+          frame.textContent = "";
+          document.body.classList.remove("lightbox-open");
+          open.focus();
+        }
+        open.addEventListener("click", function (event) {
+          // On a narrow screen the link is followed instead: /start/#watch plays it in place.
+          if (window.innerWidth <= 720) return;
+          event.preventDefault();
+          show();
+        });
+        close.addEventListener("click", hide);
+        box.addEventListener("click", function (event) {
+          if (event.target === box) hide();
+        });
+        document.addEventListener("keydown", function (event) {
+          if (event.key === "Escape" && !box.hidden) hide();
+        });
+      })();
+    </script>""".replace("__EMBED__", YOUTUBE_EMBED).replace("__REFERRER__", REFERRER_POLICY)
+
 def landing(out, video_url):
     """One viewport: the header, the claim, the two things to do, and four numbers.
 
-    `video_url` is the published walkthrough. While there is none, the second call to action opens
-    the index of acts instead — the same material, as pages — rather than a link that does not
-    work."""
-    watch_href = video_url or "replay/index.html"
+    "Watch the Demo" is a real link to the Start here page's own player, and on a wide screen the
+    script below intercepts it and opens the film in a lightbox instead. Written that way round so
+    it still works with no JavaScript, and so a narrow screen — where a lightbox is the wrong
+    shape for a 16:9 film — simply follows the link."""
+    watch_href = video_url or "start/index.html#watch"
     rows = "\n".join(
         f"""          <a class="stat anim" style="--d: {delay}s" href="{html.escape(source, quote=True)}">
             <span class="glyph">{html.escape(glyph)}</span>
@@ -319,12 +408,17 @@ def landing(out, video_url):
         </p>
         <div class="ctas">
           <a class="cta primary anim" style="--d: 0.4s" href="start/index.html">Start Here</a>
-          <a class="cta secondary anim" style="--d: 0.46s" href="{html.escape(watch_href, quote=True)}">Watch the Demo</a>
+          <a class="cta secondary anim" style="--d: 0.46s" id="watch-demo"
+            href="{html.escape(watch_href, quote=True)}">Watch the Demo</a>
         </div>
       </section>
       <section class="stats">
 {rows}
-      </section>"""
+      </section>
+      <div class="lightbox" id="lightbox" hidden>
+        <button class="lightbox-close" type="button" aria-label="Close the film">&times;</button>
+        <div class="lightbox-frame"></div>
+      </div>"""
     up = ""
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(
@@ -339,6 +433,7 @@ def landing(out, video_url):
     </div>
 {MENU_JS}
 {COUNTUP_JS}
+{LIGHTBOX_JS}
   </body>
 </html>
 """
@@ -419,17 +514,9 @@ def start_page(out, video_url, described):
     """The page a judge is sent to: four numbered steps, each with what it costs in minutes."""
     gate_init, verify = readme_commands()
 
-    watch = (
-        f'<a class="go" href="{html.escape(video_url, quote=True)}">Watch the walkthrough</a>'
-        if video_url
-        else '<a class="go quiet" href="../replay/index.html">Not published yet — open the acts instead</a>'
-    )
-    watch_text = (
-        "What Unstirred is, and how it is used, in two minutes."
-        if video_url
-        else "The walkthrough is rendered but not published yet, so there is no link to it here "
-        "rather than one that does not work. Step 2 is the same material as pages."
-    )
+    watch_url = video_url or YOUTUBE_URL
+    watch = f'<a class="go quiet" href="{html.escape(watch_url, quote=True)}">Watch on YouTube</a>'
+    watch_text = "What Unstirred is, and how it is used, in a minute and a half."
 
     acts = "\n".join(
         f'            <li><a href="../replay/{act}.html">Act {i}</a> — {html.escape(note)}</li>'
@@ -453,10 +540,11 @@ def start_page(out, video_url, described):
         <p>Four steps, about six minutes, in the order that makes the rest make sense.</p>
       </div>
       <div class="steps">
-        <article class="step">
+        <article class="step" id="watch">
           <span class="number">1</span>
           <h2>Watch <span class="time">2 min</span></h2>
           <p>{watch_text}</p>
+{embed()}
           {watch}
         </article>
         <article class="step">
@@ -603,10 +691,7 @@ HOST = re.compile(r"^(?:https?:)?//([^/]+)")
 # five origins in ALLOWED_ORIGINS. Everything else the site publishes — the five act pages, the
 # room picker, and every page rustdoc generates — must fetch nothing but files beside it.
 def may_reach_out(where):
-    return (
-        where in ("index.html", "start/index.html", "api/index.html", "replay/index.html")
-        or where.startswith("guides/")
-    )
+    return any(rule(where) for _, rule in ORIGIN_RULES.values())
 
 
 def check_origins(site, pages):
@@ -642,9 +727,14 @@ def check_origins(site, pages):
                 problems.append(
                     f"{where} fetches {host.group(1)}, and this page must ask no other origin"
                 )
-            elif host.group(1) not in ALLOWED_ORIGINS:
+            elif host.group(1) not in ORIGIN_RULES:
                 problems.append(
-                    f"{where} fetches {host.group(1)}, which is not one of the five allowed origins"
+                    f"{where} fetches {host.group(1)}, which is not an allowed origin"
+                )
+            elif not ORIGIN_RULES[host.group(1)][1](where):
+                problems.append(
+                    f"{where} fetches {host.group(1)}, which only "
+                    f"{ORIGIN_RULES[host.group(1)][0]} may reach"
                 )
             else:
                 reaching.setdefault(host.group(1), set()).add(where)
@@ -666,7 +756,10 @@ def check_origins(site, pages):
         f"(the five acts, the picker and rustdoc's own)"
     )
     for host in sorted(reaching):
-        print(f"origins: {host} — on {len(reaching[host])} page(s) of this repository's own")
+        print(
+            f"origins: {host} — on {len(reaching[host])} page(s), allowed on "
+            f"{ORIGIN_RULES[host][0]}"
+        )
     missing = set(ALLOWED_ORIGINS) - set(reaching)
     if missing:
         print(f"origins: allowed but unused: {', '.join(sorted(missing))}")

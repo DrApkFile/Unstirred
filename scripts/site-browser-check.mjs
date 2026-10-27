@@ -302,24 +302,36 @@ for (const viewport of VIEWPORTS) {
     const loaded = browser.once("Page.loadEventFired");
     await browser.send("Page.navigate", { url: `${base}/${spec.file}` }, sessionId);
     await Promise.race([loaded, sleep(20000)]);
-    // Fonts, and enough of the background video for a frame to be painted.
-    await sleep(spec.name === "landing" ? 6000 : 2500);
 
     const where = `${spec.name} @ ${viewport.width}x${viewport.height}`;
 
     // Did the site load at all? A failed navigation still renders a page, with text on it, and
-    // measuring the browser's error screen would quietly report a passing site.
+    // measuring the browser's error screen would quietly report a passing site. Polled rather
+    // than slept on, and retried once: the landing page also pulls a 13 MB video, and the first
+    // navigation of a run can lose a race with the server it was just handed.
     const marker = spec.name === "landing" ? ".headline" : ".site-header .nav-pill";
-    const present = (await browser.send("Runtime.evaluate", {
+    const look = async () => JSON.parse((await browser.send("Runtime.evaluate", {
       expression: `JSON.stringify({ found: !!document.querySelector("${marker}"), title: document.title })`,
       returnByValue: true,
-    }, sessionId)).result.value;
-    const state = JSON.parse(present);
+    }, sessionId)).result.value);
+
+    let state = await look();
+    for (let tries = 0; tries < 40 && !state.found; tries += 1) {
+      if (tries === 20) {
+        const again = browser.once("Page.loadEventFired");
+        await browser.send("Page.navigate", { url: `${base}/${spec.file}` }, sessionId);
+        await Promise.race([again, sleep(15000)]);
+      }
+      await sleep(500);
+      state = await look();
+    }
     if (!state.found) {
       problems.push(`${where}: did not load — no ${marker} on the page (title "${state.title}")`);
       await browser.send("Target.closeTarget", { targetId });
       continue;
     }
+    // Fonts settling, and enough of the background video for a frame to be painted.
+    await sleep(spec.name === "landing" ? 5000 : 2000);
 
     // --- the page as published.
     //
@@ -479,6 +491,184 @@ for (const viewport of VIEWPORTS) {
       const target = path.resolve(path.dirname(path.join(site, spec.file)), link.href.split("#")[0]);
       if (!existsSync(target)) {
         problems.push(`${where}: "${link.text}" points at ${link.href}, which is not a file`);
+      }
+    }
+
+    // --- the active page's three dots must sit under its label, not on top of the glyphs
+    {
+      const dots = JSON.parse((await browser.send("Runtime.evaluate", {
+        expression: `(() => {
+          try {
+            const a = document.querySelector(".nav-pill a.active");
+            if (!a) return JSON.stringify({ shown: false });
+            const after = getComputedStyle(a, "::after");
+            if (!after || after.content === "none") return JSON.stringify({ shown: false });
+            const box = a.getBoundingClientRect();
+            const range = document.createRange();
+            range.selectNodeContents(a);
+            const rects = Array.from(range.getClientRects());
+            if (!rects.length) return JSON.stringify({ shown: false });
+            const textBottom = Math.max(...rects.map((r) => r.bottom));
+            const top = box.bottom - parseFloat(after.bottom) - parseFloat(after.height);
+            return JSON.stringify({
+              shown: true, label: a.textContent.trim(),
+              gap: top - textBottom, inside: top >= box.top && top <= box.bottom,
+            });
+          } catch (err) {
+            return JSON.stringify({ shown: false, failed: String(err) });
+          }
+        })()`,
+        returnByValue: true,
+      }, sessionId)).result.value);
+      if (dots.failed) {
+        problems.push(`${where}: the nav-dot measurement threw — ${dots.failed}`);
+      }
+      if (dots.shown) {
+        if (!dots.inside) {
+          problems.push(`${where}: the active page's dots fall outside the nav link's own box`);
+        } else if (dots.gap < 1) {
+          problems.push(
+            `${where}: the active page's dots overlap "${dots.label}" by ` +
+            `${Math.abs(dots.gap).toFixed(1)}px — the link has no height for them to sit below`,
+          );
+        } else {
+          notes.push(
+            `${where}: the active page's dots clear "${dots.label}" by ${dots.gap.toFixed(1)}px`,
+          );
+        }
+      }
+    }
+
+    // --- the walkthrough: it must sit inside its box, at both sizes
+    if (spec.name === "start" || spec.name === "landing") {
+      const fits = JSON.parse((await browser.send("Runtime.evaluate", {
+        expression: `(() => {
+          const box = document.querySelector(".embed");
+          if (!box) return JSON.stringify({ box: false });
+          const frame = box.querySelector("iframe");
+          if (!frame) return JSON.stringify({ box: true, frame: false });
+          const b = box.getBoundingClientRect();
+          const f = frame.getBoundingClientRect();
+          return JSON.stringify({
+            box: true, frame: true,
+            ratio: b.width / b.height,
+            inside: f.left >= b.left - 1 && f.right <= b.right + 1
+                 && f.top >= b.top - 1 && f.bottom <= b.bottom + 1,
+            overflows: b.right > document.documentElement.clientWidth + 1,
+            src: frame.getAttribute("src"),
+          });
+        })()`,
+        returnByValue: true,
+      }, sessionId)).result.value);
+
+      if (spec.name === "start") {
+        if (!fits.box || !fits.frame) {
+          problems.push(`${where}: Start here has no walkthrough embed in the page`);
+        } else if (!fits.inside) {
+          problems.push(`${where}: the walkthrough iframe sits outside its 16:9 container`);
+        } else if (Math.abs(fits.ratio - 16 / 9) > 0.03) {
+          problems.push(`${where}: the embed container is ${fits.ratio.toFixed(3)}:1, not 16:9`);
+        } else if (fits.overflows) {
+          problems.push(`${where}: the embed container runs past the viewport`);
+        } else if (!/^https:\/\/www\.youtube-nocookie\.com\/embed\//.test(fits.src)) {
+          problems.push(`${where}: the embed is ${fits.src}, not the privacy-enhanced domain`);
+        } else {
+          notes.push(`${where}: the walkthrough embed is 16:9, inside its box, on youtube-nocookie`);
+        }
+      } else if (fits.box) {
+        problems.push(`${where}: the landing page ships an embed in its markup; it must be built on open`);
+      }
+    }
+
+    // --- the lightbox: nothing is requested until it is opened, and closing destroys the frame
+    if (spec.name === "landing" && viewport.width > 720) {
+      const story = JSON.parse((await browser.send("Runtime.evaluate", {
+        expression: `(() => {
+          const box = document.getElementById("lightbox");
+          const open = document.getElementById("watch-demo");
+          if (!box || !open) return JSON.stringify({ ok: false });
+          const before = box.querySelectorAll("iframe").length;
+          open.click();
+          const frame = box.querySelector("iframe");
+          const opened = !box.hidden;
+          const src = frame && frame.getAttribute("src");
+          const rect = frame && frame.getBoundingClientRect();
+          const holder = box.querySelector(".lightbox-frame").getBoundingClientRect();
+          box.querySelector(".lightbox-close").click();
+          return JSON.stringify({
+            ok: true, before, opened, src,
+            closed: box.hidden,
+            emptied: box.querySelectorAll("iframe").length === 0,
+            ratio: holder.width / holder.height,
+            inside: rect ? (rect.width <= holder.width + 1 && rect.height <= holder.height + 1) : false,
+          });
+        })()`,
+        returnByValue: true,
+      }, sessionId)).result.value);
+
+      if (!story.ok) {
+        problems.push(`${where}: no lightbox and no "Watch the Demo" control on the landing page`);
+      } else {
+        if (story.before !== 0) {
+          problems.push(`${where}: the lightbox already held an iframe before it was opened`);
+        }
+        if (!story.opened) problems.push(`${where}: the lightbox did not open on click`);
+        if (!/^https:\/\/www\.youtube-nocookie\.com\/embed\//.test(story.src || "")) {
+          problems.push(`${where}: the lightbox embed is ${story.src}, not the privacy-enhanced domain`);
+        }
+        if (!story.inside) problems.push(`${where}: the lightbox iframe overflows its 16:9 holder`);
+        if (Math.abs(story.ratio - 16 / 9) > 0.03) {
+          problems.push(`${where}: the lightbox holder is ${story.ratio.toFixed(3)}:1, not 16:9`);
+        }
+        if (!story.closed) problems.push(`${where}: the lightbox did not close`);
+        if (!story.emptied) {
+          problems.push(`${where}: closing the lightbox left the iframe in the page, still playing`);
+        }
+        if (story.opened && story.closed && story.emptied && story.before === 0) {
+          notes.push(
+            `${where}: lightbox empty until clicked, opens on youtube-nocookie, closes and ` +
+            `destroys the frame`,
+          );
+        }
+      }
+
+      // Escape must close it too.
+      const byEscape = JSON.parse((await browser.send("Runtime.evaluate", {
+        expression: `(() => {
+          const box = document.getElementById("lightbox");
+          document.getElementById("watch-demo").click();
+          const opened = !box.hidden;
+          document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
+          return JSON.stringify({ opened, closed: box.hidden });
+        })()`,
+        returnByValue: true,
+      }, sessionId)).result.value);
+      if (!byEscape.opened || !byEscape.closed) {
+        problems.push(`${where}: Escape did not close the lightbox`);
+      } else {
+        notes.push(`${where}: Escape closes the lightbox`);
+      }
+
+      // Clicking the dark backdrop must close it; clicking the film itself must not.
+      const byBackdrop = JSON.parse((await browser.send("Runtime.evaluate", {
+        expression: `(() => {
+          const box = document.getElementById("lightbox");
+          document.getElementById("watch-demo").click();
+          const opened = !box.hidden;
+          box.querySelector(".lightbox-frame").click();
+          const survived = !box.hidden;
+          box.click();
+          return JSON.stringify({ opened, survived, closed: box.hidden,
+            emptied: box.querySelectorAll("iframe").length === 0 });
+        })()`,
+        returnByValue: true,
+      }, sessionId)).result.value);
+      if (!byBackdrop.opened || !byBackdrop.closed || !byBackdrop.emptied) {
+        problems.push(`${where}: clicking the backdrop did not close the lightbox and empty it`);
+      } else if (!byBackdrop.survived) {
+        problems.push(`${where}: clicking the film itself closed the lightbox`);
+      } else {
+        notes.push(`${where}: the backdrop closes the lightbox, the film itself does not`);
       }
     }
 

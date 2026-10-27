@@ -152,28 +152,29 @@ rows for the two-source run, the `verify` wording constant and A33, the README t
 `evidence/2026-10-26-gate-final-audit.md`), the site is published and live, and **everything left
 is the owner's to do by hand**. Nothing in this repository is waiting on more code.
 
-**Done, and closed:** the five milestones, the demo video (§12), the final audit parts A (§13) and
-B (§14), the clean-clone audit of both README paths
+**Done, and closed:** the five milestones, the demo video (§12, re-cut and rendered in §15,
+published on YouTube in §16), the final audit parts A (§13) and B (§14), the site's redesign
+(§16), the clean-clone audit of both README paths
 (`evidence/2026-10-26-clean-clone-audit.md`), and the published site —
 **https://drapkfile.github.io/Unstirred/**, deployed by `.github/workflows/pages.yml` on the push
 of `c2751fd`, with the Pages source switched to "GitHub Actions" and the social preview uploaded.
 Every page of it answers 200: the landing page, the five acts in both readings, the picker, the
 three guides and the API reference.
 
-**What is left, in order, all of it the owner's:**
+**All three items that were left here are done.** `docs/RELEASING.md` was followed: `v0.1.0` is
+tagged with three tarballs and a `.sha256` beside each, and all five crates are on crates.io at
+0.1.0 (the correction at the end of §12 has the checks). The 1:30 re-cut replaced the 2:00 cut,
+was rendered and measured (§15), and is **published at `https://youtu.be/J3R-K1KfnpQ`**, which is
+what README's "Watch the demo" section links and what the site plays (§16). The site was then
+redesigned around a background video, in the same section.
 
-1. **`docs/RELEASING.md`, top to bottom.** Tag `v0.1.0` and push it (this is what makes the
-   download links in README and both guides resolve — they already name `v0.1.0`, not the earlier
-   `v0.1.0-rc.1`); wait for the three release build jobs; paste the release notes, which are
-   written out in full in that file; `gh release upload v0.1.0 video/out/unstirred-demo.mp4
-   --clobber` — or drag the file onto the release page, since `gh` is not installed on the build
-   machine; then `cargo publish` in dependency order: **core, prover, verifier, gate, unstirred**.
-2. **The video link.** Once the release carries the `.mp4`, put its URL into README's
-   "Watch the demo" placeholder, which carries an HTML comment saying it is the only place in the
-   repository that needs it. Commit and push; the site rebuilds itself.
-3. **A 1:30 re-cut of the walkthrough, with the real links in it** — the published site and the
-   release — replacing the 2:00 cut that had neither. `video/` is the project, `video/STORYBOARD.md`
-   its plan, and `video/tools/` its generators, which reproduce `index.html` byte for byte.
+**What is left, all of it the owner's:**
+
+1. **Nothing is committed.** The video work (§15), the site redesign and the YouTube embed (§16)
+   are all in the working tree by instruction. Pushing them rebuilds the site by itself.
+2. **Upload the `.mp4` to the release** if it should live there as well as on YouTube:
+   `gh release upload v0.1.0 video/out/unstirred-demo.mp4 --clobber`, or drag the file onto the
+   release page, since `gh` is not installed on the build machine.
 
 The historical record of how it got here is below, oldest last. Deadline: last commit before
 **2026-10-27 08:00 UTC**.
@@ -1229,11 +1230,11 @@ session: **all eleven files identical.** `video/tools/README.md` now names this 
 **Open, in the order they matter**
 
 1. Nothing is committed, by instruction.
-2. GitHub Pages not set up; the film's close says `replay site: — (not published yet)`. The
-   workflow and the site build landed in part B (§14); the setting is the owner's.
+2. GitHub Pages is live and the film's close names it; the workflow and the site build landed in
+   part B (§14). The walkthrough is published at `https://youtu.be/J3R-K1KfnpQ` (§15).
 
-**The video is done.** The next step is **the final audit, parts A and B** (§2 item 2). Both are
-done; see §13 and §14.
+**The video is done.** The final audit, parts A and B, is done too; see §13 and §14. The 1:30
+re-cut that replaced this cut is §15, and its publication and the site's redesign are §16.
 
 ## 13. Final audit part A: the simpler knock, the guides, the examples, the rustdoc — committed as `456d19a`
 
@@ -1471,3 +1472,53 @@ no longer what `video/` produces.
 for every crate, published or not. That is crates.io refusing a non-browser request. Use
 `https://crates.io/api/v1/crates/<name>` with an identifying user agent; it answers 200 with the
 crate's versions. Do not spoof a browser user agent to get past the bot check.
+
+## 16. The published site redesigned, and the walkthrough published on YouTube, 2026-10-27 — uncommitted
+
+Both are done. The evidence file is `evidence/2026-10-27-site-redesign.md`; the two `CLAIMS.md`
+rows for the site were rewritten rather than added to, and `DECISIONS.md` carries two new rows.
+
+**What the site is now.** One script still builds it — `scripts/build-site.sh` — and it still
+produces 899 files, 557 pages, 18 MB, of which 18 pages are this repository's own. The landing page
+is a single viewport over a full-bleed background video; Start here, the three guides, the API
+index and the index of acts share its design. **The five recorded act pages, their five
+presentation readings and the room picker were not touched** and still ask no other origin for
+anything. The landing page's four numbers are read out of the tree at build time and are never
+written down: 720 blocks held, 0 markers shared between rooms, 17 claims proven, 132 tests passing,
+each linking to the file it was read from.
+
+**The film is published** at `https://youtu.be/J3R-K1KfnpQ` and plays on the site from
+`https://www.youtube-nocookie.com/embed/J3R-K1KfnpQ` — in the page at Start here step 1, and in a
+lightbox on the landing page whose **iframe is built on open and destroyed on close**, so YouTube
+is not contacted until a visitor asks for the film. Every "not published yet" line about it is gone
+from README, the site and §2's open list; the dated evidence files keep theirs, because they record
+what was true when they were written.
+
+**The origin allowlist is no longer one flat list.** Each origin carries a rule naming the pages
+that may hold it: the three font and icon services on all seven pages this repository writes, the
+background video on the landing page alone, `www.youtube-nocookie.com` on the landing page and
+Start here alone. An allowed origin turning up on a page outside its own rule fails the build, the
+same as an unknown origin would. This was done when the player arrived, because a flat list would
+have made the YouTube frame legal on the guides and the API reference.
+
+**Three things to know before touching any of it.**
+
+1. **`scripts/site-browser-check.mjs` is the only thing that would have caught two real
+   production bugs**, and it is worth running after any CSS change: `node scripts/site-browser-check.mjs site`.
+   It drives headless Chromium over the DevTools Protocol with no dependencies at all. The bugs
+   were a specificity tie that collapsed the background-video container to 0x0 — the video would
+   never have appeared on the live site — and a header that was 418px wide inside a 390px screen.
+2. **Headless Chromium decodes no H.264.** A contrast check that trusts what the browser painted
+   measures the text against a black rectangle and passes for the wrong reason. The check now
+   extracts twelve real frames of the background video with ffmpeg, serves them same-origin,
+   injects each one, and proves it painted by differencing against an empty backdrop. The video
+   averages 90 of 255 and peaks at 249, so it is near-white: this is the difference between a true
+   pass and a meaningless one. Worst measured contrast across the four page kinds at both
+   viewports is **6.33:1** against a 4.5:1 floor.
+3. **The pages send `referrer: no-referrer`, and YouTube refuses a referrer-less embed** with
+   "Video player configuration error — Error 153". The player iframe alone carries
+   `referrerpolicy="strict-origin-when-cross-origin"`. Removing that attribute breaks the film on
+   the live site and nothing in the build will say so.
+
+Start here's two commands are not retyped: `scripts/site-pages.py` lifts them out of README's
+60-second section and the build fails if the rendered page is not character-identical to it.

@@ -43,10 +43,11 @@ they are.
 ```
 links: every local link in 18 page(s) resolves inside the site
 origins: 11 page(s) fetch nothing but files beside them (the five acts, the picker and rustdoc's own)
-origins: cdnjs.cloudflare.com — on 7 page(s) of this repository's own
-origins: d8j0ntlcm91z4.cloudfront.net — on 1 page(s) of this repository's own
-origins: db.onlinewebfonts.com — on 7 page(s) of this repository's own
-origins: fonts.googleapis.com — on 7 page(s) of this repository's own
+origins: cdnjs.cloudflare.com — on 7 page(s), allowed on the pages this repository writes
+origins: d8j0ntlcm91z4.cloudfront.net — on 1 page(s), allowed on the landing page
+origins: db.onlinewebfonts.com — on 7 page(s), allowed on the pages this repository writes
+origins: fonts.googleapis.com — on 7 page(s), allowed on the pages this repository writes
+origins: www.youtube-nocookie.com — on 1 page(s), allowed on the landing page and Start here
 origins: allowed but unused: fonts.gstatic.com
 start: 2 command block(s) are character-identical to README's
 ```
@@ -72,17 +73,73 @@ The site is served over HTTP by a threaded `python3` server, which is how GitHub
 | page | viewport | text runs | worst contrast | floor |
 | --- | --- | --- | --- | --- |
 | landing | 1920x1080 | 24 | **6.41:1** | 4.5 |
-| Start here | 1920x1080 | 34 | 8.30:1 | 4.5 |
+| Start here | 1920x1080 | 23 | 8.30:1 | 4.5 |
 | guide | 1920x1080 | 31 | 8.79:1 | 4.5 |
 | API index | 1920x1080 | 23 | 6.41:1 | 4.5 |
 | landing | 390x844 | 18 | **6.33:1** | 4.5 |
-| Start here | 390x844 | 22 | 8.30:1 | 4.5 |
+| Start here | 390x844 | 11 | 8.30:1 | 4.5 |
 | guide | 390x844 | 16 | 10.31:1 | 4.5 |
 | API index | 390x844 | 10 | 10.31:1 | 4.5 |
 
 Also checked, at both sizes: every link on every page resolves to a file in the site; the five act
-links on Start here open `act1-rule` … `act5-second-room` **in that order**; and both copy buttons
-carry their command verbatim in `data-command`.
+links on Start here open `act1-rule` … `act5-second-room` **in that order**; both copy buttons
+carry their command verbatim in `data-command`; and the three dots marking the active page in the
+nav clear that page's own label, measured as the distance from the bottom of the label's line box
+to the top of the `::after` box — **2.5px under "Home", 3.0px under "Start", "Docs" and "API"**.
+Below 720px the nav pill is replaced by the burger menu, so there is nothing to measure there.
+
+## The walkthrough player, and proving it is not loaded until it is wanted
+
+The film is published at `https://youtu.be/J3R-K1KfnpQ` and plays from
+`https://www.youtube-nocookie.com/embed/J3R-K1KfnpQ`, checked 2026-10-27:
+
+| checked | how | result |
+| --- | --- | --- |
+| the watch URL | `curl -sIL https://youtu.be/J3R-K1KfnpQ` | 200 |
+| the embed URL | `curl -s -o /dev/null -w '%{http_code}' …/embed/J3R-K1KfnpQ` | 200 |
+| that it is the right film | YouTube's oEmbed endpoint | `"title":"Unstirred Demo For Zecathon by Zcash"` |
+
+It sits in two places, and only one of them is in the markup:
+
+- **Start here, step 1** (`#watch`) carries the `<iframe>` itself, in a 16:9 box.
+- **the landing page** has a "Watch the Demo" button and an empty lightbox. The `<iframe>` is
+  **built in JavaScript when the button is pressed** and the container is emptied again on close,
+  so a visitor who never asks for the film never makes a request to Google, and closing the box
+  stops playback instead of leaving it running behind a hidden overlay.
+
+The browser check asserts all of that rather than taking it on trust. At both viewports it reports:
+
+```
+landing @ 1920x1080: lightbox empty until clicked, opens on youtube-nocookie, closes and destroys the frame
+landing @ 1920x1080: Escape closes the lightbox
+landing @ 1920x1080: the backdrop closes the lightbox, the film itself does not
+start   @ 1920x1080: the walkthrough embed is 16:9, inside its box, on youtube-nocookie
+start   @ 390x844:   the walkthrough embed is 16:9, inside its box, on youtube-nocookie
+```
+
+It counts the iframes in the lightbox before the click (**must be zero**), reads the created
+frame's `src` (must be on `www.youtube-nocookie.com`), and then closes the box three separate
+times — by the close button, by Escape, and by clicking the dark backdrop — counting the iframes
+again after each (**zero again**). The backdrop case also clicks the film itself first and asserts
+the box is **still open**, because a handler on the whole overlay that does not check
+`event.target` closes the box the moment a visitor clicks the player.
+
+The landing-page lightbox is checked at 1920x1080 only, and that is deliberate rather than an
+omission: at 720px and under the "Watch the Demo" control is left as a plain link to
+`/start/#watch`, because a lightbox is the wrong shape for a 16:9 film on a phone. The check
+asserts the landing page ships **no embed in its markup** at either size, and the Start here embed
+at both.
+
+The Start here embed is measured against its own container: width within a pixel of the box,
+height within a pixel of 9/16 of the width, and the container itself within 0.03 of 16:9 and not
+past the viewport.
+
+**One thing had to be undone to make the player work at all.** The pages carried a page-level
+`<meta name="referrer" content="no-referrer">`, and YouTube answers a referrer-less embed with
+*"Video player configuration error — Error 153"*: it will not serve a frame it cannot attribute to
+a host. The meta is still there for the page; the player iframe alone carries
+`referrerpolicy="strict-origin-when-cross-origin"`, which sends the origin and no path. This was
+found by loading the embed, not by reading about it.
 
 ## How the contrast is measured, and three ways it lied first
 
@@ -120,7 +177,7 @@ The scrim over the video is sized from that measurement rather than by eye: 0.74
 0.84–0.88 across the stats where `#8e8e8e` labels need a background under roughly 40/255, 0.80 at
 the top. The footage still reads as motion behind it.
 
-## Two real bugs this found, both invisible without it
+## Three real bugs this found, two of them invisible without it
 
 **The background video would never have appeared.** `.page > * { position: relative }` has the same
 specificity as `.bg { position: absolute }` and came later in the stylesheet, so the background
@@ -132,7 +189,14 @@ said a word. The three regions are now named one by one instead of selected as a
 step 2, which has five, wrapped its closing paragraph into a one-word-wide column underneath the
 number and outside the card. Every child but the number is now placed in column two explicitly.
 
-Both were found by looking at the rendered screenshots, which is why they are kept in
+**The active page's three dots sat on top of its own label.** `.nav-pill a` had no height, so its
+box was the line box of the text, and `bottom: 5px` put the dots **inside the glyphs** rather than
+under them — visible in the first screenshots as a smudge through "Home" and "Start". The link is
+now a full-height flex item, so the dots have the pill's own padding to sit in. The check measures
+the gap between the bottom of the text's line box and the top of the `::after` rather than trusting
+the stylesheet, and fails if it is under a pixel.
+
+All three were found by looking at the rendered screenshots, which is why they are kept in
 `evidence/2026-10-27-site-shots/`.
 
 ## The origin policy, which is narrower than it was
@@ -146,10 +210,19 @@ What replaced it is enforced per page rather than site-wide:
 - the **five act pages, their five presentation readings and the room picker** ask no other origin
   for anything at all, and carry no `integrity=` or `crossorigin` attribute either — this is LEAKS
   L10 and A02c, and it is what lets an act open from a file with nothing behind it;
-- the **six kinds of page this repository writes** — landing, Start here, three guides, API index,
-  index of acts — may reach exactly five origins: `fonts.googleapis.com`, `fonts.gstatic.com`,
-  `db.onlinewebfonts.com`, `cdnjs.cloudflare.com`, `d8j0ntlcm91z4.cloudfront.net`;
-- any other origin, on any page, fails the build, as does any off-origin fetch from an act page.
+- the **seven pages this repository writes** — landing, Start here, three guides, API index,
+  index of acts — may reach the font and icon services, and **only those**:
+  `fonts.googleapis.com`, `fonts.gstatic.com`, `db.onlinewebfonts.com`, `cdnjs.cloudflare.com`;
+- `d8j0ntlcm91z4.cloudfront.net`, the background video, is allowed on **the landing page alone**;
+- `www.youtube-nocookie.com`, the walkthrough player, is allowed on **the landing page and Start
+  here alone**;
+- any other origin, on any page, fails the build; so does an allowed origin appearing on a page its
+  own rule does not cover, and so does any off-origin fetch from an act page.
+
+The allowlist stopped being one flat list when the player arrived. A flat list would have made the
+YouTube frame legal on the three guides and the API reference, where nothing should ever embed it,
+so each origin now carries a predicate saying which pages may hold it and the check runs that
+predicate per page.
 
 No page of either half carries analytics, a beacon or a tracker.
 
@@ -180,8 +253,8 @@ run and intersected. The fourth refuses a gate log that records any failing test
 
 ## What this file does not say
 
-It does not say the site is published — this is a local build of `site/`, which is gitignored, and
-the Pages workflow publishes its own. It does not say the walkthrough video is published; it is
-rendered (`video/out/unstirred-demo.mp4`) and has no public URL yet, which is why Start here's
-first step and README's judges block both say so instead of linking. And it says nothing about how
-the page behaves in a browser that is not Chromium 153.
+It does not say this particular build is published — this is a local build of `site/`, which is
+gitignored, and the Pages workflow publishes its own from the same script. It does not say anything
+about how the walkthrough plays once YouTube has it: the check proves the frame is created, points
+at the `nocookie` host and sits inside its box, not that the film decodes. And it says nothing about
+how the page behaves in a browser that is not Chromium 153.

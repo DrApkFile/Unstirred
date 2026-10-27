@@ -10,9 +10,11 @@
 # gate's own bytes and ask no other origin for anything (LEAKS L10, A02c) — that is what lets an
 # act be opened from a file with nothing behind it. The pages this repository writes around them —
 # the landing page, Start here, the three guides, the API index and the index of acts — fetch
-# fonts from three services and the landing's background video from one bucket, five origins in
-# all. That is a deliberate choice, recorded in DECISIONS.md, and scripts/site-pages.py fails the
-# build if any page reaches an origin outside the list or if an act page reaches one at all.
+# fonts from three services, the landing's background video from one bucket and the walkthrough
+# player from www.youtube-nocookie.com: six origins, each with a rule saying which pages may hold
+# it. That is a deliberate choice, recorded in DECISIONS.md, and scripts/site-pages.py fails the
+# build if any page reaches an origin outside the list, if an allowed origin turns up on a page its
+# own rule does not cover, or if an act page reaches one at all.
 #
 #     scripts/build-site.sh [directory]        (default: site)
 #     SKIP_API=1 scripts/build-site.sh         (everything but cargo doc, which is the slow part)
